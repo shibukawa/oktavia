@@ -17,6 +17,15 @@ Generate JS code
    # for node.js
    $ make release_node
 
+Run Sample (simple FM-Index)
+----------------------------
+
+* Create Index File
+
+  .. code-block:: bash
+
+     $ jsx --add-search-path ./lib --run tool/make_index_simple.jsx index.db testdata/jsx_tutorial.txt testdata/jsx_primitive_type.txt testdata/jsx_literal.txt
+
 Run test
 ~~~~~~~~
 

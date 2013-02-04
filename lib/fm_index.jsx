@@ -56,11 +56,6 @@ class FMIndex
         return this._doctails.size(true);
     }
 
-    function build(end_marker : string, num : int) : void
-    {
-        this.build(end_marker, num, false);
-    }
-
     function get_rows (key : string) : int
     {
         var pos = [] : int[];
@@ -167,6 +162,16 @@ class FMIndex
         return this.get_substring(pos, len);
     }
 
+    function build () : void
+    {
+        this.build(String.fromCharCode(1), 64, false);
+    }
+
+    function build (end_marker : string, num : int) : void
+    {
+        this.build(end_marker, num, false);
+    }
+
     function build(end_marker : string, ddic : int, is_msg : boolean) : void
     {
         if (is_msg)
@@ -239,6 +244,34 @@ class FMIndex
         }
         this._substr += doc;
         this._doctails.set(this._doctails.size() + doc.length - 1);
+    }
+
+    function search (keyword : string) : int[][]
+    {
+        var result_map = {} : Map.<int>;
+        var results = [] : int[][];
+        var position = [] : int[];
+        var rows = this.get_rows(keyword, position);
+        if (rows > 0)
+        {
+            var first = position[0];
+            var last = position[1];
+            for (var i = first; i <= last; i++)
+            {
+                var pos = this.get_position(i);
+                var did = this.get_document_id(pos) as string;
+                if (result_map[did] == null)
+                {
+                    result_map[did] == results.length;
+                    results.push([did as int, 1] : int[]);
+                }
+                else
+                {
+                    results[result_map[did]][1]++;
+                }
+            }
+        }
+        return results;
     }
 
     function dump () : string

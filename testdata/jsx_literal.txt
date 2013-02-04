@@ -1,0 +1,65 @@
+Literals
+
+Keywords
+
+The table lists the keyword literals of JSX. In contrary to JavaScript, there is no distinction between undefined and null.
+
+Table 1. List of Keyword Literals
+Keyword	Description
+null [: type]	declares null, may have the type annotated. The type is deducted (if possible) if the type annotation does not exist.
+false	a boolean constant
+true	a boolean constant
+Number Literal
+
+Identical to JavaScript.
+
+String Literal
+
+Identical to JavaScript.
+
+RegExp Literal
+
+Identical to JavaScript.
+
+Function Literal
+
+Type annotations against arguments and return types are required for function declaration, unless the type can be deducted by the surrounding expression.
+
+// a function that takes no arguments, and returns void
+function () : void {}
+
+// a function that takes one argument (of number),
+// and returns a number that in incremented by one
+function (n : number) : number {
+    return n + 1;
+}
+
+// the argument types and return types may be omitted
+// (if it is deductable from the outer expression)
+var sum = 0;
+[ 1, 2, 3 ].forEach(function (e) {
+    sum += e;
+});
+log sum; // 6
+
+// short-handed
+var sum = 0;
+[ 1, 2, 3 ].forEach((e) -> { sum += e; });
+log sum; // 6
+
+// short-handed, single-statement function expression
+var s = "a0b1c".replace(/[a-z]/g, (ch) -> ch.toUpperCase());
+log s; // A0B1C
+A statement starting with function is parsed as inner function declaration, as is by JavaScript. Surround the function declaration with () if your intention is to create an anonymous function and call it immediately.
+
+// inner function declaration (when used within a function declaration)
+function innerFunc() : void {
+    ...;
+}
+
+// create an anonymous function and execute immediately
+(function () : void {
+    ...;
+})();
+See also: Member Function in Class, Interface, and Mixin.
+
