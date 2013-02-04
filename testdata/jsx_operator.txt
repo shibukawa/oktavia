@@ -1,0 +1,68 @@
+Operators
+
+The operators of JSX are the same to those in JavaScript (ECMA-262 3rd edition) except for the following changes.
+
+types of the operands accepted by the operators are more restrictive
+logical operators (&& ||) return boolean
+binary ?: operator has been introduced (to cover the use of || in JavaScript to return non-boolean values)
+introduction of the as operator
+delete is a statement instead of an operator
+The table below lists the operators supported by JSX.
+
+Table 1. List of Operators by Precedence
+Operator	Returned Type	Operand Type(s)
+(x)[1]	typeof x	
+func(...)	return type of the function	
+obj.prop	typeof obj.prop	obj: any object type
+array[index]	Nullable.<T>	array: Array.<T>
+index: number
+map[key]	Nullable.<T>	map: Map.<T>
+key: string
+x++
+x--	typeof x	number or int
+obj instanceof type	boolean	obj: any object type
+type: a Class, Interface, or Mixin
+x as type[2]
+x as __noconvert__ type[3]	type	
+++x
+--x	typeof x	number or int
++x
+-x	typeof x	number or int
+~x	int	number or int
+! x	boolean	any
+typeof x	string	variant
+x * y
+x % y	number or int[4]	number or int
+x / y	number	number or int
+x + y
+x - y	number or int[4]	number or int
+x + y	string	string
+x << y
+x >> y
+x >>> y	int	number or int
+x < y
+x<= y
+x > y
+x >= y	boolean	number, int, string[5]
+x in y	boolean	x: string
+y: Map.<T>
+x == y
+x != y	boolean	any except variant[5]
+x & y	int	number or int
+x ^ y	int	number or int
+x | y	int	number or int
+x && y	boolean	any
+x || y	boolean	any
+x ? y : z	typeof y	any[6]
+x ?: y	typeof x	any[5]
+x = y	typeof x	any[7]
+x op[8]= y	typeof x	same as op
+x, y	typeof y	any
+grouping operator
+cast operator
+cast operator (without run-time type check)
+int is returned if both operands are int
+types of x and y should be equal, or either should be convertible to the other
+types of y and z should be equal, or either should be convertible to the other
+type of y should be convertible to type of x
+any of: * / % + - << >> >>> & ^ |

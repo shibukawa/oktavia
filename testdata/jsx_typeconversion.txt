@@ -1,0 +1,40 @@
+Documents > Type Conversion
+Type Conversion
+
+The as operator is used for: conversion between primitive types (including Nullable and variant), down-casting of object types.
+
+The conversion rules between primitive types are defined as follows. If the source type is a Nullable type and if the value is null, a run-time exception is raised under debug builds. The behavior is unspecified for release builds.
+
+The result of conversion from a variant type depends on the result of the typeof operator applied to the variant.
+
+Down-casting of an object type returns a reference to the casted object if successful, otherwise null.
+
+Table 1. Conversion between the Primitive Types using the As Operator
+Source Type	Destination Type	Result
+boolean	number	0 if false, 1 if true
+boolean	int	same as above
+boolean	string	"false" if false, "true" if true
+number	boolean	false if 0 or NaN, otherwise true
+number	int	fractional part is removed, becomes 0 if NaN, may get rounded to between -231 and 231-1
+number	string	converted to string representation
+int	boolean	false if 0, otherwise true
+int	number	converted to number of same value
+int	string	converted to string representation
+string	boolean	false if the string is empty, otherwise true
+string	number	0 if the string is empty, a number if the string can be parsed as a string, otherwise NaN
+string	int	equivalent to: as number as int
+Table 2. Conversion from Variant using the As Operator
+Result of typeof(variant)	Destination Type	Result
+"undefined"	boolean	false
+"undefined"	number	NaN
+"undefined"	int	0
+"undefined"	string	"undefined"
+"null"	boolean	false
+"null"	number	0
+"null"	int	0
+"null"	string	"null"
+"boolean"	any primitive type	equivalent to the result of: boolean as type
+"number"	any primitive type	equivalent to the result of: number as type
+"string"	any primitive type	equivalent to the result of: string as type
+"object"	any primitive type	depends on the actual type of the value
+"object"	any object type	reference to the object if the value is an object of the specified type, otherwise null
