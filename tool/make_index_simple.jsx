@@ -29,7 +29,7 @@ class _Main
                 var lines = node.fs.readFileSync(args[i], "utf8");
                 fm_index.push(lines);
             }
-            fm_index.build();
+            fm_index.build(String.fromCharCode(1), 64, true);
             var dump = fm_index.dump();
             node.fs.writeFileSync(indexFileName, dump, "utf16le");
         }

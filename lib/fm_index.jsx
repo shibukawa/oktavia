@@ -9,6 +9,7 @@ import "wavelet_matrix.jsx";
 import "bit_vector.jsx";
 import "burrows_wheeler_transform.jsx";
 import "binary_util.jsx";
+import "console.jsx";
 
 
 class FMIndex
@@ -176,7 +177,7 @@ class FMIndex
     {
         if (is_msg)
         {
-            log "building burrows-wheeler transform.";
+            console.time("building burrows-wheeler transform.");
         }
         this._doctails.build();
         this._substr += end_marker;
@@ -188,26 +189,34 @@ class FMIndex
         this._substr = "";
         if (is_msg)
         {
-            log "done.";
+            console.timeEnd("building burrows-wheeler transform.");
         }
 
         if (is_msg)
         {
-            log "building wavelet matrix.";
+            console.time("building wavelet matrix.");
         }
         this._sv.build(s);
         if (is_msg)
         {
-            log "done.";
+            console.timeEnd("building wavelet matrix.");
         }
 
         if (is_msg)
         {
-            log "building dictionaries.";
+            console.time("caching rank less than.");
         }
         for (var c = 0; c < 65536; c++)
         {
             this._rlt[c] = this._sv.rank_less_than(this._sv.size(), c);
+        }
+        if (is_msg)
+        {
+            console.timeEnd("caching rank less than.");
+        }
+        if (is_msg)
+        {
+            console.time("building dictionaries.");
         }
         this._ddic = ddic;
         for (var i = 0; i < (s.length / this._ddic + 1); i++)
@@ -232,7 +241,7 @@ class FMIndex
         } while (i != this._head);
         if (is_msg)
         {
-            log "done.";
+            console.timeEnd("building dictionaries.");
         }
     }
 
