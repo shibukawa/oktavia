@@ -262,7 +262,7 @@ class FMIndex
                 var did = this.get_document_id(pos) as string;
                 if (result_map[did] == null)
                 {
-                    result_map[did] == results.length;
+                    result_map[did] = results.length;
                     results.push([did as int, 1] : int[]);
                 }
                 else

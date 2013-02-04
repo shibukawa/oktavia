@@ -27,17 +27,13 @@ class _Main
             {
                 log "[search world]", args[i];
                 var results = fm_index.search(args[i]);
-                log results.length, " hits";
                 for (var j in results)
                 {
                     var result = results[j];
-                    log result[0], fm_index.get_document(result[0]);
-                    log result[1];
+                    log "[", result[0], "]: ", "(", result[1], ")";
                 }
+                log results.length, " hits";
             }
-            fm_index.build();
-            var dump = fm_index.dump();
-            node.fs.writeFileSync(indexFileName, dump, "utf16le");
         }
     }
 }
