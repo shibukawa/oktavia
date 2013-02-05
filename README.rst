@@ -3,6 +3,35 @@ Oktavia
 
 Oktavia is a full text search engine for JavaScript environment. It uses FM-Index.
 
+Current Status
+--------------
+
+Now it is early alpha version. FM-Index engine works fine, but there are no useful index generator, search client so on.
+
+I am planning to implement following features:
+
+* Basic schemas:
+
+  * HTML (sections, paragraph, pre, anchor)
+  * CSV (column, line break)
+  * reST (sections, paragraph, code-block, etc...)
+
+  I hate markdown.
+
+* Custom schema support
+* Index file generator tool
+* Search client
+
+  * Browser
+  * node.js (command line and API)
+
+* Stemmers
+* Python version
+
+Todo:
+
+* Commit license files for third party modules (Shellinford, sax-js)
+
 Command
 -------
 
@@ -47,3 +76,8 @@ BitVector, WaveletMatrix, FM-Index included in this repository are ported from S
 (developed by @echizen_tm). Thank you!
 
 * https://code.google.com/p/shellinford/
+
+SAXParser/SAXHandler are based on isaacs' sax-js. Thank you!
+
+* https://github.com/isaacs/sax-js
+
