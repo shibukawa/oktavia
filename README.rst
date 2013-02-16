@@ -32,8 +32,8 @@ Todo:
 
 * Commit license files for third party modules (Shellinford, sax-js)
 
-Command
--------
+Command (plannning)
+-------------------
 
 Generate JS code
 ~~~~~~~~~~~~~~~~
