@@ -1,6 +1,6 @@
 // This file was generated automatically by the Snowball to JSX compiler
 
-import "snowball-stemmer.jsx";
+import "base-stemmer.jsx";
 import "among.jsx";
 
  /**
@@ -8,93 +8,93 @@ import "among.jsx";
   * It implements the stemming algorithm defined by a snowball script.
   */
 
-class PorterStemmer extends SnowballStemmer
+class PorterStemmer extends BaseStemmer
 {
     static const serialVersionUID = 1;
     static const methodObject = new PorterStemmer();
 
     static const a_0 = [
-        new Among("s", -1, 3, null, null),
-        new Among("ies", 0, 2, null, null),
-        new Among("sses", 0, 1, null, null),
-        new Among("ss", 0, -1, null, null)
+        new Among("s", -1, 3),
+        new Among("ies", 0, 2),
+        new Among("sses", 0, 1),
+        new Among("ss", 0, -1)
     ];
 
     static const a_1 = [
-        new Among("", -1, 3, null, null),
-        new Among("bb", 0, 2, null, null),
-        new Among("dd", 0, 2, null, null),
-        new Among("ff", 0, 2, null, null),
-        new Among("gg", 0, 2, null, null),
-        new Among("bl", 0, 1, null, null),
-        new Among("mm", 0, 2, null, null),
-        new Among("nn", 0, 2, null, null),
-        new Among("pp", 0, 2, null, null),
-        new Among("rr", 0, 2, null, null),
-        new Among("at", 0, 1, null, null),
-        new Among("tt", 0, 2, null, null),
-        new Among("iz", 0, 1, null, null)
+        new Among("", -1, 3),
+        new Among("bb", 0, 2),
+        new Among("dd", 0, 2),
+        new Among("ff", 0, 2),
+        new Among("gg", 0, 2),
+        new Among("bl", 0, 1),
+        new Among("mm", 0, 2),
+        new Among("nn", 0, 2),
+        new Among("pp", 0, 2),
+        new Among("rr", 0, 2),
+        new Among("at", 0, 1),
+        new Among("tt", 0, 2),
+        new Among("iz", 0, 1)
     ];
 
     static const a_2 = [
-        new Among("ed", -1, 2, null, null),
-        new Among("eed", 0, 1, null, null),
-        new Among("ing", -1, 2, null, null)
+        new Among("ed", -1, 2),
+        new Among("eed", 0, 1),
+        new Among("ing", -1, 2)
     ];
 
     static const a_3 = [
-        new Among("anci", -1, 3, null, null),
-        new Among("enci", -1, 2, null, null),
-        new Among("abli", -1, 4, null, null),
-        new Among("eli", -1, 6, null, null),
-        new Among("alli", -1, 9, null, null),
-        new Among("ousli", -1, 12, null, null),
-        new Among("entli", -1, 5, null, null),
-        new Among("aliti", -1, 10, null, null),
-        new Among("biliti", -1, 14, null, null),
-        new Among("iviti", -1, 13, null, null),
-        new Among("tional", -1, 1, null, null),
-        new Among("ational", 10, 8, null, null),
-        new Among("alism", -1, 10, null, null),
-        new Among("ation", -1, 8, null, null),
-        new Among("ization", 13, 7, null, null),
-        new Among("izer", -1, 7, null, null),
-        new Among("ator", -1, 8, null, null),
-        new Among("iveness", -1, 13, null, null),
-        new Among("fulness", -1, 11, null, null),
-        new Among("ousness", -1, 12, null, null)
+        new Among("anci", -1, 3),
+        new Among("enci", -1, 2),
+        new Among("abli", -1, 4),
+        new Among("eli", -1, 6),
+        new Among("alli", -1, 9),
+        new Among("ousli", -1, 12),
+        new Among("entli", -1, 5),
+        new Among("aliti", -1, 10),
+        new Among("biliti", -1, 14),
+        new Among("iviti", -1, 13),
+        new Among("tional", -1, 1),
+        new Among("ational", 10, 8),
+        new Among("alism", -1, 10),
+        new Among("ation", -1, 8),
+        new Among("ization", 13, 7),
+        new Among("izer", -1, 7),
+        new Among("ator", -1, 8),
+        new Among("iveness", -1, 13),
+        new Among("fulness", -1, 11),
+        new Among("ousness", -1, 12)
     ];
 
     static const a_4 = [
-        new Among("icate", -1, 2, null, null),
-        new Among("ative", -1, 3, null, null),
-        new Among("alize", -1, 1, null, null),
-        new Among("iciti", -1, 2, null, null),
-        new Among("ical", -1, 2, null, null),
-        new Among("ful", -1, 3, null, null),
-        new Among("ness", -1, 3, null, null)
+        new Among("icate", -1, 2),
+        new Among("ative", -1, 3),
+        new Among("alize", -1, 1),
+        new Among("iciti", -1, 2),
+        new Among("ical", -1, 2),
+        new Among("ful", -1, 3),
+        new Among("ness", -1, 3)
     ];
 
     static const a_5 = [
-        new Among("ic", -1, 1, null, null),
-        new Among("ance", -1, 1, null, null),
-        new Among("ence", -1, 1, null, null),
-        new Among("able", -1, 1, null, null),
-        new Among("ible", -1, 1, null, null),
-        new Among("ate", -1, 1, null, null),
-        new Among("ive", -1, 1, null, null),
-        new Among("ize", -1, 1, null, null),
-        new Among("iti", -1, 1, null, null),
-        new Among("al", -1, 1, null, null),
-        new Among("ism", -1, 1, null, null),
-        new Among("ion", -1, 2, null, null),
-        new Among("er", -1, 1, null, null),
-        new Among("ous", -1, 1, null, null),
-        new Among("ant", -1, 1, null, null),
-        new Among("ent", -1, 1, null, null),
-        new Among("ment", 15, 1, null, null),
-        new Among("ement", 16, 1, null, null),
-        new Among("ou", -1, 1, null, null)
+        new Among("ic", -1, 1),
+        new Among("ance", -1, 1),
+        new Among("ence", -1, 1),
+        new Among("able", -1, 1),
+        new Among("ible", -1, 1),
+        new Among("ate", -1, 1),
+        new Among("ive", -1, 1),
+        new Among("ize", -1, 1),
+        new Among("iti", -1, 1),
+        new Among("al", -1, 1),
+        new Among("ism", -1, 1),
+        new Among("ion", -1, 2),
+        new Among("er", -1, 1),
+        new Among("ous", -1, 1),
+        new Among("ant", -1, 1),
+        new Among("ent", -1, 1),
+        new Among("ment", 15, 1),
+        new Among("ement", 16, 1),
+        new Among("ou", -1, 1)
     ];
 
     static const g_v = [17, 65, 16, 1] : int[];

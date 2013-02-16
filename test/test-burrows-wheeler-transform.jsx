@@ -6,7 +6,7 @@
  */
 
 import "test-case.jsx";
-import "burrows_wheeler_transform.jsx";
+import "burrows-wheeler-transform.jsx";
 
 class _Test extends TestCase
 {

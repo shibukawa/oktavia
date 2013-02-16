@@ -5,7 +5,7 @@
  * License: http://shibu.mit-license.org/
  */
 
-import "binary_util.jsx";
+import "binary-util.jsx";
 
 
 class BitVector

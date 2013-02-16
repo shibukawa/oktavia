@@ -1,6 +1,6 @@
 // This file was generated automatically by the Snowball to JSX compiler
 
-import "snowball-stemmer.jsx";
+import "base-stemmer.jsx";
 import "among.jsx";
 
  /**
@@ -8,152 +8,152 @@ import "among.jsx";
   * It implements the stemming algorithm defined by a snowball script.
   */
 
-class EnglishStemmer extends SnowballStemmer
+class EnglishStemmer extends BaseStemmer
 {
     static const serialVersionUID = 1;
     static const methodObject = new EnglishStemmer();
 
     static const a_0 = [
-        new Among("arsen", -1, -1, null, null),
-        new Among("commun", -1, -1, null, null),
-        new Among("gener", -1, -1, null, null)
+        new Among("arsen", -1, -1),
+        new Among("commun", -1, -1),
+        new Among("gener", -1, -1)
     ];
 
     static const a_1 = [
-        new Among("'", -1, 1, null, null),
-        new Among("'s'", 0, 1, null, null),
-        new Among("'s", -1, 1, null, null)
+        new Among("'", -1, 1),
+        new Among("'s'", 0, 1),
+        new Among("'s", -1, 1)
     ];
 
     static const a_2 = [
-        new Among("ied", -1, 2, null, null),
-        new Among("s", -1, 3, null, null),
-        new Among("ies", 1, 2, null, null),
-        new Among("sses", 1, 1, null, null),
-        new Among("ss", 1, -1, null, null),
-        new Among("us", 1, -1, null, null)
+        new Among("ied", -1, 2),
+        new Among("s", -1, 3),
+        new Among("ies", 1, 2),
+        new Among("sses", 1, 1),
+        new Among("ss", 1, -1),
+        new Among("us", 1, -1)
     ];
 
     static const a_3 = [
-        new Among("", -1, 3, null, null),
-        new Among("bb", 0, 2, null, null),
-        new Among("dd", 0, 2, null, null),
-        new Among("ff", 0, 2, null, null),
-        new Among("gg", 0, 2, null, null),
-        new Among("bl", 0, 1, null, null),
-        new Among("mm", 0, 2, null, null),
-        new Among("nn", 0, 2, null, null),
-        new Among("pp", 0, 2, null, null),
-        new Among("rr", 0, 2, null, null),
-        new Among("at", 0, 1, null, null),
-        new Among("tt", 0, 2, null, null),
-        new Among("iz", 0, 1, null, null)
+        new Among("", -1, 3),
+        new Among("bb", 0, 2),
+        new Among("dd", 0, 2),
+        new Among("ff", 0, 2),
+        new Among("gg", 0, 2),
+        new Among("bl", 0, 1),
+        new Among("mm", 0, 2),
+        new Among("nn", 0, 2),
+        new Among("pp", 0, 2),
+        new Among("rr", 0, 2),
+        new Among("at", 0, 1),
+        new Among("tt", 0, 2),
+        new Among("iz", 0, 1)
     ];
 
     static const a_4 = [
-        new Among("ed", -1, 2, null, null),
-        new Among("eed", 0, 1, null, null),
-        new Among("ing", -1, 2, null, null),
-        new Among("edly", -1, 2, null, null),
-        new Among("eedly", 3, 1, null, null),
-        new Among("ingly", -1, 2, null, null)
+        new Among("ed", -1, 2),
+        new Among("eed", 0, 1),
+        new Among("ing", -1, 2),
+        new Among("edly", -1, 2),
+        new Among("eedly", 3, 1),
+        new Among("ingly", -1, 2)
     ];
 
     static const a_5 = [
-        new Among("anci", -1, 3, null, null),
-        new Among("enci", -1, 2, null, null),
-        new Among("ogi", -1, 13, null, null),
-        new Among("li", -1, 16, null, null),
-        new Among("bli", 3, 12, null, null),
-        new Among("abli", 4, 4, null, null),
-        new Among("alli", 3, 8, null, null),
-        new Among("fulli", 3, 14, null, null),
-        new Among("lessli", 3, 15, null, null),
-        new Among("ousli", 3, 10, null, null),
-        new Among("entli", 3, 5, null, null),
-        new Among("aliti", -1, 8, null, null),
-        new Among("biliti", -1, 12, null, null),
-        new Among("iviti", -1, 11, null, null),
-        new Among("tional", -1, 1, null, null),
-        new Among("ational", 14, 7, null, null),
-        new Among("alism", -1, 8, null, null),
-        new Among("ation", -1, 7, null, null),
-        new Among("ization", 17, 6, null, null),
-        new Among("izer", -1, 6, null, null),
-        new Among("ator", -1, 7, null, null),
-        new Among("iveness", -1, 11, null, null),
-        new Among("fulness", -1, 9, null, null),
-        new Among("ousness", -1, 10, null, null)
+        new Among("anci", -1, 3),
+        new Among("enci", -1, 2),
+        new Among("ogi", -1, 13),
+        new Among("li", -1, 16),
+        new Among("bli", 3, 12),
+        new Among("abli", 4, 4),
+        new Among("alli", 3, 8),
+        new Among("fulli", 3, 14),
+        new Among("lessli", 3, 15),
+        new Among("ousli", 3, 10),
+        new Among("entli", 3, 5),
+        new Among("aliti", -1, 8),
+        new Among("biliti", -1, 12),
+        new Among("iviti", -1, 11),
+        new Among("tional", -1, 1),
+        new Among("ational", 14, 7),
+        new Among("alism", -1, 8),
+        new Among("ation", -1, 7),
+        new Among("ization", 17, 6),
+        new Among("izer", -1, 6),
+        new Among("ator", -1, 7),
+        new Among("iveness", -1, 11),
+        new Among("fulness", -1, 9),
+        new Among("ousness", -1, 10)
     ];
 
     static const a_6 = [
-        new Among("icate", -1, 4, null, null),
-        new Among("ative", -1, 6, null, null),
-        new Among("alize", -1, 3, null, null),
-        new Among("iciti", -1, 4, null, null),
-        new Among("ical", -1, 4, null, null),
-        new Among("tional", -1, 1, null, null),
-        new Among("ational", 5, 2, null, null),
-        new Among("ful", -1, 5, null, null),
-        new Among("ness", -1, 5, null, null)
+        new Among("icate", -1, 4),
+        new Among("ative", -1, 6),
+        new Among("alize", -1, 3),
+        new Among("iciti", -1, 4),
+        new Among("ical", -1, 4),
+        new Among("tional", -1, 1),
+        new Among("ational", 5, 2),
+        new Among("ful", -1, 5),
+        new Among("ness", -1, 5)
     ];
 
     static const a_7 = [
-        new Among("ic", -1, 1, null, null),
-        new Among("ance", -1, 1, null, null),
-        new Among("ence", -1, 1, null, null),
-        new Among("able", -1, 1, null, null),
-        new Among("ible", -1, 1, null, null),
-        new Among("ate", -1, 1, null, null),
-        new Among("ive", -1, 1, null, null),
-        new Among("ize", -1, 1, null, null),
-        new Among("iti", -1, 1, null, null),
-        new Among("al", -1, 1, null, null),
-        new Among("ism", -1, 1, null, null),
-        new Among("ion", -1, 2, null, null),
-        new Among("er", -1, 1, null, null),
-        new Among("ous", -1, 1, null, null),
-        new Among("ant", -1, 1, null, null),
-        new Among("ent", -1, 1, null, null),
-        new Among("ment", 15, 1, null, null),
-        new Among("ement", 16, 1, null, null)
+        new Among("ic", -1, 1),
+        new Among("ance", -1, 1),
+        new Among("ence", -1, 1),
+        new Among("able", -1, 1),
+        new Among("ible", -1, 1),
+        new Among("ate", -1, 1),
+        new Among("ive", -1, 1),
+        new Among("ize", -1, 1),
+        new Among("iti", -1, 1),
+        new Among("al", -1, 1),
+        new Among("ism", -1, 1),
+        new Among("ion", -1, 2),
+        new Among("er", -1, 1),
+        new Among("ous", -1, 1),
+        new Among("ant", -1, 1),
+        new Among("ent", -1, 1),
+        new Among("ment", 15, 1),
+        new Among("ement", 16, 1)
     ];
 
     static const a_8 = [
-        new Among("e", -1, 1, null, null),
-        new Among("l", -1, 2, null, null)
+        new Among("e", -1, 1),
+        new Among("l", -1, 2)
     ];
 
     static const a_9 = [
-        new Among("succeed", -1, -1, null, null),
-        new Among("proceed", -1, -1, null, null),
-        new Among("exceed", -1, -1, null, null),
-        new Among("canning", -1, -1, null, null),
-        new Among("inning", -1, -1, null, null),
-        new Among("earring", -1, -1, null, null),
-        new Among("herring", -1, -1, null, null),
-        new Among("outing", -1, -1, null, null)
+        new Among("succeed", -1, -1),
+        new Among("proceed", -1, -1),
+        new Among("exceed", -1, -1),
+        new Among("canning", -1, -1),
+        new Among("inning", -1, -1),
+        new Among("earring", -1, -1),
+        new Among("herring", -1, -1),
+        new Among("outing", -1, -1)
     ];
 
     static const a_10 = [
-        new Among("andes", -1, -1, null, null),
-        new Among("atlas", -1, -1, null, null),
-        new Among("bias", -1, -1, null, null),
-        new Among("cosmos", -1, -1, null, null),
-        new Among("dying", -1, 3, null, null),
-        new Among("early", -1, 9, null, null),
-        new Among("gently", -1, 7, null, null),
-        new Among("howe", -1, -1, null, null),
-        new Among("idly", -1, 6, null, null),
-        new Among("lying", -1, 4, null, null),
-        new Among("news", -1, -1, null, null),
-        new Among("only", -1, 10, null, null),
-        new Among("singly", -1, 11, null, null),
-        new Among("skies", -1, 2, null, null),
-        new Among("skis", -1, 1, null, null),
-        new Among("sky", -1, -1, null, null),
-        new Among("tying", -1, 5, null, null),
-        new Among("ugly", -1, 8, null, null)
+        new Among("andes", -1, -1),
+        new Among("atlas", -1, -1),
+        new Among("bias", -1, -1),
+        new Among("cosmos", -1, -1),
+        new Among("dying", -1, 3),
+        new Among("early", -1, 9),
+        new Among("gently", -1, 7),
+        new Among("howe", -1, -1),
+        new Among("idly", -1, 6),
+        new Among("lying", -1, 4),
+        new Among("news", -1, -1),
+        new Among("only", -1, 10),
+        new Among("singly", -1, 11),
+        new Among("skies", -1, 2),
+        new Among("skis", -1, 1),
+        new Among("sky", -1, -1),
+        new Among("tying", -1, 5),
+        new Among("ugly", -1, 8)
     ];
 
     static const g_v = [17, 65, 16, 1] : int[];

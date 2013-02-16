@@ -1,0 +1,4 @@
+--exec "jsx --add-search-path lib --release --test" test/
+--ext .jsx
+--timer
+--color

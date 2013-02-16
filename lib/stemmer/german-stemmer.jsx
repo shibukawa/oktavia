@@ -1,6 +1,6 @@
 // This file was generated automatically by the Snowball to JSX compiler
 
-import "snowball-stemmer.jsx";
+import "base-stemmer.jsx";
 import "among.jsx";
 
  /**
@@ -8,51 +8,51 @@ import "among.jsx";
   * It implements the stemming algorithm defined by a snowball script.
   */
 
-class GermanStemmer extends SnowballStemmer
+class GermanStemmer extends BaseStemmer
 {
     static const serialVersionUID = 1;
     static const methodObject = new GermanStemmer();
 
     static const a_0 = [
-        new Among("", -1, 6, null, null),
-        new Among("U", 0, 2, null, null),
-        new Among("Y", 0, 1, null, null),
-        new Among("\u00E4", 0, 3, null, null),
-        new Among("\u00F6", 0, 4, null, null),
-        new Among("\u00FC", 0, 5, null, null)
+        new Among("", -1, 6),
+        new Among("U", 0, 2),
+        new Among("Y", 0, 1),
+        new Among("\u00E4", 0, 3),
+        new Among("\u00F6", 0, 4),
+        new Among("\u00FC", 0, 5)
     ];
 
     static const a_1 = [
-        new Among("e", -1, 2, null, null),
-        new Among("em", -1, 1, null, null),
-        new Among("en", -1, 2, null, null),
-        new Among("ern", -1, 1, null, null),
-        new Among("er", -1, 1, null, null),
-        new Among("s", -1, 3, null, null),
-        new Among("es", 5, 2, null, null)
+        new Among("e", -1, 2),
+        new Among("em", -1, 1),
+        new Among("en", -1, 2),
+        new Among("ern", -1, 1),
+        new Among("er", -1, 1),
+        new Among("s", -1, 3),
+        new Among("es", 5, 2)
     ];
 
     static const a_2 = [
-        new Among("en", -1, 1, null, null),
-        new Among("er", -1, 1, null, null),
-        new Among("st", -1, 2, null, null),
-        new Among("est", 2, 1, null, null)
+        new Among("en", -1, 1),
+        new Among("er", -1, 1),
+        new Among("st", -1, 2),
+        new Among("est", 2, 1)
     ];
 
     static const a_3 = [
-        new Among("ig", -1, 1, null, null),
-        new Among("lich", -1, 1, null, null)
+        new Among("ig", -1, 1),
+        new Among("lich", -1, 1)
     ];
 
     static const a_4 = [
-        new Among("end", -1, 1, null, null),
-        new Among("ig", -1, 2, null, null),
-        new Among("ung", -1, 1, null, null),
-        new Among("lich", -1, 3, null, null),
-        new Among("isch", -1, 2, null, null),
-        new Among("ik", -1, 2, null, null),
-        new Among("heit", -1, 3, null, null),
-        new Among("keit", -1, 4, null, null)
+        new Among("end", -1, 1),
+        new Among("ig", -1, 2),
+        new Among("ung", -1, 1),
+        new Among("lich", -1, 3),
+        new Among("isch", -1, 2),
+        new Among("ik", -1, 2),
+        new Among("heit", -1, 3),
+        new Among("keit", -1, 4)
     ];
 
     static const g_v = [17, 65, 16, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 32, 8] : int[];

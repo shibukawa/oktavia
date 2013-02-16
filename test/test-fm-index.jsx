@@ -6,7 +6,7 @@
  */
 
 import "test-case.jsx";
-import "fm_index.jsx";
+import "fm-index.jsx";
 
 class Pair
 {

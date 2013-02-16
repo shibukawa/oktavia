@@ -1,7 +1,7 @@
 import "stemmer.jsx";
 import "among.jsx";
 
-class SnowballStemmer implements Stemmer
+class BaseStemmer implements Stemmer
 {
     // this.current string
     var current : string;
@@ -10,9 +10,11 @@ class SnowballStemmer implements Stemmer
     var limit_backward : int;
     var bra : int;
     var ket : int;
+    var cache : Map.<string>;
 
     function constructor ()
     {
+        this.cache = {} : Map.<string>;
 	this.setCurrent("");
     }
 
@@ -38,7 +40,7 @@ class SnowballStemmer implements Stemmer
     }
 
 
-    function copy_from (other : SnowballStemmer) : void
+    function copy_from (other : BaseStemmer) : void
     {
 	this.current          = other.current;
 	this.cursor           = other.cursor;
@@ -383,20 +385,35 @@ class SnowballStemmer implements Stemmer
         return false;
     }
 
-    override function stem (input : string) : string
+    override function stemWord (word : string) : string
     {
-        this.setCurrent(input);
-        this.stem();
-        return this.getCurrent();
+        var result = this.cache['.' + word];
+        if (result == null)
+        {
+            this.setCurrent(word);
+            this.stem();
+            result = this.getCurrent();
+            this.cache['.' + word] = result;
+        }
+        return result;
     }
 
-    override function stem (input : string, repeat : int) : string
+    override function stemWords (words : string[]) : string[]
     {
-        this.setCurrent(input);
-        for (var i = 0; i < repeat; i++)
+        var results = [] : string[];
+        for (var i = 0; i < words.length; i++)
         {
-            this.stem();
+            var word = words[i];
+            var result = this.cache['.' + word];
+            if (result == null)
+            {
+                this.setCurrent(word);
+                this.stem();
+                result = this.getCurrent();
+                this.cache['.' + word] = result;
+            }
+            results.push(result);
         }
-        return this.getCurrent();
+        return results;
     }
 }

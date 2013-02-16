@@ -5,10 +5,10 @@
  * License: http://shibu.mit-license.org/
  */
 
-import "wavelet_matrix.jsx";
-import "bit_vector.jsx";
-import "burrows_wheeler_transform.jsx";
-import "binary_util.jsx";
+import "wavelet-matrix.jsx";
+import "bit-vector.jsx";
+import "burrows-wheeler-transform.jsx";
+import "binary-util.jsx";
 import "console.jsx";
 
 

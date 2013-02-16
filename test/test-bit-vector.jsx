@@ -1,5 +1,5 @@
 import "test-case.jsx";
-import "bit_vector.jsx";
+import "bit-vector.jsx";
 
 class _Test extends TestCase
 {
@@ -56,7 +56,7 @@ class _Test extends TestCase
             this.expect(this.bv0.rank(v, false)).toBe(i);
         }
     }
-  
+
     function test_select () : void
     {
         for (var i = 0; i < this.src_values.length; i++)
@@ -109,14 +109,13 @@ class _Test extends TestCase
             this.expect(this.bv0.rank(v, false)).toBe(i);
         }
     }
-  
+
     function test_load_dump_and_select () : void
     {
         var dump1 = this.bv1.dump();
         var dump0 = this.bv0.dump();
         this.bv1.load(dump1);
         this.bv0.load(dump0);
-
         for (var i = 0; i < this.src_values.length; i++)
         {
             var v = this.src_values[i];

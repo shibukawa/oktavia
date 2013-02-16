@@ -5,8 +5,8 @@
  * License: http://shibu.mit-license.org/
  */
 
-import "bit_vector.jsx";
-import "binary_util.jsx";
+import "bit-vector.jsx";
+import "binary-util.jsx";
 
 
 class WaveletMatrix

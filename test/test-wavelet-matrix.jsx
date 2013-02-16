@@ -6,7 +6,7 @@
  */
 
 import "test-case.jsx";
-import "wavelet_matrix.jsx";
+import "wavelet-matrix.jsx";
 
 class _Test extends TestCase
 {
