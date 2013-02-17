@@ -1,5 +1,6 @@
 import "bit-vector.jsx";
 import "oktavia.jsx";
+import "binary-util.jsx";
 import "console.jsx";
 
 
@@ -34,9 +35,22 @@ class Metadata
         return this._parent._getSubstring(startPosition, length);
     }
 
-    function build () : void
+    function _build () : void
     {
         this._bitVector.build();
+    }
+
+    function _load (name : string, data : string, offset : int) : int
+    {
+        offset = this._bitVector.load(data, offset);
+        this._parent._metadataLabels.push(name);
+        this._parent._metadatas[name] = this;
+        return offset;
+    }
+
+    function _dump () : string
+    {
+        return this._bitVector.dump();
     }
 }
 
@@ -80,6 +94,19 @@ class Section extends Metadata
         }
         return this._names[index];
     }
+
+    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    {
+        var strs = Binary.loadStringList(data, offset);
+        var section = new Section(parent);
+        section._names = strs.result;
+        return section._load(name, data, strs.offset);
+    }
+
+    override function _dump () : string
+    {
+        return [Binary.dump16bitNumber(0), Binary.dumpStringList(this._names), super._dump()].join('');
+    }
 }
 
 class Splitter extends Metadata
@@ -107,6 +134,17 @@ class Splitter extends Metadata
             throw new Error("Section.getSectionIndex() : range error");
         }
         return this._bitVector.rank(position);
+    }
+
+    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    {
+        var section = new Splitter(parent);
+        return section._load(name, data, offset);
+    }
+
+    override function _dump () : string
+    {
+        return [Binary.dump16bitNumber(1), super._dump()].join('');
     }
 }
 
@@ -185,10 +223,26 @@ class Table extends Metadata
         return result;
     }
 
-    override function build () : void
+    override function _build () : void
     {
         this._bitVector.build();
         this._columnTails.build();
+    }
+
+    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    {
+        var strs = Binary.loadStringList(data, offset);
+        var table = new Table(parent, strs.result);
+        offset = table._load(name, data, strs.offset);
+        return table._columnTails.load(data, offset);
+    }
+
+    override function _dump () : string
+    {
+        return [
+            Binary.dump16bitNumber(2), Binary.dumpStringList(this._headers),
+            super._dump(), this._columnTails.dump()
+        ].join('');
     }
 }
 
@@ -257,7 +311,7 @@ class Block extends Metadata
         return (blockIndex % 2) != 0;
     }
 
-    function  getBlockContent (position : int) : string
+    function getBlockContent (position : int) : string
     {
         var blockIndex = this.blockIndex(position);
         var result : string;
@@ -272,7 +326,7 @@ class Block extends Metadata
         return result;
     }
 
-    function  getBlockName (position : int) : string
+    function getBlockName (position : int) : string
     {
         var blockIndex = this.blockIndex(position);
         var result : string;
@@ -285,6 +339,19 @@ class Block extends Metadata
             result = '';
         }
         return result;
+    }
+
+    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    {
+        var strs = Binary.loadStringList(data, offset);
+        var block = new Block(parent);
+        block._names = strs.result;
+        return block._load(name, data, strs.offset);
+    }
+
+    override function _dump () : string
+    {
+        return [Binary.dump16bitNumber(3), Binary.dumpStringList(this._names), super._dump()].join('');
     }
 }
 

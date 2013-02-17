@@ -256,8 +256,8 @@ class FMIndex
     function dump () : string
     {
         var contents = [] : string[];
-        contents.push(Binary.dump_64bit_number(this._ddic));
-        contents.push(Binary.dump_64bit_number(this._head));
+        contents.push(Binary.dump64bitNumber(this._ddic));
+        contents.push(Binary.dump64bitNumber(this._head));
         contents.push(this._sv.dump());
         var wmsize = this._sv.size();
         var rlt_cache = [] : string[];
@@ -266,19 +266,20 @@ class FMIndex
             var pos = this._rlt[i];
             if (pos != wmsize)
             {
-                rlt_cache.push(Binary.dump_16bit_number(i) + Binary.dump_64bit_number(pos));
+                rlt_cache.push(Binary.dump16bitNumber(i) + Binary.dump64bitNumber(pos));
             }
         };
-        contents.push(Binary.dump_16bit_number(rlt_cache.length));
+        contents.push(Binary.dump16bitNumber(rlt_cache.length));
         contents.push(rlt_cache.join(""));
-
+        contents.push(Binary.dump64bitNumber(this._posdic.length));
         for (var i in this._posdic)
         {
-            Binary.dump_64bit_number(this._posdic[i]);
+            contents.push(Binary.dump64bitNumber(this._posdic[i]));
         }
+        contents.push(Binary.dump64bitNumber(this._idic.length));
         for (var i in this._idic)
         {
-            Binary.dump_64bit_number(this._idic[i]);
+            contents.push(Binary.dump64bitNumber(this._idic[i]));
         }
         return contents.join("");
     }
@@ -290,15 +291,15 @@ class FMIndex
 
     function load (data : string, offset : int) : int
     {
-        this._ddic = Binary.load_64bit_number(data, 0);
-        this._head = Binary.load_64bit_number(data, 4);
+        this._ddic = Binary.load64bitNumber(data, offset);
+        this._head = Binary.load64bitNumber(data, offset + 4);
         offset = this._sv.load(data, offset + 8);
         var wmsize = this._sv.size();
-        var rlt_cache_size = Binary.load_16bit_number(data, offset++);
+        var rlt_cache_size = Binary.load16bitNumber(data, offset++);
         for (var i = 0; i < rlt_cache_size; i++, offset += 5)
         {
-            var index = Binary.load_16bit_number(data, offset);
-            var pos = Binary.load_64bit_number(data, offset + 1);
+            var index = Binary.load16bitNumber(data, offset);
+            var pos = Binary.load64bitNumber(data, offset + 1);
             this._rlt[index] = pos;
         }
         for (var i = 0; i < 65536; i++)
@@ -308,14 +309,17 @@ class FMIndex
                 this._rlt[i] = wmsize;
             }
         }
-        var size = Math.floor(this._sv.size() / this._ddic) + 1;
+        var size = Binary.load64bitNumber(data, offset);
+        offset += 4;
         for (var i = 0; i < size; i++, offset += 4)
         {
-            this._posdic.push(Binary.load_64bit_number(data, offset));
+            this._posdic.push(Binary.load64bitNumber(data, offset));
         }
+        var size = Binary.load64bitNumber(data, offset);
+        offset += 4;
         for (var i = 0; i < size; i++, offset += 4)
         {
-            this._idic.push(Binary.load_64bit_number(data, offset));
+            this._idic.push(Binary.load64bitNumber(data, offset));
         }
         return offset;
     }

@@ -110,4 +110,117 @@ class _Test extends TestCase
         {
         }
     }
+
+    function test_dump_load_and_doc_sizes () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        this.expect(this.block.size()).toBe(1);
+    }
+
+    function test_load_dump_and_in_block () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        this.expect(this.block.inBlock(0)).toBe(false);
+        this.expect(this.block.inBlock(10)).toBe(false);
+        this.expect(this.block.inBlock(11)).toBe(true);
+        this.expect(this.block.inBlock(21)).toBe(true);
+        this.expect(this.block.inBlock(22)).toBe(false);
+        this.expect(this.block.inBlock(44)).toBe(false);
+    }
+
+    function test_load_dump_and_in_block_boundary () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        try
+        {
+            this.block.inBlock(-1);
+            this.fail("fm.inBlock() 1");
+        }
+        catch (e : Error)
+        {
+        }
+        try
+        {
+            this.block.inBlock(45);
+            this.fail("fm.inBlock() 2");
+        }
+        catch (e : Error)
+        {
+        }
+    }
+
+    function test_load_dump_and_get_block_content () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        this.expect(this.block.getBlockContent(11)).toBe("mississippi");
+    }
+
+    function test_load_dump_and_get_block_content_boundary () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        try
+        {
+            this.block.getBlockContent(45);
+            this.fail("fm.getContent()");
+        }
+        catch (e : Error)
+        {
+        }
+        try
+        {
+            this.block.getBlockContent(-1);
+            this.fail("fm.getContent()");
+        }
+        catch (e : Error)
+        {
+        }
+    }
+
+    function test_load_dump_and_get_block_name () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        this.expect(this.block.getBlockName(11)).toBe("river");
+    }
+
+    function test_load_dump_and_get_block_name_boundary () : void
+    {
+        var dump = this.oktavia.dump();
+        this.oktavia.load(dump);
+        this.block = this.oktavia.getBlock('document');
+
+        try
+        {
+            this.block.getBlockName(45);
+            this.fail("fm.getName()");
+        }
+        catch (e : Error)
+        {
+        }
+        try
+        {
+            this.block.getBlockName(-1);
+            this.fail("fm.getName()");
+        }
+        catch (e : Error)
+        {
+        }
+    }
 }

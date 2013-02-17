@@ -265,18 +265,18 @@ class BitVector
     function dump () : string
     {
         var contents = [] : string[];
-        contents.push(Binary.dump_64bit_number(this._size));
-        contents.push(Binary.dump_64bit_number(this._size1));
+        contents.push(Binary.dump64bitNumber(this._size));
+        contents.push(Binary.dump64bitNumber(this._size1));
 
-        contents.push(Binary.dump_64bit_number(this._v.length));
+        contents.push(Binary.dump64bitNumber(this._v.length));
         for (var i in this._v)
         {
-            contents.push(Binary.dump_32bit_number(this._v[i]));
+            contents.push(Binary.dump32bitNumber(this._v[i]));
         }
-        contents.push(Binary.dump_64bit_number(this._r.length));
+        contents.push(Binary.dump64bitNumber(this._r.length));
         for (var i in this._r)
         {
-            contents.push(Binary.dump_32bit_number(this._r[i]));
+            contents.push(Binary.dump32bitNumber(this._r[i]));
         }
         return contents.join('');
     }
@@ -289,22 +289,22 @@ class BitVector
     function load (data : string, offset : int) : int
     {
         this.clear();
-        this._size = Binary.load_64bit_number(data, offset);
-        this._size1 = Binary.load_64bit_number(data, offset + 4);
+        this._size = Binary.load64bitNumber(data, offset);
+        this._size1 = Binary.load64bitNumber(data, offset + 4);
 
-        var size = Binary.load_64bit_number(data, offset + 8);
+        var size = Binary.load64bitNumber(data, offset + 8);
         offset += 12;
 
         for (var i = 0; i < size; i++, offset += 2)
         {
-            this._v.push(Binary.load_32bit_number(data, offset));
+            this._v.push(Binary.load32bitNumber(data, offset));
         }
 
-        size = Binary.load_64bit_number(data, offset);
+        size = Binary.load64bitNumber(data, offset);
         offset += 4;
         for (var i = 0; i < size; i++, offset += 2)
         {
-            this._r.push(Binary.load_32bit_number(data, offset));
+            this._r.push(Binary.load32bitNumber(data, offset));
         }
         return offset;
     }
