@@ -225,33 +225,23 @@ class FMIndex
         this._substr += doc;
     }
 
-    /*function search (keyword : string) : int[][]
+    function search (keyword : string) : int[]
     {
         var result_map = {} : Map.<int>;
-        var results = [] : int[][];
+        var result = [] : int[];
         var position = [] : int[];
-        var rows = this.get_rows(keyword, position);
+        var rows = this.getRows(keyword, position);
         if (rows > 0)
         {
             var first = position[0];
             var last = position[1];
             for (var i = first; i <= last; i++)
             {
-                var pos = this.get_position(i);
-                var did = this.get_document_id(pos) as string;
-                if (result_map[did] == null)
-                {
-                    result_map[did] = results.length;
-                    results.push([did as int, 1] : int[]);
-                }
-                else
-                {
-                    results[result_map[did]][1]++;
-                }
+                result.push(this.getPosition(i));
             }
         }
-        return results;
-    }*/
+        return result;
+    }
 
     function dump () : string
     {

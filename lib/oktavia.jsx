@@ -2,19 +2,28 @@ import "metadata.jsx";
 import "fm-index.jsx";
 import "binary-util.jsx";
 import "console.jsx";
-
+import "stemmer/stemmer.jsx";
 
 class Oktavia
 {
     var _fmindex : FMIndex;
     var _metadatas : Map.<Metadata>;
     var _metadataLabels : string[];
+    var _stemmer : Nullable.<Stemmer>;
+    var _stemmingResult : Map.<string[]>;
 
     function constructor ()
     {
         this._fmindex = new FMIndex();
         this._metadatas = {} : Map.<Metadata>;
         this._metadataLabels = [] : string[];
+        this._stemmer = null;
+        this._stemmingResult = {} : Map.<string[]>;
+    }
+
+    function setStemmer (stemmer : Stemmer) : void
+    {
+        this._stemmer = stemmer;
     }
 
     function addSection (key : string) : Section
@@ -101,9 +110,59 @@ class Oktavia
         return this._metadatas[key] as Block;
     }
 
-    function addWord (word : string) : void
+    function addWord (words : string) : void
     {
-        this._fmindex.push(word);
+        this._fmindex.push(words);
+    }
+
+    function addWord (words : string, stemming : boolean) : void
+    {
+        this._fmindex.push(words);
+        if (stemming && this._stemmer)
+        {
+            var wordList = words.split(/\s+/);
+            for (var i = 0; i < wordList.length; i++)
+            {
+                var originalWord = wordList[i];
+                var baseWord = this._stemmer.stemWord(originalWord);
+                if (originalWord.indexOf(baseWord) != -1)
+                {
+                    var stemmedList = this._stemmingResult[baseWord];
+                    if (!stemmedList)
+                    {
+                        stemmedList = [originalWord];
+                        this._stemmingResult[baseWord] = stemmedList;
+                    }
+                    else if (stemmedList.indexOf(originalWord) == -1)
+                    {
+                        stemmedList.push(originalWord);
+                    }
+                }
+            }
+        }
+    }
+
+    function rawSearch (keyword : string, stemming : boolean) : int[]
+    {
+        var result : int[];
+        if (stemming && this._stemmer)
+        {
+            result = [] : int[];
+            var baseWord = this._stemmer.stemWord(keyword);
+            var stemmedList = this._stemmingResult[baseWord];
+            if (stemmedList)
+            {
+                for (var i = 0; i < stemmedList.length; i++)
+                {
+                    result = result.concat(this._fmindex.search(stemmedList[i]));
+                }
+            }
+        }
+        else
+        {
+            result = this._fmindex.search(keyword);
+        }
+        return result;
     }
 
     function build () : void

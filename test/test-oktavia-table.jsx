@@ -1,10 +1,3 @@
-/**
- * This is a JSX version of shellinford library:
- * https://code.google.com/p/shellinford/
- *
- * License: http://shibu.mit-license.org/
- */
-
 import "test-case.jsx";
 import "oktavia.jsx";
 import "metadata.jsx";
