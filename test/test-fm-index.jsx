@@ -109,92 +109,71 @@ class _Test extends TestCase
         this.expect(this.fm.size()).toBe(this.str.length);
     }
 
-    function test_docsize () : void
-    {
-        this.expect(this.fm.docsize()).toBe(this.docd.length);
-    }
-
-    function test_get_rows () : void
+    function test_getRows () : void
     {
         for (var i = 0; i < this.fm.size(); i++)
         {
             for (var j = i + 1; j < this.fm.size(); j++)
             {
                 var s = this.str.slice(i, j);
-                this.expect(this.fm.get_rows(s)).toBe(this.rd[s]);
+                this.expect(this.fm.getRows(s)).toBe(this.rd[s]);
             }
         }
     }
 
-    function test_get_position () : void
+    function test_getPosition () : void
     {
         for (var i = 0; i < this.fm.size(); i++)
         {
-            this.expect(this.fm.get_position(i)).toBe(this.pd[i]);
+            this.expect(this.fm.getPosition(i)).toBe(this.pd[i]);
         }
     }
 
-    function test_get_substring () : void
+    function test_getSubstring () : void
     {
         for (var i = 0; i < this.fm.size(); i++)
         {
-            this.expect(this.fm.get_substring(i, this.fm.size())).toBe(this.sd[i]);
+            this.expect(this.fm.getSubstring(i, this.fm.size())).toBe(this.sd[i]);
         }
     }
 
-    function test_get_document_id () : void
+    function test_getSubstring2 () : void
     {
-        for (var i = 0; i < this.fm.size(); i++)
-        {
-            this.expect(this.fm.get_document_id(i)).toBe(this.didd[i]);
-        }
+        this.fm = new FMIndex();
+        this.fm.push("abracadabra");
+        this.fm.push("mississippi");
+        this.fm.push("abracadabra mississippi");
+        this.fm.build(this.end_marker, 3);
+        this.expect(this.fm.getSubstring(0, 11)).toBe('abracadabra');
+        this.expect(this.fm.getSubstring(11, 11)).toBe('mississippi');
+        this.expect(this.fm.getSubstring(22, 23)).toBe('abracadabra mississippi');
     }
 
-    function test_get_document () : void
-    {
-        for (var i = 0; i < this.fm.docsize(); i++)
-        {
-            this.expect(this.fm.get_document(i)).toBe(this.docd[i]);
-        }
-    }
-
-    function test_get_position_boundary () : void
+    function test_getPosition_boundary () : void
     {
         try
         {
-            this.fm.get_position(this.fm.size());
-            this.fail("fm.get_position()");
+            this.fm.getPosition(this.fm.size());
+            this.fail("fm.getPosition()");
         }
         catch (e : Error)
         {
         }
     }
 
-    function test_get_substring_boundary () : void
+    function test_getSubstring_boundary () : void
     {
         try
         {
-            this.fm.get_substring(this.fm.size(), 0);
-            this.fail("fm.get_substring()");
+            this.fm.getSubstring(this.fm.size(), 0);
+            this.fail("fm.getSubstring()");
         }
         catch (e : Error)
         {
         }
     }
 
-    function test_get_document_id_boundary () : void
-    {
-        try
-        {
-            this.fm.get_document_id(this.fm.size());
-            this.fail("fm.get_document_id()");
-        }
-        catch (e : Error)
-        {
-        }
-    }
-
-    function test_get_document_boundary () : void
+    /*function test_get_document_boundary () : void
     {
         try
         {
@@ -204,7 +183,7 @@ class _Test extends TestCase
         catch (e : Error)
         {
         }
-    }
+    }*/
 
     function test_dump_load_and_size () : void
     {
@@ -214,15 +193,16 @@ class _Test extends TestCase
         this.expect(this.fm.size()).toBe(this.str.length);
     }
 
+    /*
     function test_dump_load_and_docsize () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
 
         this.expect(this.fm.docsize()).toBe(this.docd.length);
-    }
+    }*/
 
-    function test_dump_load_and_get_rows () : void
+    function test_dump_load_and_getRows () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
@@ -232,34 +212,34 @@ class _Test extends TestCase
             for (var j = i + 1; j < this.fm.size(); j++)
             {
                 var s = this.str.slice(i, j);
-                this.expect(this.fm.get_rows(s)).toBe(this.rd[s]);
+                this.expect(this.fm.getRows(s)).toBe(this.rd[s]);
             }
         }
     }
 
-    function test_dump_load_and_get_position () : void
+    function test_dump_load_and_getPosition () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
 
         for (var i = 0; i < this.fm.size(); i++)
         {
-            this.expect(this.fm.get_position(i)).toBe(this.pd[i]);
+            this.expect(this.fm.getPosition(i)).toBe(this.pd[i]);
         }
     }
 
-    function test_dump_load_and_get_substring () : void
+    function test_dump_load_and_getSubstring () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
 
         for (var i = 0; i < this.fm.size(); i++)
         {
-            this.expect(this.fm.get_substring(i, this.fm.size())).toBe(this.sd[i]);
+            this.expect(this.fm.getSubstring(i, this.fm.size())).toBe(this.sd[i]);
         }
     }
 
-    function test_dump_load_and_get_document_id () : void
+    /*function test_dump_load_and_get_document_id () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
@@ -279,38 +259,39 @@ class _Test extends TestCase
         {
             this.expect(this.fm.get_document(i)).toBe(this.docd[i]);
         }
-    }
+    }*/
 
-    function test_dump_load_and_get_position_boundary () : void
+    function test_dump_load_and_getPosition_boundary () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
 
         try
         {
-            this.fm.get_position(this.fm.size());
-            this.fail("fm.get_position()");
+            this.fm.getPosition(this.fm.size());
+            this.fail("fm.getPosition()");
         }
         catch (e : Error)
         {
         }
     }
 
-    function test_dump_load_and_get_substring_boundary () : void
+    function test_dump_load_and_getSubstring_boundary () : void
     {
         var dump = this.fm.dump();
         this.fm.load(dump);
 
         try
         {
-            this.fm.get_substring(this.fm.size(), 0);
-            this.fail("fm.get_substring()");
+            this.fm.getSubstring(this.fm.size(), 0);
+            this.fail("fm.getSubstring()");
         }
         catch (e : Error)
         {
         }
     }
 
+    /*
     function test_dump_load_and_get_document_id_boundary () : void
     {
         var dump = this.fm.dump();
@@ -339,5 +320,5 @@ class _Test extends TestCase
         catch (e : Error)
         {
         }
-    }
+    }*/
 }

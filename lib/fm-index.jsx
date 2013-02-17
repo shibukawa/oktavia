@@ -15,7 +15,6 @@ import "console.jsx";
 class FMIndex
 {
     var _substr : string;
-    var _doctails : BitVector;
     var _ddic : int;
     var _head : int;
     var _sv : WaveletMatrix;
@@ -28,7 +27,6 @@ class FMIndex
         this._ddic = 0,
         this._head = 0;
         this._substr = "";
-        this._doctails = new BitVector();
         this._sv = new WaveletMatrix();
         this._posdic = [] : int[];
         this._idic = [] : int[];
@@ -39,7 +37,6 @@ class FMIndex
     function clear () : void
     {
         this._sv.clear();
-        this._doctails.clear();
         this._posdic.length = 0;
         this._idic.length = 0;
         this._ddic = 0;
@@ -52,17 +49,17 @@ class FMIndex
         return this._sv.size();
     }
 
-    function docsize () : int
+    function contentSize () : int
     {
-        return this._doctails.size(true);
+        return this._substr.length;
     }
 
-    function get_rows (key : string) : int
+    function getRows (key : string) : int
     {
         var pos = [] : int[];
-        return this.get_rows(key, pos);
+        return this.getRows(key, pos);
     }
-    function get_rows (key : string, pos : int[]) : int
+    function getRows (key : string, pos : int[]) : int
     {
         var i = key.length - 1;
         var code = key.charCodeAt(i);
@@ -84,11 +81,11 @@ class FMIndex
         return 0;
     }
 
-    function get_position (i : int) : int
+    function getPosition (i : int) : int
     {
         if (i >= this.size())
         {
-            throw new Error("FMIndex.get_position() : range error");
+            throw new Error("FMIndex.getPosition() : range error");
         }
         var pos = 0;
         while (i != this._head)
@@ -105,11 +102,11 @@ class FMIndex
         return pos % this.size();
     }
 
-    function get_substring (pos : int, len : int) : string
+    function getSubstring (pos : int, len : int) : string
     {
         if (pos >= this.size())
         {
-            throw new Error("FMIndex.get_substring() : range error");
+            throw new Error("FMIndex.getSubstring() : range error");
         }
         var pos_end  = Math.min(pos + len, this.size());
         var pos_tmp  = this.size() - 1;
@@ -139,30 +136,6 @@ class FMIndex
         return substr;
     }
 
-    function get_document_id (pos : int) : int
-    {
-        if (pos >= this.size())
-        {
-            throw new Error("FMIndex.get_document_id() : range error");
-        }
-        return this._doctails.rank(pos);
-    }
-
-    function get_document (did : int) : string
-    {
-        if (did >= this.docsize())
-        {
-            throw new Error("FMIndex.get_document() : range error");
-        }
-        var pos = 0;
-        if (did > 0)
-        {
-            pos = this._doctails.select(did - 1) + 1;
-        }
-        var len = this._doctails.select(did) - pos + 1;
-        return this.get_substring(pos, len);
-    }
-
     function build () : void
     {
         this.build(String.fromCharCode(1), 64, false);
@@ -179,7 +152,6 @@ class FMIndex
         {
             console.time("building burrows-wheeler transform.");
         }
-        this._doctails.build();
         this._substr += end_marker;
         var b = new BurrowsWheelerTransform();
         b.build(this._substr);
@@ -191,7 +163,6 @@ class FMIndex
         {
             console.timeEnd("building burrows-wheeler transform.");
         }
-
         if (is_msg)
         {
             console.time("building wavelet matrix.");
@@ -252,10 +223,9 @@ class FMIndex
             throw new Error("FMIndex::push(): empty string");
         }
         this._substr += doc;
-        this._doctails.set(this._doctails.size() + doc.length - 1);
     }
 
-    function search (keyword : string) : int[][]
+    /*function search (keyword : string) : int[][]
     {
         var result_map = {} : Map.<int>;
         var results = [] : int[][];
@@ -281,7 +251,7 @@ class FMIndex
             }
         }
         return results;
-    }
+    }*/
 
     function dump () : string
     {
@@ -301,7 +271,6 @@ class FMIndex
         };
         contents.push(Binary.dump_16bit_number(rlt_cache.length));
         contents.push(rlt_cache.join(""));
-        contents.push(this._doctails.dump());
 
         for (var i in this._posdic)
         {
@@ -339,7 +308,6 @@ class FMIndex
                 this._rlt[i] = wmsize;
             }
         }
-        offset = this._doctails.load(data, offset);
         var size = Math.floor(this._sv.size() / this._ddic) + 1;
         for (var i = 0; i < size; i++, offset += 4)
         {
