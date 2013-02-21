@@ -1,7 +1,6 @@
 import "metadata.jsx";
 import "fm-index.jsx";
 import "binary-util.jsx";
-import "console.jsx";
 import "stemmer/stemmer.jsx";
 
 class Oktavia
@@ -124,8 +123,9 @@ class Oktavia
             for (var i = 0; i < wordList.length; i++)
             {
                 var originalWord = wordList[i];
-                var baseWord = this._stemmer.stemWord(originalWord);
-                if (originalWord.indexOf(baseWord) != -1)
+                var headSmall = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+                var baseWord = this._stemmer.stemWord(originalWord.toLowerCase());
+                if (originalWord.indexOf(baseWord) == -1 && headSmall.indexOf(baseWord) == -1)
                 {
                     var stemmedList = this._stemmingResult[baseWord];
                     if (!stemmedList)
@@ -148,7 +148,7 @@ class Oktavia
         if (stemming && this._stemmer)
         {
             result = [] : int[];
-            var baseWord = this._stemmer.stemWord(keyword);
+            var baseWord = this._stemmer.stemWord(keyword.toLowerCase());
             var stemmedList = this._stemmingResult[baseWord];
             if (stemmedList)
             {
@@ -156,6 +156,10 @@ class Oktavia
                 {
                     result = result.concat(this._fmindex.search(stemmedList[i]));
                 }
+            }
+            else
+            {
+                result = this._fmindex.search(keyword);
             }
         }
         else
