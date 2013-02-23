@@ -1,0 +1,57 @@
+class Query
+{
+    var word : string;
+    var or : boolean;
+    var not : boolean;
+    var raw : boolean;
+    function constructor ()
+    {
+        this.word = '';
+        this.or = false;
+        this.not = false;
+        this.raw = false;
+    }
+}
+
+class QueryParser
+{
+    var queries : Query[]; 
+    function constructor()
+    {
+        this.queries = [] : Query[];
+    }
+
+    function parse (queryStrings : string[]) : void
+    {
+        var nextOr = false;
+        for (var i = 0; i < queryStrings.length; i++)
+        {
+            var word = queryStrings[i];
+            if (word == 'OR')
+            {
+                nextOr = true;
+            }
+            else
+            {
+                var query = new Query();
+                if (nextOr)
+                {
+                    query.or = true;
+                    nextOr = false;
+                }
+                if (word.slice(0, 1) == '-')
+                {
+                    query.not = true;
+                    word = word.slice(1);
+                }
+                if (word.slice(0, 1) == '"' && word.slice(word.length -1) == '"')
+                {
+                    query.raw = true;
+                    word = word.slice(1, word.length -1);
+                }
+                query.word = word;
+                this.queries.push(query);
+            }
+        }
+    }
+}

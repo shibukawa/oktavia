@@ -1,7 +1,9 @@
 import "console.jsx";
 import "oktavia.jsx";
 import "metadata.jsx";
+import "query-parser.jsx";
 import "stemmer/english-stemmer.jsx";
+
 
 class HTTPStatus
 {
@@ -88,39 +90,9 @@ class HTTPStatus
 
     function search (words : string[]) : string
     {
-        var searchWords = [] : string[];
-        var searchTypes = [] : string[];
-        var nextOr = false;
-        for (var i in words)
-        {
-            var word = words[i];
-            var searchType = [] : string[];
-            if (nextOr)
-            {
-                searchType.push('or');
-                nextOr = false;
-            }
-            if (word.slice(0, 1) == '-')
-            {
-                searchType.push('not');
-                word = word.slice(1);
-            }
-            if (word.slice(0, 1) == '"' && word.slice(word.length -1) == '"')
-            {
-                word = word.slice(1, word.length -1);
-                searchType.push('raw');
-            }
-            if (word == 'OR')
-            {
-                nextOr = true;
-            }
-            else
-            {
-                searchWords.push(word);
-                searchTypes.push(searchType.join('-'));
-            }
-        }
-        if (searchWords.length == 0)
+        var queryParser = new QueryParser();
+        queryParser.parse(words);
+        if (queryParser.queries.length == 0)
         {
             var result = this.httpstatus.join('\n');
             result = result + "\n\nToday's status: " + this.random();
@@ -129,34 +101,30 @@ class HTTPStatus
         else
         {
             var resultIndexes = [] : int[];
-            for (var i = 0; i < searchWords.length; i++)
+            for (var i = 0; i < queryParser.queries.length; i++)
             {
-                var newResultIndexes = this.search(searchWords[i], searchTypes.indexOf('raw') != -1);
+                var query = queryParser.queries[i];
+                var newResultIndexes = this.search(query.word, !query.raw);
                 if (i == 0)
                 {
-                    if (searchTypes[i].indexOf('not') == -1)
+                    if (!query.not)
                     {
                         resultIndexes = newResultIndexes;
                     }
                 }
                 else
                 {
-                    switch (searchTypes[i])
+                    if (query.or)
                     {
-                    case 'or':
-                    case 'or-raw':
                         resultIndexes = this.sum(resultIndexes, newResultIndexes);
-                        break;
-                    case 'not':
-                    case 'not-raw':
+                    }
+                    else if (query.not)
+                    {
                         resultIndexes = this.sub(resultIndexes, newResultIndexes);
-                        break;
-                    case '':
-                    case 'raw':
+                    }
+                    else
+                    {
                         resultIndexes = this.multiply(resultIndexes, newResultIndexes);
-                        break;
-                    default:
-                        console.error(searchTypes[i]);
                     }
                 }
             }

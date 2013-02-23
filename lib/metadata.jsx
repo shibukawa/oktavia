@@ -66,9 +66,12 @@ class Section extends Metadata
 
     function setTail (name : string) : void
     {
+        this.setTail(name, this._parent.contentSize());
+    }
+
+    function setTail (name : string, index : int) : void
+    {
         this._names.push(name);
-        var index = this._parent._contentSize();
-        log 'setTail: index = ', index;
         this._bitVector.set(index - 1);
     }
 
@@ -123,7 +126,11 @@ class Splitter extends Metadata
 
     function split () : void
     {
-        var index = this._parent._contentSize();
+        this.split(this._parent.contentSize());
+    }
+
+    function split (index : int) : void
+    {
         this._bitVector.set(index - 1);
     }
 
@@ -152,14 +159,12 @@ class Table extends Metadata
 {
     var _headers : string[];
     var _columnTails : BitVector;
-    var _splitter : string;
 
     function constructor (parent : Oktavia, headers : string[])
     {
         super(parent);
         this._headers = headers;
         this._columnTails = new BitVector();
-        this._splitter = String.fromCharCode(2);
     }
 
     function rowSize () : int
@@ -174,14 +179,14 @@ class Table extends Metadata
 
     function setColumnTail () : void
     {
-        var index = this._parent._contentSize();
-        this._parent.addWord(this._splitter);
+        var index = this._parent.contentSize();
+        this._parent.addEndOfBlock();
         this._columnTails.set(index - 1);
     }
 
     function setRowTail () : void
     {
-        var index = this._parent._contentSize();
+        var index = this._parent.contentSize();
         this._bitVector.set(index - 1);
     }
 
@@ -207,7 +212,7 @@ class Table extends Metadata
     function getRowContent (rowIndex : int) : Map.<string>
     {
         var content = this.getContent(rowIndex);
-        var values = content.split(this._splitter, this._headers.length);
+        var values = content.split(Oktavia._eob, this._headers.length);
         var result = {} : Map.<string>;
         for (var i in this._headers)
         {
@@ -260,24 +265,32 @@ class Block extends Metadata
 
     function startBlock (blockName : string) : void
     {
+        this.startBlock(blockName, this._parent.contentSize());
+    }
+
+    function startBlock (blockName : string, index : int) : void
+    {
         if (this._start)
         {
             throw new Error('Splitter `' + this._names[this._names.length - 1] + '` is not closed');
         }
         this._start = true;
         this._names.push(blockName);
-        var index = this._parent._contentSize();
         this._bitVector.set(index - 1);
     }
 
     function endBlock () : void
+    {
+        this.endBlock(this._parent.contentSize());
+    }
+
+    function endBlock (index : int) : void
     {
         if (!this._start)
         {
             throw new Error('Splitter is not started');
         }
         this._start = false;
-        var index = this._parent._contentSize();
         this._bitVector.set(index - 1);
     }
 

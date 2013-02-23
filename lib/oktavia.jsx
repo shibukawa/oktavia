@@ -10,6 +10,8 @@ class Oktavia
     var _metadataLabels : string[];
     var _stemmer : Nullable.<Stemmer>;
     var _stemmingResult : Map.<string[]>;
+    static const _eof = String.fromCharCode(1);
+    static const _eob = String.fromCharCode(2);
 
     function constructor ()
     {
@@ -109,6 +111,11 @@ class Oktavia
         return this._metadatas[key] as Block;
     }
 
+    function addEndOfBlock () : void
+    {
+        this._fmindex.push(Oktavia._eob);
+    }
+
     function addWord (words : string) : void
     {
         this._fmindex.push(words);
@@ -175,7 +182,7 @@ class Oktavia
         {
             this._metadatas[key]._build();
         }
-        this._fmindex.build(String.fromCharCode(1), 4, false);
+        this._fmindex.build(Oktavia._eof, 4, false);
     }
 
     function dump () : string
@@ -230,7 +237,7 @@ class Oktavia
         }
     }
 
-    function _contentSize () : int
+    function contentSize () : int
     {
         return this._fmindex.contentSize();
     }

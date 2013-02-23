@@ -184,6 +184,7 @@ class SAXParser
     var entity : string;
     var sgmlDecl : string;
     var comment : string;
+    var preTags : int;
 
     function constructor(handler : SAXHandler)
     {
@@ -214,6 +215,7 @@ class SAXParser
         this.ENTITIES = _Entities.entity_list();
         this.attribList = [] : string[][];
         this.noscript = false;
+        this.preTags = 0;
 
         this.handler.onready();
     }
@@ -779,8 +781,15 @@ class SAXParser
 
     function closetext () : void
     {
-        this.textNode = this.textopts(this.textNode);
-        if (this.textNode)
+        if (this.preTags == 0)
+        {
+            var text = this.textopts(this.textNode);
+            if (text)
+            {
+                this.handler.ontext(text);
+            }
+        }
+        else if (this.textNode)
         {
             this.handler.ontext(this.textNode);
         }
@@ -869,6 +878,10 @@ class SAXParser
         this.tags.push(this.tag);
         this.closetext_if_exist();
         this.handler.onopentag(this.tag.name, this.tag.attributes);
+        if (this.tag.name == 'pre')
+        {
+            this.preTags++;
+        }
         if (!selfClosing)
         {
             // special case for <script> in non-strict mode.
@@ -942,6 +955,10 @@ class SAXParser
             this.closetext_if_exist();
             this.handler.onclosetag(this.tagName);
             var parent = this.tags[this.tags.length - 1];
+            if (this.tagName == 'pre')
+            {
+                this.preTags--;
+            }
         }
         if (t == 0)
         {
