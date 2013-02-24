@@ -16,6 +16,7 @@ class FMIndex
 {
     var _substr : string;
     var _ddic : int;
+    var _ssize : int;
     var _head : int;
     var _sv : WaveletMatrix;
     var _posdic : int[];
@@ -138,7 +139,7 @@ class FMIndex
 
     function build () : void
     {
-        this.build(String.fromCharCode(1), 64, false);
+        this.build(String.fromCharCode(1), 4, false);
     }
 
     function build (end_marker : string, num : int) : void
@@ -156,6 +157,7 @@ class FMIndex
         var b = new BurrowsWheelerTransform();
         b.build(this._substr);
         var s = b.get();
+        this._ssize = s.length;
         this._head = b.head();
         b.clear();
         this._substr = "";
@@ -185,12 +187,21 @@ class FMIndex
         {
             console.timeEnd("caching rank less than.");
         }
+        this._ddic = ddic;
         if (is_msg)
         {
             console.time("building dictionaries.");
         }
-        this._ddic = ddic;
-        for (var i = 0; i < (s.length / this._ddic + 1); i++)
+        this._buildDictionaries();
+        if (is_msg)
+        {
+            console.timeEnd("building dictionaries.");
+        }
+    }
+
+    function _buildDictionaries () : void
+    {
+        for (var i = 0; i < (this._ssize / this._ddic + 1); i++)
         {
             this._posdic.push(0);
             this._idic.push(0);
@@ -210,10 +221,6 @@ class FMIndex
             i = this._rlt[c] + this._sv.rank(i, c); //LF
             pos--;
         } while (i != this._head);
-        if (is_msg)
-        {
-            console.timeEnd("building dictionaries.");
-        }
     }
 
     function push (doc : string) : void
@@ -245,10 +252,21 @@ class FMIndex
 
     function dump () : string
     {
+        return this.dump(false, false);
+    }
+
+    function dump (omitDict : boolean, print : boolean) : string
+    {
         var contents = [] : string[];
         contents.push(Binary.dump64bitNumber(this._ddic));
+        contents.push(Binary.dump64bitNumber(this._ssize));
         contents.push(Binary.dump64bitNumber(this._head));
         contents.push(this._sv.dump());
+        if (print)
+        {
+            log '64 bit number * 3';
+            log 'wavelet matrix: ' + (contents[3].length * 2) as string + ' bytes';
+        }
         var wmsize = this._sv.size();
         var rlt_cache = [] : string[];
         for (var i = 0; i < 65536; i++)
@@ -261,15 +279,33 @@ class FMIndex
         };
         contents.push(Binary.dump16bitNumber(rlt_cache.length));
         contents.push(rlt_cache.join(""));
-        contents.push(Binary.dump64bitNumber(this._posdic.length));
-        for (var i in this._posdic)
+        if (print)
         {
-            contents.push(Binary.dump64bitNumber(this._posdic[i]));
+            log 'rank less than cache: ' + (rlt_cache.length * 2) as string + ' + 2 bytes';
         }
-        contents.push(Binary.dump64bitNumber(this._idic.length));
-        for (var i in this._idic)
+        if (omitDict)
         {
-            contents.push(Binary.dump64bitNumber(this._idic[i]));
+            contents.push(Binary.dump64bitNumber(0));
+        }
+        else
+        {
+            contents.push(Binary.dump64bitNumber(this._posdic.length));
+            for (var i in this._posdic)
+            {
+                contents.push(Binary.dump64bitNumber(this._posdic[i]));
+            }
+            if (print)
+            {
+                log 'pos dic cache: ' + (this._posdic.length * 4) as string + ' + 4 bytes';
+            }
+            for (var i in this._idic)
+            {
+                contents.push(Binary.dump64bitNumber(this._idic[i]));
+            }
+            if (print)
+            {
+                log 'i dic cache: ' + (this._idic.length * 4) as string + ' + 4 bytes';
+            }
         }
         return contents.join("");
     }
@@ -282,8 +318,9 @@ class FMIndex
     function load (data : string, offset : int) : int
     {
         this._ddic = Binary.load64bitNumber(data, offset);
-        this._head = Binary.load64bitNumber(data, offset + 4);
-        offset = this._sv.load(data, offset + 8);
+        this._ssize = Binary.load64bitNumber(data, offset + 4);
+        this._head = Binary.load64bitNumber(data, offset + 8);
+        offset = this._sv.load(data, offset + 12);
         var wmsize = this._sv.size();
         var rlt_cache_size = Binary.load16bitNumber(data, offset++);
         for (var i = 0; i < rlt_cache_size; i++, offset += 5)
@@ -301,15 +338,20 @@ class FMIndex
         }
         var size = Binary.load64bitNumber(data, offset);
         offset += 4;
-        for (var i = 0; i < size; i++, offset += 4)
+        if (size == 0)
         {
-            this._posdic.push(Binary.load64bitNumber(data, offset));
+            this._buildDictionaries();
         }
-        var size = Binary.load64bitNumber(data, offset);
-        offset += 4;
-        for (var i = 0; i < size; i++, offset += 4)
+        else
         {
-            this._idic.push(Binary.load64bitNumber(data, offset));
+            for (var i = 0; i < size; i++, offset += 4)
+            {
+                this._posdic.push(Binary.load64bitNumber(data, offset));
+            }
+            for (var i = 0; i < size; i++, offset += 4)
+            {
+                this._idic.push(Binary.load64bitNumber(data, offset));
+            }
         }
         return offset;
     }

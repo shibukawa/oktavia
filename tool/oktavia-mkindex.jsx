@@ -34,8 +34,11 @@ class _Main
             "usage: oktavia_indexer [options]",
             "",
             " -i, --input [input folder/file ] : Target files to search. .html, .csv, .txt are available.",
-            " -t, --type [type]                : Export type. 'cmd', 'web', 'index' are available.",
+            " -t, --type [type]                : Export type. 'index'(default), 'cmd', 'jsx', 'js', 'commonjs' are available.",
+            "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
+            "                                  : Others are base64 source code style output.",
             " -m, --mode [mode]                : Mode type. 'html', 'csv', 'text' are available.",
+            " -S, --size-optimize              : Optimize file size.",
             " -h, --help                       : Display this message.",
             "",
             "HTML Mode Options:",
@@ -70,7 +73,7 @@ class _Main
     static function main(args : string[]) : void
     {
         console.log("Search Engine Oktavia Index Generator");
-        var optstring = "m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)";
+        var optstring = "m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)";
         var parser = new BasicParser(optstring, args);
 
         var inputs = [] : string[];
@@ -86,7 +89,8 @@ class _Main
         var idfilter = [] : string[];
         var algorithm : Nullable.<string> = null;
         var wordsplitter : Nullable.<string> = null;
-    
+        var sizeOptimize = false;
+
         var validModes = ['html', 'csv', 'text'];
         var validUnitsForHTML = ['file', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
         var validUnitsForText = ['file', 'block', 'line'];
@@ -95,7 +99,7 @@ class _Main
             'italian', 'norwegian', 'porter', 'portuguese', 'romanian', 'russian',
             'spanish', 'swedish', 'turkish'
         ];
-        var validTypes = ['cmd', 'web', 'index'];
+        var validTypes = ['index', 'cmd', 'jsx', 'js', 'commonjs'];
         var validWordSplitters = ['ts'];
 
         var opt = parser.getopt();
@@ -173,6 +177,9 @@ class _Main
             case "w":
             
                 break;
+            case "S":
+                sizeOptimize = true;
+                break;
             case "?":
                 notrun = true;
                 break;
@@ -246,7 +253,7 @@ class _Main
                     {
                         htmlParser.parse(inputHTMLFiles[i]);
                     }
-                    htmlParser.dump(indexFilePath);
+                    htmlParser.dump(indexFilePath, sizeOptimize);
                 }
                 break;
             case 'csv':

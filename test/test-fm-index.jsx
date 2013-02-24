@@ -173,18 +173,6 @@ class _Test extends TestCase
         }
     }
 
-    /*function test_get_document_boundary () : void
-    {
-        try
-        {
-            this.fm.get_document(this.fm.docsize());
-            this.fail("fm.get_document()");
-        }
-        catch (e : Error)
-        {
-        }
-    }*/
-
     function test_dump_load_and_size () : void
     {
         var dump = this.fm.dump();
@@ -192,15 +180,6 @@ class _Test extends TestCase
 
         this.expect(this.fm.size()).toBe(this.str.length);
     }
-
-    /*
-    function test_dump_load_and_docsize () : void
-    {
-        var dump = this.fm.dump();
-        this.fm.load(dump);
-
-        this.expect(this.fm.docsize()).toBe(this.docd.length);
-    }*/
 
     function test_dump_load_and_getRows () : void
     {
@@ -239,28 +218,6 @@ class _Test extends TestCase
         }
     }
 
-    /*function test_dump_load_and_get_document_id () : void
-    {
-        var dump = this.fm.dump();
-        this.fm.load(dump);
-
-        for (var i = 0; i < this.fm.size(); i++)
-        {
-            this.expect(this.fm.get_document_id(i)).toBe(this.didd[i]);
-        }
-    }
-
-    function test_dump_load_and_get_document () : void
-    {
-        var dump = this.fm.dump();
-        this.fm.load(dump);
-
-        for (var i = 0; i < this.fm.docsize(); i++)
-        {
-            this.expect(this.fm.get_document(i)).toBe(this.docd[i]);
-        }
-    }*/
-
     function test_dump_load_and_getPosition_boundary () : void
     {
         var dump = this.fm.dump();
@@ -290,35 +247,4 @@ class _Test extends TestCase
         {
         }
     }
-
-    /*
-    function test_dump_load_and_get_document_id_boundary () : void
-    {
-        var dump = this.fm.dump();
-        this.fm.load(dump);
-
-        try
-        {
-            this.fm.get_document_id(this.fm.size());
-            this.fail("fm.get_document_id()");
-        }
-        catch (e : Error)
-        {
-        }
-    }
-
-    function test_dump_load_and_get_document_boundary () : void
-    {
-        var dump = this.fm.dump();
-        this.fm.load(dump);
-
-        try
-        {
-            this.fm.get_document(this.fm.docsize());
-            this.fail("fm.get_document()");
-        }
-        catch (e : Error)
-        {
-        }
-    }*/
 }

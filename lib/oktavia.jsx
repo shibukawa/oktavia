@@ -178,25 +178,47 @@ class Oktavia
 
     function build () : void
     {
+        this.build(false);
+    }
+
+    function build (print : boolean) : void
+    {
         for (var key in this._metadatas)
         {
             this._metadatas[key]._build();
         }
-        this._fmindex.build(Oktavia._eof, 4, false);
+        this._fmindex.build(Oktavia._eof, 4, print);
     }
 
     function dump () : string
     {
+        return this.dump(false, false);
+    }
+
+    function dump (print : boolean, sizeOptimize : boolean) : string
+    {
         var header = "oktavia01";
+        var fmdata = this._fmindex.dump(sizeOptimize, print);
         var result = [
             header,
-            this._fmindex.dump(),
+            fmdata,
             Binary.dump16bitNumber(this._metadataLabels.length)
         ];
+        if (print)
+        {
+            log 'header: ' + (header.length * 2) as string + ' bytes';
+            log 'fmindex: ' + (fmdata.length * 2) as string + ' bytes';
+            log 'metadata count: 2 byte';
+        }
         for (var i = 0; i < this._metadataLabels.length; i++)
         {
             var name = this._metadataLabels[i];
-            result.push(Binary.dumpString(name), this._metadatas[name]._dump());
+            var data = this._metadatas[name]._dump();
+            result.push(Binary.dumpString(name), data);
+            if (print)
+            {
+                log 'metadata ' + name + ': ' + (data.length * 2) as string + ' bytes';
+            }
         }
         return result.join('');
     }
