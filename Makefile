@@ -1,12 +1,17 @@
-build: httpstatus oktavia-mkindex
+JSX=jsx
+
+build: httpstatus oktavia-mkindex oktavia-search
 
 .PHONY: test clean
 
 httpstatus:
-	jsx --executable node --add-search-path ./lib --output httpstatus tool/httpstatus.jsx
+	$(JSX) --executable node --add-search-path ./lib --output httpstatus tool/httpstatus.jsx
 
 oktavia-mkindex:
-	jsx --executable node --add-search-path ./lib --output oktavia-mkindex tool/oktavia-mkindex.jsx
+	$(JSX) --executable node --add-search-path ./lib --output oktavia-mkindex tool/oktavia-mkindex.jsx
+
+oktavia-search:
+	$(JSX) --executable node --add-search-path ./lib --output oktavia-search tool/oktavia-search.jsx
 
 test:
 	prove
@@ -14,3 +19,4 @@ test:
 clean:
 	rm httpstatus
 	rm oktavia-mkindex
+	rm oktavia-search

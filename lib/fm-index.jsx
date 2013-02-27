@@ -154,6 +154,7 @@ class FMIndex
             console.time("building burrows-wheeler transform.");
         }
         this._substr += end_marker;
+        console.log((this._substr.length * 2) as string + ' bytes');
         var b = new BurrowsWheelerTransform();
         b.build(this._substr);
         var s = b.get();

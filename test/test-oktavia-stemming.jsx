@@ -32,6 +32,6 @@ class _Test extends TestCase
     function test_search_with_stemming () : void
     {
         var results = this.oktavia.rawSearch('skied', true);
-        this.expect(results.length).toBe(2);
+        this.expect(results.length).toBe(1);
     }
 }

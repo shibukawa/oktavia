@@ -54,18 +54,20 @@ class BurrowsWheelerTransform
 
     function get (i : int) : string
     {
-        if (i >= this.size())
+        var size = this.size();
+        if (i >= size)
         {
             throw new Error("BurrowsWheelerTransform.get() : range error");
         }
-        var index = (this._suffixarray[i] + this.size() - 1) % this.size();
-        return this._str.slice(index, index + 1);
+        var index = (this._suffixarray[i] + size - 1) % size;
+        return this._str.charAt(index);
     }
 
     function get () : string
     {
         var str = [] : string [];
-        for (var i = 0; i < this.size(); i++)
+        var size = this.size();
+        for (var i = 0; i < size; i++)
         {
             str.push(this.get(i));
         }

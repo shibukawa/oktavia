@@ -66,6 +66,7 @@ class BasicParser
     var _optind : int;
     var _subind : int;
     var _silent : boolean;
+    var _extraoptions : boolean;
 
     function constructor (optstring : string, argv : string[])
     {
@@ -74,6 +75,7 @@ class BasicParser
         this._aliases = {} : Map.<string>;
         this._optind = 0;
         this._subind = 0;
+        this._extraoptions = false;
 
         this._parseOptstr(optstring);
     }
@@ -196,29 +198,42 @@ class BasicParser
             /* end of input */
             return null;
         }
-    
+
         var arg = this._argv[this._optind];
-    
+        if (this._extraoptions)
+        {
+            this._optind++;
+            return new CommandOption(arg);
+        }
+
         if (this._subind == 0)
         {
-            if (arg == '-' || arg == '' || arg.slice(0, 1) != '-')
+            if (arg == '-' || arg == '')
             {
                 return null;
-            } 
+            }
+
+            if (arg.charAt(0) != '-')
+            {
+                this._extraoptions = true;
+                this._optind++;
+                return new CommandOption(arg);
+            }
+
             if (arg == '--')
             {
                 this._optind++;
                 this._subind = 0;
                 return null;
             }
-    
+
             if (arg.slice(1, 2) == '-')
             {
                 return this._getoptLong();
-            } 
+            }
             this._subind++;
         }
-    
+
         return this._getoptShort();
     }
 
@@ -244,7 +259,7 @@ class BasicParser
         if (!this._options[chr])
         {
             return new CommandOption(chr);
-        } 
+        }
         return this._getoptArgument(chr);
     }
 
@@ -267,7 +282,7 @@ class BasicParser
             if (eq != -1)
             {
                 return this._errExtraArg(alias);
-            } 
+            }
             this._optind++; /* eat this argument */
             return new CommandOption(chr);
         }
@@ -298,13 +313,13 @@ class BasicParser
         {
             return this._errMissingArg(chr);
         }
-    
+
         var arg = this._argv[this._optind].substring(this._subind);
         this._optind++;
         this._subind = 0;
         return new CommandOption(chr, arg);
     }
-    
+
     function _errMissingArg (chr : string) : CommandOption
     {
         if (this._silent)
@@ -314,7 +329,7 @@ class BasicParser
         console.error('option requires an argument -- ' + chr + '\n');
         return new CommandOption('?', chr, true);
     }
-    
+
     function _errInvalidOption (chr : string) : CommandOption
     {
         if (!this._silent)
@@ -335,7 +350,7 @@ class BasicParser
         {
             console.error('option expects no argument -- ' +
                 chr + '\n');
-        } 
+        }
         return new CommandOption('?', chr, true);
     }
 }

@@ -1,7 +1,10 @@
 import "metadata.jsx";
 import "fm-index.jsx";
 import "binary-util.jsx";
+import "query-parser.jsx";
+import "search-result.jsx";
 import "stemmer/stemmer.jsx";
+
 
 class Oktavia
 {
@@ -10,8 +13,8 @@ class Oktavia
     var _metadataLabels : string[];
     var _stemmer : Nullable.<Stemmer>;
     var _stemmingResult : Map.<string[]>;
-    static const _eof = String.fromCharCode(1);
-    static const _eob = String.fromCharCode(2);
+    static const eof = String.fromCharCode(1);
+    static const eob = String.fromCharCode(2);
 
     function constructor ()
     {
@@ -25,6 +28,11 @@ class Oktavia
     function setStemmer (stemmer : Stemmer) : void
     {
         this._stemmer = stemmer;
+    }
+
+    function getPrimaryMetadata () : Metadata
+    {
+        return this._metadatas[this._metadataLabels[0]];
     }
 
     function addSection (key : string) : Section
@@ -113,7 +121,7 @@ class Oktavia
 
     function addEndOfBlock () : void
     {
-        this._fmindex.push(Oktavia._eob);
+        this._fmindex.push(Oktavia.eob);
     }
 
     function addWord (words : string) : void
@@ -176,6 +184,29 @@ class Oktavia
         return result;
     }
 
+    function search (queryWords : string []) : SearchSummary 
+    {
+        var parser = new QueryParser();
+        var summary = new SearchSummary(this);
+        parser.parse(queryWords);
+        for (var i = 0; i < parser.queries.length; i++)
+        {
+            summary.addQuery(this._searchQuery(parser.queries[i]));
+        }
+        summary.mergeResult();
+        return summary;
+    }
+
+    function _searchQuery (query : Query) : SingleResult
+    {
+        var result = new SingleResult(query.word, query.or, query.not);
+        var positions = this.rawSearch(query.word, query.raw);
+        //log 'result', result;
+        //log 'position', positions;
+        this.getPrimaryMetadata().grouping(result, positions, query.word, !query.raw);
+        return result;
+    }
+
     function build () : void
     {
         this.build(false);
@@ -187,7 +218,7 @@ class Oktavia
         {
             this._metadatas[key]._build();
         }
-        this._fmindex.build(Oktavia._eof, 4, print);
+        this._fmindex.build(Oktavia.eof, 4, print);
     }
 
     function dump () : string
@@ -262,6 +293,32 @@ class Oktavia
     function contentSize () : int
     {
         return this._fmindex.contentSize();
+    }
+
+    function wordPositionType (position : int) : int
+    {
+        var result = 0;
+        if (position == 0)
+        {
+            result = 4;
+        }
+        else
+        {
+            var ahead = this._fmindex.getSubstring(position - 1, 1);
+            if (/\s/.test(ahead))
+            {
+                result = 2;
+            }
+            else if (/\W/.test(ahead))
+            {
+                result = 1;
+            }
+            else if (Oktavia.eob == ahead)
+            {
+                result = 3;
+            }
+        }
+        return result;
     }
 
     function _getSubstring (position : int, length : int) : string

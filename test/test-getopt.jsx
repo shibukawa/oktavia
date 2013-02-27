@@ -54,7 +54,12 @@ class _Test extends TestCase
         opt = parser.getopt();
         this.expect(opt.option).toBe('l');
         this.expect(opt.optarg).toBe('q');
-        this.expect(parser.getopt()).toBe(null);
+        opt = parser.getopt();
+        this.expect(opt.option).toBe('b');
+        opt = parser.getopt();
+        this.expect(opt.option).toBe('--long');
+        opt = parser.getopt();
+        this.expect(opt.option).toBe('foo');
     }
 
     function test_aliased_long_args_without_param_01 () : void
@@ -66,6 +71,14 @@ class _Test extends TestCase
     function test_aliased_long_args_without_param_02 () : void
     {
         var parser = new BasicParser(':la:r(recurse)(recur)f:(file)(filename)q', [] : string[]);
+        this.expect(parser.getopt()).toBe(null);
+    }
+
+    function test_extra_options () : void
+    {
+        var parser = new BasicParser('la:r(recurse)(recur)f:(file)(filename)q', ['extra1', 'extra2']);
+        this.expect(parser.getopt().option).toBe('extra1');
+        this.expect(parser.getopt().option).toBe('extra2');
         this.expect(parser.getopt()).toBe(null);
     }
 }

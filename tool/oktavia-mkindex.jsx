@@ -31,8 +31,9 @@ class _Main
     static function usage () : void
     {
         console.log([
-            "usage: oktavia_indexer [options]",
+            "usage: oktavia_mkindex [options]",
             "",
+            "Common Options:",
             " -i, --input [input folder/file ] : Target files to search. .html, .csv, .txt are available.",
             " -t, --type [type]                : Export type. 'index'(default), 'cmd', 'jsx', 'js', 'commonjs' are available.",
             "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
@@ -53,7 +54,7 @@ class _Main
             "                                  : Default value is '/search'. ",
             " -u, --unit [search unit]         : 'file', 'h1'-'h6'. Default value is 'file'.",
             " -f, --filter [target tag]        : Only contents inside this tag is indexed.",
-            "                                  : Default value is \"article,#content,#main\".",
+            "                                  : Default value is \"article,#content,#main,div.body\".",
             " -s, --stemmer [algorithm]        : Select stemming algorithm.",
             " -w, --word-splitter [splitter]   : Use optional word splitter.",
             "                                  : 'ts' (TinySegmenter for Japanese) is available",
@@ -72,9 +73,7 @@ class _Main
 
     static function main(args : string[]) : void
     {
-        console.log("Search Engine Oktavia Index Generator");
-        var optstring = "m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)";
-        var parser = new BasicParser(optstring, args);
+        console.log("Search Engine Oktavia - Index Generator\n");
 
         var inputs = [] : string[];
         var root = process.cwd();
@@ -85,8 +84,7 @@ class _Main
         var unit = 'file';
         var type = 'index';
         var mode = '';
-        var tagfilter = [] : string[];
-        var idfilter = [] : string[];
+        var filter = [] : string[];
         var algorithm : Nullable.<string> = null;
         var wordsplitter : Nullable.<string> = null;
         var sizeOptimize = false;
@@ -102,6 +100,8 @@ class _Main
         var validTypes = ['index', 'cmd', 'jsx', 'js', 'commonjs'];
         var validWordSplitters = ['ts'];
 
+        var optstring = "m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)";
+        var parser = new BasicParser(optstring, args);
         var opt = parser.getopt();
         while (opt)
         {
@@ -141,15 +141,7 @@ class _Main
                 var items = opt.optarg.split(',');
                 for (var i in items)
                 {
-                    var item = items[i];
-                    if (item.slice(0, 1) == '#')
-                    {
-                        idfilter.push(item);
-                    }
-                    else
-                    {
-                        tagfilter.push(item);
-                    }
+                    filter.push(items[i]);
                 }
                 break;
             case "t":
@@ -189,10 +181,9 @@ class _Main
         var inputTextFiles = [] : string[];
         var inputHTMLFiles = [] : string[];
         var inputCSVFiles = [] : string[];
-        if (tagfilter.length == 0 && idfilter.length == 0)
+        if (filter.length == 0)
         {
-            tagfilter = ['article'];
-            idfilter = ['#content', '#main'];
+            filter = ['article', '#content', '#main', 'div.body'];
         }
         for (var i in inputs)
         {
@@ -248,7 +239,7 @@ class _Main
                 }
                 else
                 {
-                    var htmlParser = new HTMLParser(unitIndex, root, prefix, tagfilter, idfilter, stemmer);
+                    var htmlParser = new HTMLParser(unitIndex, root, prefix, filter, stemmer);
                     for (var i = 0; i < inputHTMLFiles.length; i++)
                     {
                         htmlParser.parse(inputHTMLFiles[i]);
@@ -278,8 +269,6 @@ class _Main
                 }
                 break;
             }
-            //var dump = oktavia.dump();
-            //node.fs.writeFileSync(indexFilePath, dump, "utf16");
         }
     }
 

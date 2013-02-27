@@ -1,5 +1,6 @@
 import "oktavia.jsx";
 
+
 class Proposal
 {
     var omit : int;
@@ -24,12 +25,13 @@ class Position
     }
 }
 
-class SectionResult
+class SearchUnit
 {
     var positions : Map.<Position>;
     var id : int;
     var _size : int;
     var score : int;
+    var startPosition : int;
 
     function constructor (id : int)
     {
@@ -37,6 +39,7 @@ class SectionResult
         this.id = id;
         this._size = 0;
         this.score = 0;
+        this.startPosition = -1;
     }
 
     function addPosition (word : string, position : int, stemmed : boolean) : void
@@ -67,7 +70,7 @@ class SectionResult
         return this._size;
     }
 
-    function merge (rhs : SectionResult) : void
+    function merge (rhs : SearchUnit) : void
     {
         for (var position in rhs.positions)
         {
@@ -75,39 +78,58 @@ class SectionResult
             this.addPosition(pos.word, pos.position, pos.stemmed);
         }
     }
+
+    function getPositions () : Position[]
+    {
+        var result = [] : Position[];
+        for (var pos in this.positions)
+        {
+            result.push(this.positions[pos]);
+        }
+        result.sort((a : Position, b : Position) -> (a.position - b.position));
+        return result;
+    }
 }
 
 class SingleResult
 {
-    var sections : SectionResult[];
-    var sectionIds : int[];
+    var units : SearchUnit[];
+    var unitIds : int[];
     var or : boolean;
     var not : boolean;
     var searchWord : string;
 
     function constructor ()
     {
-        this.sections = [] : SectionResult[];
-        this.sectionIds = [] : int[];
+        this.units = [] : SearchUnit[];
+        this.unitIds = [] : int[];
         this.or = false;
         this.not = false;
         this.searchWord = '';
     }
 
-    function getSection (sectionId : int) : SectionResult
+    function constructor (searchWord : string, or : boolean, not : boolean)
     {
-        var existing = this.sectionIds.indexOf(sectionId);
-        var result : SectionResult;
+        this.units = [] : SearchUnit[];
+        this.unitIds = [] : int[];
+        this.or = or;
+        this.not = not;
+        this.searchWord = searchWord;
+    }
+
+    function getSearchUnit (unitId : int) : SearchUnit
+    {
+        var existing = this.unitIds.indexOf(unitId);
+        var result : SearchUnit;
         if (existing == -1)
         {
-            result = new SectionResult(sectionId);
-            this.sections.push(result);
-            this.sectionIds.push(sectionId);
+            result = new SearchUnit(unitId);
+            this.units.push(result);
+            this.unitIds.push(unitId);
         }
         else
         {
-            var index = this.sectionIds[existing];
-            result = this.sections[index];
+            result = this.units[existing];
         }
         return result;
     }
@@ -132,55 +154,55 @@ class SingleResult
 
     function size () : int
     {
-        return this.sections.length;
+        return this.units.length;
     }
 
     function _andMerge (result : SingleResult, rhs : SingleResult) : void
     {
-        for (var i = 0; i < this.sectionIds.length; i++)
+        for (var i = 0; i < this.unitIds.length; i++)
         {
-            var id = this.sectionIds[i];
-            if (rhs.sectionIds.indexOf(id) != -1)
+            var id = this.unitIds[i];
+            if (rhs.unitIds.indexOf(id) != -1)
             {
-                var lhsSection = this.sections[i];
-                result.sectionIds.push(id);
-                result.sections.push(lhsSection);
+                var lhsSection = this.units[i];
+                result.unitIds.push(id);
+                result.units.push(lhsSection);
             }
         }
     }
 
     function _orMerge (result : SingleResult, rhs : SingleResult) : void
     {
-        result.sectionIds = this.sectionIds.slice(0, this.sectionIds.length);
-        result.sections = this.sections.slice(0, this.sections.length);
+        result.unitIds = this.unitIds.slice(0, this.unitIds.length);
+        result.units = this.units.slice(0, this.units.length);
 
-        for (var i = 0; i < rhs.sectionIds.length; i++)
+        for (var i = 0; i < rhs.unitIds.length; i++)
         {
-            var id = rhs.sectionIds[i];
-            var rhsSection = rhs.sections[i];
-            if (result.sectionIds.indexOf(id) != -1)
+            var id = rhs.unitIds[i];
+            var rhsSection = rhs.units[i];
+            if (result.unitIds.indexOf(id) != -1)
             {
-                var lhsSection = result.sections[result.sectionIds.indexOf(id)];
+                var lhsSection = result.units[result.unitIds.indexOf(id)];
                 lhsSection.merge(rhsSection);
             }
             else
             {
-                result.sectionIds.push(id);
-                result.sections.push(rhsSection);
+                result.unitIds.push(id);
+                result.units.push(rhsSection);
             }
         }
     }
 
     function _notMerge (result : SingleResult, rhs : SingleResult) : void
     {
-        for (var i = 0; i < this.sectionIds.length; i++)
+        for (var i = 0; i < this.unitIds.length; i++)
         {
-            var id = this.sectionIds[i];
-            if (rhs.sectionIds.indexOf(id) == -1)
+            var id = this.unitIds[i];
+            if (rhs.unitIds.indexOf(id) == -1)
             {
-                var lhsSection = this.sections[i];
-                result.sectionIds.push(id);
-                result.sections.push(lhsSection);
+                var lhsSection = this.units[i];
+                result.unitIds.push(id);
+                result.units.push(lhsSection);
             }
         }
     }
@@ -189,19 +211,26 @@ class SingleResult
 class SearchSummary
 {
     var sourceResults : SingleResult[];
-    var result : SingleResult;
+    var result : Nullable.<SingleResult>;
     var oktavia : Nullable.<Oktavia>;
 
     function constructor()
     {
         this.sourceResults = [] : SingleResult[];
+        this.result = null;
         this.oktavia = null;
     }
 
     function constructor (oktavia : Oktavia)
     {
         this.sourceResults = [] : SingleResult[];
+        this.result = null;
         this.oktavia = oktavia;
+    }
+
+    function addQuery(result : SingleResult) : void
+    {
+        this.sourceResults.push(result);
     }
 
     function mergeResult () : void
@@ -219,7 +248,7 @@ class SearchSummary
         return rhs;
     }
 
-    function proposal () : Proposal[]
+    function getProposal () : Proposal[]
     {
         var proposals = [] : Proposal[];
         for (var i = 0; i < this.sourceResults.length; i++)
@@ -239,10 +268,10 @@ class SearchSummary
         return proposals;
     }
 
-    function sortByScore () : SectionResult[]
+    function getSortedResult () : SearchUnit[]
     {
-        var result = this.result.sections.slice(0, this.result.sections.length);
-        result.sort((a : SectionResult, b : SectionResult) -> (b.score - a.score));
+        var result = this.result.units.slice(0, this.result.units.length);
+        result.sort((a : SearchUnit, b : SearchUnit) -> (b.score - a.score));
         return result;
     }
 

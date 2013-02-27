@@ -5,6 +5,7 @@ import "metadata.jsx";
 import "sax.jsx";
 import "stemmer/stemmer.jsx";
 
+
 class _HTMLHandler extends SAXHandler
 {
     var startParse : boolean;
@@ -13,16 +14,18 @@ class _HTMLHandler extends SAXHandler
     var oktavia : Oktavia;
     var section : Section;
     var tag : Block;
-    var tagfilter : string[];
-    var idfilter : string[];
+    var filter : TagFilter;
     var filepath : string;
     var unit : int;
-    var currentHeading : int;
     var currentLink : string;
+    var currentTitle : string;
+    var lastId : string;
+    var waitTitle : boolean;
     var sectionCount : int;
     var inCode : boolean;
+    var addText : boolean;
 
-    function constructor (oktavia : Oktavia, filepath : string, unit : int, tagfilter : string[], idfilter : string[])
+    function constructor (oktavia : Oktavia, filepath : string, unit : int, filter : TagFilter)
     {
         super();
         this.startParse = false;
@@ -31,14 +34,16 @@ class _HTMLHandler extends SAXHandler
         this.section = this.oktavia.getSection('section');
         this.tag = this.oktavia.getBlock('tag');
         this.unit = unit;
-        this.tagfilter = tagfilter;
-        this.idfilter = idfilter;
+        this.filter = filter;
         this.filepath = filepath;
+        this.currentTitle = '';
+        this.lastId = '';
+        this.waitTitle = false;
+        this.addText = false;
     }
 
     override function onready () : void
     {
-        this.currentHeading = 0;
         this.currentLink = this.filepath;
         this.inCode = false;
     }
@@ -49,6 +54,10 @@ class _HTMLHandler extends SAXHandler
         if (this.startParse)
         {
             this.stack.push(tagname);
+            if ('id' in attributes)
+            {
+                this.lastId = attributes['id'];
+            }
             switch (tagname)
             {
             case 'h1':
@@ -57,10 +66,15 @@ class _HTMLHandler extends SAXHandler
             case 'h4':
             case 'h5':
             case 'h6':
-                this.currentHeading = headingId.indexOf(tagname);
-                if (this.currentHeading < this.unit)
+                if (headingId.indexOf(tagname) < this.unit)
                 {
-                    this.section.setTail(this.currentLink);
+                    if (this.oktavia.contentSize() > 0)
+                    {
+                        this.section.setTail(this.currentTitle + Oktavia.eob + this.currentLink);
+                    }
+                    this.currentLink = this.filepath + '#' + this.lastId;
+                    this.currentTitle = '';
+                    this.waitTitle = true;
                 }
                 this.oktavia.addEndOfBlock();
                 this.tag.startBlock(tagname);
@@ -75,30 +89,24 @@ class _HTMLHandler extends SAXHandler
             case 'blockquote':
                 this.oktavia.addEndOfBlock();
                 break;
-            case 'a':
-                if (attributes['name'] && this.currentHeading < this.unit)
-                {
-                    this.currentLink = this.filepath + attributes['name'];
-                }
-                break;
             }
         }
         else
         {
-            if (this.tagfilter.indexOf(tagname) != -1)
-            {
-                this.startParse = true;
-                this.startTag = tagname;
-                this.stack.push(tagname);
-            }
-            else if (attributes['id'] && this.idfilter.indexOf('#' + attributes['id']) != -1)
+            if (this.filter.match(tagname, attributes))
             {
                 this.startParse = true;
                 this.startTag = tagname;
                 this.stack.push(tagname);
             }
         }
+        if (tagname == 'title')
+        {
+            this.waitTitle = true;
+            this.currentTitle = '';
+        }
     }
+
     override function onclosetag (tagname : string) : void
     {
         if (this.startParse)
@@ -112,10 +120,30 @@ class _HTMLHandler extends SAXHandler
             case 'h5':
             case 'h6':
                 this.tag.endBlock();
+                if (this.addText)
+                {
+                    this.oktavia.addWord('\n');
+                    this.addText = false;
+                }
+                this.waitTitle = false;
                 break;
             case 'pre':
                 this.inCode = false;
                 this.tag.endBlock();
+                if (this.addText)
+                {
+                    this.oktavia.addWord('\n');
+                    this.addText = false;
+                }
+                break;
+            case 'div':
+            case 'p':
+            case 'blockquote':
+                if (this.addText)
+                {
+                    this.oktavia.addWord('\n');
+                    this.addText = false;
+                }
                 break;
             }
             if (this.stack.length == 0)
@@ -123,17 +151,90 @@ class _HTMLHandler extends SAXHandler
                 this.startParse = false;
             }
         }
+        if (tagname == 'title')
+        {
+            this.waitTitle = false;
+        }
     }
+
     override function ontext (text : string) : void
     {
         if (this.startParse)
         {
             this.oktavia.addWord(text, !this.inCode);
+            this.addText = true;
+        }
+        if (this.waitTitle)
+        {
+            this.currentTitle += text;
         }
     }
+
     override function onend () : void
     {
-        this.section.setTail(this.currentLink);
+        this.section.setTail(this.currentTitle + Oktavia.eob + this.currentLink);
+    }
+}
+
+class TagFilter
+{
+    var tags : string[];
+    var ids : string[];
+    var classes : string[];
+    var tagAndClasses : string[];
+
+    function constructor (filters : string[])
+    {
+        this.tags = [] : string[];
+        this.ids = [] : string[];
+        this.classes = [] : string[];
+        this.tagAndClasses = [] : string[];
+        
+        for (var i = 0; i < filters.length; i++)
+        {
+            var filter = filters[i];
+            switch (filter.charAt(0))
+            {
+            case '#':
+                this.ids.push(filter.slice(1));
+                break;
+            case '.':
+                this.classes.push(filter.slice(1));
+                break;
+            default:
+                if (filter.indexOf('.') != -1)
+                {
+                    this.tags.push(filter);
+                }
+                else
+                {
+                    this.tagAndClasses.push(filter);
+                }
+            }
+        }
+    }
+
+    function match (tagname : string, attributes : Map.<string>) : boolean
+    {
+        var result = false;
+        if (this.tags.indexOf(tagname) != -1)
+        {
+            result = true;
+        }
+        else if (attributes['id'] && this.ids.indexOf(attributes['id']) != -1)
+        {
+            result = true;
+        }
+        else if (attributes['class'])
+        {
+            var classname = attributes['class'];
+            if (this.classes.indexOf(classname) != -1 ||
+                this.tagAndClasses.indexOf(tagname + '.' + classname) != -1)
+            {
+                result = true;
+            }
+        }
+        return result;
     }
 }
 
@@ -143,17 +244,14 @@ class HTMLParser
     var unit : int;
     var root : string;
     var prefix : string;
-    var tagfilter : string[];
-    var idfilter : string[];
+    var filter : TagFilter;
 
-    function constructor (unit : int, root : string, prefix : string, tags : string[], ids : string[], stemmer : Nullable.<Stemmer>)
+    function constructor (unit : int, root : string, prefix : string, filter : string[], stemmer : Nullable.<Stemmer>)
     {
         this.unit = unit;
         this.root = root;
         this.prefix = prefix;
-        this.tagfilter = tags;
-        this.idfilter = ids;
-
+        this.filter = new TagFilter(filter);
         this.oktavia = new Oktavia();
         this.oktavia.addSection('section');
         this.oktavia.addBlock('tag');
@@ -168,7 +266,7 @@ class HTMLParser
         var relative = this.prefix + node.path.relative(this.root, filepath);
         console.log('reading: ' + relative);
         var lines = node.fs.readFileSync(filepath, 'utf8');
-        var handler = new _HTMLHandler(this.oktavia, relative, this.unit, this.tagfilter, this.idfilter);
+        var handler = new _HTMLHandler(this.oktavia, relative, this.unit, this.filter);
         var parser = new SAXParser(handler);
         parser.parse(lines);
     }

@@ -1,7 +1,8 @@
+import "console.jsx";
 import "bit-vector.jsx";
 import "oktavia.jsx";
 import "binary-util.jsx";
-import "console.jsx";
+import "search-result.jsx";
 
 
 class Metadata
@@ -33,6 +34,29 @@ class Metadata
         }
         var length = this._bitVector.select(index) - startPosition + 1;
         return this._parent._getSubstring(startPosition, length);
+    }
+
+    function getStartPosition (index : int) : int
+    {
+        if (index < 0 || this._size() <= index)
+        {
+            throw new Error("Section.getContent() : range error " + index as string);
+        }
+        var startPosition = 0;
+        if (index > 0)
+        {
+            startPosition = this._bitVector.select(index - 1) + 1;
+        }
+        return startPosition;
+    }
+
+    function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
+    {
+    }
+
+    function getInformation(index : int) : string
+    {
+        return '';
     }
 
     function _build () : void
@@ -84,6 +108,7 @@ class Section extends Metadata
     {
         if (position < 0 || this._bitVector.size() <= position)
         {
+            console.log(this._bitVector.size());
             throw new Error("Section.getSectionIndex() : range error " + position as string);
         }
         return this._bitVector.rank(position);
@@ -96,6 +121,26 @@ class Section extends Metadata
             throw new Error("Section.getName() : range error");
         }
         return this._names[index];
+    }
+
+    override function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
+    {
+        for (var i = 0; i < positions.length; i++)
+        {
+            var position = positions[i];
+            var index = this.getSectionIndex(position);
+            var unit = result.getSearchUnit(index);
+            if (unit.startPosition < 0)
+            {
+                unit.startPosition = this.getStartPosition(index);
+            }
+            unit.addPosition(word, position - unit.startPosition, stemmed);
+        }
+    }
+
+    override function getInformation(index : int) : string
+    {
+        return this.getName(index);
     }
 
     static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
@@ -114,9 +159,18 @@ class Section extends Metadata
 
 class Splitter extends Metadata
 {
+    var name : Nullable.<string>;
+
     function constructor (parent : Oktavia)
     {
         super(parent);
+        this.name = null;
+    }
+
+    function constructor (parent : Oktavia, name : string)
+    {
+        super(parent);
+        this.name = name;
     }
 
     function size () : int
@@ -141,6 +195,20 @@ class Splitter extends Metadata
             throw new Error("Section.getSectionIndex() : range error");
         }
         return this._bitVector.rank(position);
+    }
+
+    override function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
+    {
+        // TODO
+    }
+
+    override function getInformation(index : int) : string
+    {
+        if (this.name != null)
+        {
+            return this.name + ((index + 1) as string);
+        }
+        return '';
     }
 
     static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
@@ -212,7 +280,7 @@ class Table extends Metadata
     function getRowContent (rowIndex : int) : Map.<string>
     {
         var content = this.getContent(rowIndex);
-        var values = content.split(Oktavia._eob, this._headers.length);
+        var values = content.split(Oktavia.eob, this._headers.length);
         var result = {} : Map.<string>;
         for (var i in this._headers)
         {
@@ -226,6 +294,16 @@ class Table extends Metadata
             }
         }
         return result;
+    }
+
+    override function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
+    {
+        // TODO implement
+    }
+
+    override function getInformation(index : int) : string
+    {
+        return '';
     }
 
     override function _build () : void
@@ -352,6 +430,16 @@ class Block extends Metadata
             result = '';
         }
         return result;
+    }
+
+    override function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
+    {
+        // TODO implement
+    }
+
+    override function getInformation(index : int) : string
+    {
+        return '';
     }
 
     static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
