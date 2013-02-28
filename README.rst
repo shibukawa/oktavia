@@ -6,27 +6,35 @@ Oktavia is a full text search engine for JavaScript environment. It uses FM-Inde
 Current Status
 --------------
 
-Now it is early alpha version. FM-Index engine works fine, but there are no useful index generator, search client so on.
+It can work as the search engine.
+
+Now it is an alpha version. Not optimized yet.
 
 I am planning to implement following features:
 
-* Basic schemas:
+* Improve file size and speed, portability
 
-  * HTML (sections, paragraph, pre, anchor)
-  * CSV (column, line break)
+  * Fix Suffix Array sorting algorithm
+  * Character code remapping
+  * Zip compression
+  * Use MessagePack as a container format
+
+* Index Generator
+
+  * Standart Text (file, block, line)
+  * CSV (column, line)
   * reST (sections, paragraph, code-block, etc...)
 
   I hate markdown.
 
 * Custom schema support
-* Index file generator tool
 * Search client
 
   * Browser
-  * node.js (command line and API)
 
-* Stemmers
-* Python version
+* Python/Sphinx version
+
+* Cool logo
 
 Todo:
 
@@ -49,11 +57,21 @@ Generate JS code
 Run Sample (simple FM-Index)
 ----------------------------
 
+.. code-block:: bash
+
+   $ make
+
 * Create Index File
 
   .. code-block:: bash
 
-     $ jsx --add-search-path ./lib --run tool/make_index_simple.jsx index.db testdata/jsx_tutorial.txt testdata/jsx_primitive_type.txt testdata/jsx_literal.txt
+     $ ./oktavia-mkindex -i test/doc/folder -r test/doc/folder -m html
+
+* Run Search
+
+  .. code-block:: bash
+
+     $ ./oktavia-search test/doc/folder/search/index.okt search_word
 
 Run test
 ~~~~~~~~
