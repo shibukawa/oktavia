@@ -271,12 +271,16 @@ class HTMLParser
         parser.parse(lines);
     }
 
-    function dump (filepath : string, sizeOptimize : boolean) : void
+    function dump (filepath : string, sizeOptimize : boolean, verbose : boolean) : void
     {
-        console.log('building...');
-        this.oktavia.build(true);
-        console.log('writinging: ' + filepath);
-        var dump = this.oktavia.dump(true, sizeOptimize);
+        console.log('\nbuilding...\n');
+        this.oktavia.build(verbose);
+        console.log('writing: ' + filepath);
+        if (verbose)
+        {
+            console.log('');
+        }
+        var dump = this.oktavia.dump(verbose, sizeOptimize);
         node.fs.writeFileSync(filepath, dump, "utf16le");
     }
 }

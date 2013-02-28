@@ -139,7 +139,7 @@ class FMIndex
 
     function build () : void
     {
-        this.build(String.fromCharCode(1), 4, false);
+        this.build(String.fromCharCode(0), 4, false);
     }
 
     function build (end_marker : string, num : int) : void
@@ -147,14 +147,13 @@ class FMIndex
         this.build(end_marker, num, false);
     }
 
-    function build(end_marker : string, ddic : int, is_msg : boolean) : void
+    function build(end_marker : string, ddic : int, verbose : boolean) : void
     {
-        if (is_msg)
+        if (verbose)
         {
-            console.time("building burrows-wheeler transform.");
+            console.time("building burrows-wheeler transform");
         }
         this._substr += end_marker;
-        console.log((this._substr.length * 2) as string + ' bytes');
         var b = new BurrowsWheelerTransform();
         b.build(this._substr);
         var s = b.get();
@@ -162,41 +161,42 @@ class FMIndex
         this._head = b.head();
         b.clear();
         this._substr = "";
-        if (is_msg)
+        if (verbose)
         {
-            console.timeEnd("building burrows-wheeler transform.");
+            console.timeEnd("building burrows-wheeler transform");
         }
-        if (is_msg)
+        if (verbose)
         {
-            console.time("building wavelet matrix.");
+            console.time("building wavelet matrix");
         }
         this._sv.build(s);
-        if (is_msg)
+        if (verbose)
         {
-            console.timeEnd("building wavelet matrix.");
+            console.timeEnd("building wavelet matrix");
         }
 
-        if (is_msg)
+        if (verbose)
         {
-            console.time("caching rank less than.");
+            console.time("caching rank less than");
         }
         for (var c = 0; c < 65536; c++)
         {
             this._rlt[c] = this._sv.rank_less_than(this._sv.size(), c);
         }
-        if (is_msg)
+        if (verbose)
         {
-            console.timeEnd("caching rank less than.");
+            console.timeEnd("caching rank less than");
         }
         this._ddic = ddic;
-        if (is_msg)
+        if (verbose)
         {
-            console.time("building dictionaries.");
+            console.time("building dictionaries");
         }
         this._buildDictionaries();
-        if (is_msg)
+        if (verbose)
         {
-            console.timeEnd("building dictionaries.");
+            console.timeEnd("building dictionaries");
+            console.log('');
         }
     }
 
@@ -265,7 +265,6 @@ class FMIndex
         contents.push(this._sv.dump());
         if (print)
         {
-            log '64 bit number * 3';
             log 'wavelet matrix: ' + (contents[3].length * 2) as string + ' bytes';
         }
         var wmsize = this._sv.size();
@@ -282,7 +281,7 @@ class FMIndex
         contents.push(rlt_cache.join(""));
         if (print)
         {
-            log 'rank less than cache: ' + (rlt_cache.length * 2) as string + ' + 2 bytes';
+            log 'rank less than cache: ' + (rlt_cache.length * 2) as string + ' bytes';
         }
         if (omitDict)
         {
@@ -295,17 +294,13 @@ class FMIndex
             {
                 contents.push(Binary.dump64bitNumber(this._posdic[i]));
             }
-            if (print)
-            {
-                log 'pos dic cache: ' + (this._posdic.length * 4) as string + ' + 4 bytes';
-            }
             for (var i in this._idic)
             {
                 contents.push(Binary.dump64bitNumber(this._idic[i]));
             }
             if (print)
             {
-                log 'i dic cache: ' + (this._idic.length * 4) as string + ' + 4 bytes';
+                log 'dictionary cache: ' + (this._idic.length * 8) as string + ' bytes';
             }
         }
         return contents.join("");

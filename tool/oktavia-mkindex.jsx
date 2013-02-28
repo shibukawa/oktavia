@@ -40,6 +40,7 @@ class _Main
             "                                  : Others are base64 source code style output.",
             " -m, --mode [mode]                : Mode type. 'html', 'csv', 'text' are available.",
             " -S, --size-optimize              : Optimize file size.",
+            " -v, --verbose                    : Show detail information.",
             " -h, --help                       : Display this message.",
             "",
             "HTML Mode Options:",
@@ -84,6 +85,7 @@ class _Main
         var unit = 'file';
         var type = 'index';
         var mode = '';
+        var verbose = false;
         var filter = [] : string[];
         var algorithm : Nullable.<string> = null;
         var wordsplitter : Nullable.<string> = null;
@@ -100,7 +102,7 @@ class _Main
         var validTypes = ['index', 'cmd', 'jsx', 'js', 'commonjs'];
         var validWordSplitters = ['ts'];
 
-        var optstring = "m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)";
+        var optstring = "v(verbose)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)";
         var parser = new BasicParser(optstring, args);
         var opt = parser.getopt();
         while (opt)
@@ -133,6 +135,9 @@ class _Main
                 break;
             case "h":
                 showhelp = true;
+                break;
+            case "v":
+                verbose = true;
                 break;
             case "u":
                 unit = opt.optarg;
@@ -167,7 +172,7 @@ class _Main
                 }
                 break;
             case "w":
-            
+
                 break;
             case "S":
                 sizeOptimize = true;
@@ -244,7 +249,7 @@ class _Main
                     {
                         htmlParser.parse(inputHTMLFiles[i]);
                     }
-                    htmlParser.dump(indexFilePath, sizeOptimize);
+                    htmlParser.dump(indexFilePath, sizeOptimize, verbose);
                 }
                 break;
             case 'csv':

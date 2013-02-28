@@ -18,7 +18,7 @@ class Metadata
 
     function _size () : int
     {
-        return this._bitVector.rank(this._bitVector.size()); 
+        return this._bitVector.rank(this._bitVector.size());
     }
 
     function getContent (index : int) : string
@@ -101,14 +101,13 @@ class Section extends Metadata
 
     function size () : int
     {
-        return this._names.length; 
+        return this._names.length;
     }
 
     function getSectionIndex (position : int) : int
     {
         if (position < 0 || this._bitVector.size() <= position)
         {
-            console.log(this._bitVector.size());
             throw new Error("Section.getSectionIndex() : range error " + position as string);
         }
         return this._bitVector.rank(position);

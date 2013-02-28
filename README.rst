@@ -14,10 +14,14 @@ I am planning to implement following features:
 
 * Improve file size and speed, portability
 
-  * Fix Suffix Array sorting algorithm
   * Character code remapping
   * Zip compression
   * Use MessagePack as a container format
+
+* Word Splitter option
+
+  * Standard
+  * CJK
 
 * Index Generator
 

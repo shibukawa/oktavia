@@ -233,10 +233,10 @@ class SAXParser
 
     function close () : SAXParser
     {
-        return this.parse(null);
+        return this.parse('');
     }
 
-    function parse (chunk : Nullable.<string>) : SAXParser
+    function parse (chunk : string) : SAXParser
     {
         var _ = new Char();
         if (this.error)
@@ -246,11 +246,6 @@ class SAXParser
         if (this.closed)
         {
             return this.emiterror("Cannot write after close. Assign an onready handler.");
-        }
-        if (chunk == null)
-        {
-            this.end();
-            return this;
         }
         var i = 0, c = "";
         while (this.c = c = chunk.charAt(i++))
@@ -283,6 +278,7 @@ class SAXParser
                     this.state = _State.TEXT;
                 }
                 continue;
+
             case _State.TEXT:
                 //log "TEXT";
                 if (this.sawRoot && !this.closedRoot)
@@ -320,7 +316,7 @@ class SAXParser
                     else this.textNode += c;
                 }
                 continue;
-    
+
             case _State.SCRIPT:
                 //log "SCRIPT";
                 // only non-strict
@@ -328,7 +324,7 @@ class SAXParser
                     this.state = _State.SCRIPT_ENDING;
                 } else this.script += c;
                 continue;
-    
+
             case _State.SCRIPT_ENDING:
                 //log "SCRIPT END";
                 if (c == "/") {
@@ -338,7 +334,7 @@ class SAXParser
                     this.state = _State.SCRIPT;
                 }
                 continue;
-    
+
             case _State.OPEN_WAKA:
                 //log "OPEN_WAKA";
                 // either a /, ?, !, or text is coming next.
@@ -370,6 +366,7 @@ class SAXParser
                     this.state = _State.TEXT;
                 }
                 continue;
+
             case _State.SGML_DECL:
                 //log "SGML_DECL";
                 if ((this.sgmlDecl+c).toUpperCase() == _.CDATA) {
@@ -400,7 +397,7 @@ class SAXParser
                     this.sgmlDecl += c;
                 } else this.sgmlDecl += c;
                 continue;
-    
+
             case _State.SGML_DECL_QUOTED:
                 //log "SGML_DECL_QUOTED";
                 if (c == this.q) {
@@ -409,7 +406,7 @@ class SAXParser
                 }
                 this.sgmlDecl += c;
                 continue;
-    
+
             case _State.DOCTYPE:
                 //log "DOCTYPE";
                 if (c == ">") {
@@ -425,7 +422,7 @@ class SAXParser
                     }
                 }
                 continue;
-    
+
             case _State.DOCTYPE_QUOTED:
                 //log "DOCTYPE_QUOTED";
                 this.doctype += c;
@@ -434,7 +431,7 @@ class SAXParser
                     this.state = _State.DOCTYPE;
                 }
                 continue;
-    
+
             case _State.DOCTYPE_DTD:
                 //log "DOCTYPE_DTD";
                 this.doctype += c;
@@ -444,7 +441,7 @@ class SAXParser
                     this.q = c;
                 }
                 continue;
-    
+
             case _State.DOCTYPE_DTD_QUOTED:
                 //log "DOCTYPE_DTD_QUOTED";
                 this.doctype += c;
@@ -453,13 +450,13 @@ class SAXParser
                     this.q = "";
                 }
                 continue;
-    
+
             case _State.COMMENT:
                 //log "COMMENT";
                 if (c == "-") this.state = _State.COMMENT_ENDING;
                 else this.comment += c;
                 continue;
-    
+
             case _State.COMMENT_ENDING:
                 //log "COMMENT_ENDING";
                 if (c == "-") {
@@ -476,7 +473,7 @@ class SAXParser
                     this.state = _State.COMMENT;
                 }
                 continue;
-    
+
             case _State.COMMENT_ENDED:
                 //log "COMMENT_ENDED";
                 if (c != ">") {
@@ -487,13 +484,13 @@ class SAXParser
                     this.state = _State.COMMENT;
                 } else this.state = _State.TEXT;
                 continue;
-    
+
             case _State.CDATA:
                 //log "CDATA";
                 if (c == "]") this.state = _State.CDATA_ENDING;
                 else this.cdata += c;
                 continue;
-    
+
             case _State.CDATA_ENDING:
                 //log "CDATA_ENDING";
                 if (c == "]") this.state = _State.CDATA_ENDING_2;
@@ -502,7 +499,7 @@ class SAXParser
                     this.state = _State.CDATA;
                 }
                 continue;
-    
+
             case _State.CDATA_ENDING_2:
                 //log "CDATA_ENDING 2";
                 if (c == ">") {
@@ -521,19 +518,19 @@ class SAXParser
                     this.state = _State.CDATA;
                 }
                 continue;
-    
+
             case _State.PROC_INST:
                 if (c == "?") this.state = _State.PROC_INST_ENDING;
                 else if (_.is(_.whitespace, c)) this.state = _State.PROC_INST_BODY;
                 else this.procInstName += c;
                 continue;
-    
+
             case _State.PROC_INST_BODY:
                 if (!this.procInstBody && _.is(_.whitespace, c)) continue;
                 else if (c == "?") this.state = _State.PROC_INST_ENDING;
                 else this.procInstBody += c;
                 continue;
-    
+
             case _State.PROC_INST_ENDING:
                 if (c == ">") {
                     this.closetext_if_exist();
@@ -545,7 +542,7 @@ class SAXParser
                     this.state = _State.PROC_INST_BODY;
                 }
                 continue;
-    
+
             case _State.OPEN_TAG:
                 //log "OPEN TAG";
                 if (_.is(_.nameBody, c)) this.tagName += c;
@@ -559,7 +556,7 @@ class SAXParser
                     }
                 }
                 continue;
-    
+
             case _State.OPEN_TAG_SLASH:
                 //log "OPEN TAG SLASH";
                 if (c == ">") {
@@ -570,7 +567,7 @@ class SAXParser
                     this.state = _State.ATTRIB;
                 }
                 continue;
-    
+
             case _State.ATTRIB:
                 //log "ATTRIB";
                 // haven't read the attribute name yet.
@@ -597,7 +594,7 @@ class SAXParser
                 else if (_.is(_.nameBody, c)) this.attribName += c;
                 else this.strictFail("Invalid attribute name");
                 continue;
-    
+
             case _State.ATTRIB_NAME_SAW_WHITE:
                 if (c == "=") this.state = _State.ATTRIB_VALUE;
                 else if (_.is(_.whitespace, c)) continue;
@@ -618,7 +615,7 @@ class SAXParser
                     }
                 }
                 continue;
-    
+
             case _State.ATTRIB_VALUE:
                 if (_.is(_.whitespace, c)) continue;
                 else if (_.is(_.quote, c)) {
@@ -630,7 +627,7 @@ class SAXParser
                     this.attribValue = c;
                 }
                 continue;
-    
+
             case _State.ATTRIB_VALUE_QUOTED:
                 if (c != this.q) {
                     if (c == "&") this.state = _State.ATTRIB_VALUE_ENTITY_Q;
@@ -701,13 +698,13 @@ class SAXParser
                     this.state = _State.CLOSE_TAG_SAW_WHITE;
                 }
                 continue;
-    
+
             case _State.CLOSE_TAG_SAW_WHITE:
                 if (_.is(_.whitespace, c)) continue;
                 if (c == ">") this.closeTag();
                 else this.strictFail("Invalid characters in closing tag");
                 continue;
-    
+
             case _State.TEXT_ENTITY:
                 //log "TEXT_ENTITY";
                 if (c == ";") {
@@ -723,6 +720,7 @@ class SAXParser
                     this.state = _State.TEXT;
                 }
                 continue;
+
             case _State.ATTRIB_VALUE_ENTITY_Q:
             case _State.ATTRIB_VALUE_ENTITY_U:
                 var returnState;
@@ -747,11 +745,12 @@ class SAXParser
                     this.state = returnState;
                 }
                 continue;
-    
+
             default:
                 throw new Error("Unknown state: " + (this.state as string));
             }
         }
+        this.end();
         return this;
     }
 
@@ -976,9 +975,13 @@ class SAXParser
         var num = 0;
         var numStr = "";
         if (this.ENTITIES[entity])
+        {
             return this.ENTITIES[entity];
+        }
         if (this.ENTITIES[entityLC])
+        {
             return this.ENTITIES[entityLC];
+        }
         entity = entityLC;
         if (entity.charAt(0) == "#")
         {

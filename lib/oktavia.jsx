@@ -184,7 +184,7 @@ class Oktavia
         return result;
     }
 
-    function search (queryWords : string []) : SearchSummary 
+    function search (queryWords : string []) : SearchSummary
     {
         var parser = new QueryParser();
         var summary = new SearchSummary(this);
@@ -212,13 +212,13 @@ class Oktavia
         this.build(false);
     }
 
-    function build (print : boolean) : void
+    function build (verbose : boolean) : void
     {
         for (var key in this._metadatas)
         {
             this._metadatas[key]._build();
         }
-        this._fmindex.build(Oktavia.eof, 4, print);
+        this._fmindex.build(Oktavia.eof, 4, verbose);
     }
 
     function dump () : string
@@ -226,27 +226,25 @@ class Oktavia
         return this.dump(false, false);
     }
 
-    function dump (print : boolean, sizeOptimize : boolean) : string
+    function dump (verbose : boolean, sizeOptimize : boolean) : string
     {
         var header = "oktavia01";
-        var fmdata = this._fmindex.dump(sizeOptimize, print);
+        var fmdata = this._fmindex.dump(sizeOptimize, verbose);
         var result = [
             header,
             fmdata,
             Binary.dump16bitNumber(this._metadataLabels.length)
         ];
-        if (print)
+        if (verbose)
         {
-            log 'header: ' + (header.length * 2) as string + ' bytes';
             log 'fmindex: ' + (fmdata.length * 2) as string + ' bytes';
-            log 'metadata count: 2 byte';
         }
         for (var i = 0; i < this._metadataLabels.length; i++)
         {
             var name = this._metadataLabels[i];
             var data = this._metadatas[name]._dump();
             result.push(Binary.dumpString(name), data);
-            if (print)
+            if (verbose)
             {
                 log 'metadata ' + name + ': ' + (data.length * 2) as string + ' bytes';
             }
