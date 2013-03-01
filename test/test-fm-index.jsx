@@ -59,7 +59,7 @@ class _Test extends TestCase
 
         this.didd.push(did);
         this.str += this.end_marker;
-        this.fm.build(this.end_marker, 3);
+        this.fm.build(this.end_marker, 3, false);
 
         for (var i = 0; i < this.str.length; i++)
         {
@@ -143,7 +143,7 @@ class _Test extends TestCase
         this.fm.push("abracadabra");
         this.fm.push("mississippi");
         this.fm.push("abracadabra mississippi");
-        this.fm.build(this.end_marker, 3);
+        this.fm.build(this.end_marker, 3, false);
         this.expect(this.fm.getSubstring(0, 11)).toBe('abracadabra');
         this.expect(this.fm.getSubstring(11, 11)).toBe('mississippi');
         this.expect(this.fm.getSubstring(22, 23)).toBe('abracadabra mississippi');

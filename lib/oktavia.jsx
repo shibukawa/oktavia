@@ -4,6 +4,7 @@ import "binary-util.jsx";
 import "query-parser.jsx";
 import "search-result.jsx";
 import "stemmer/stemmer.jsx";
+import "console.jsx";
 
 
 class Oktavia
@@ -13,8 +14,17 @@ class Oktavia
     var _metadataLabels : string[];
     var _stemmer : Nullable.<Stemmer>;
     var _stemmingResult : Map.<string[]>;
-    static const eof = String.fromCharCode(1);
-    static const eob = String.fromCharCode(2);
+
+    var sizeOptimize : boolean;
+
+    // char code remap tables
+    var _utf162compressCode : string[];
+    var _compressCode2utf16 : string[];
+
+    // sentinels
+    static const eof = String.fromCharCode(0);
+    static const eob = String.fromCharCode(1);
+    static const unknown = String.fromCharCode(3);
 
     function constructor ()
     {
@@ -23,6 +33,20 @@ class Oktavia
         this._metadataLabels = [] : string[];
         this._stemmer = null;
         this._stemmingResult = {} : Map.<string[]>;
+        this.sizeOptimize = false;
+    }
+
+    function constructor (sizeOptimize : boolean)
+    {
+        this._fmindex = new FMIndex();
+        this._metadatas = {} : Map.<Metadata>;
+        this._metadataLabels = [] : string[];
+        this._stemmer = null;
+        this._stemmingResult = {} : Map.<string[]>;
+        this._utf162compressCode = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
+        this._utf162compressCode.length = 65536;
+        this._compressCode2utf16 = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
+        this.sizeOptimize = sizeOptimize;
     }
 
     function setStemmer (stemmer : Stemmer) : void
@@ -126,12 +150,33 @@ class Oktavia
 
     function addWord (words : string) : void
     {
-        this._fmindex.push(words);
+        if (this.sizeOptimize)
+        {
+            var str = [] : string[];
+            str.length = words.length;
+            for (var i = 0; i < words.length; i++)
+            {
+                var charCode = words.charCodeAt(i);
+                var newCharCode = this._utf162compressCode[charCode];
+                if (newCharCode == null)
+                {
+                    newCharCode = String.fromCharCode(this._compressCode2utf16.length);
+                    this._utf162compressCode[charCode] = newCharCode;
+                    this._compressCode2utf16.push(String.fromCharCode(charCode));
+                }
+                str.push(newCharCode);
+            }
+            this._fmindex.push(str.join(''));
+        }
+        else
+        {
+            this._fmindex.push(words);
+        }
     }
 
     function addWord (words : string, stemming : boolean) : void
     {
-        this._fmindex.push(words);
+        this.addWord(words);
         if (stemming && this._stemmer)
         {
             var wordList = words.split(/\s+/);
@@ -157,6 +202,29 @@ class Oktavia
         }
     }
 
+    function _convertToCompressionCode (keyword : string) : string
+    {
+        var result = keyword;
+        if (this.sizeOptimize)
+        {
+            var resultChars = [] : string[];
+            for (var i = 0; i < keyword.length; i++)
+            {
+                var chr = this._utf162compressCode[keyword.charCodeAt(i)];
+                if (chr == null)
+                {
+                    resultChars.push(Oktavia.unknown);
+                }
+                else
+                {
+                    resultChars.push(chr);
+                }
+            }
+            result = resultChars.join('');
+        }
+        return result;
+    }
+
     function rawSearch (keyword : string, stemming : boolean) : int[]
     {
         var result : int[];
@@ -169,17 +237,18 @@ class Oktavia
             {
                 for (var i = 0; i < stemmedList.length; i++)
                 {
-                    result = result.concat(this._fmindex.search(stemmedList[i]));
+                    var word = this._convertToCompressionCode(stemmedList[i]);
+                    result = result.concat(this._fmindex.search(word));
                 }
             }
             else
             {
-                result = this._fmindex.search(keyword);
+                result = this._fmindex.search(this._convertToCompressionCode(keyword));
             }
         }
         else
         {
-            result = this._fmindex.search(keyword);
+            result = this._fmindex.search(this._convertToCompressionCode(keyword));
         }
         return result;
     }
@@ -209,16 +278,25 @@ class Oktavia
 
     function build () : void
     {
-        this.build(false);
+        this.build(5, false);
     }
 
-    function build (verbose : boolean) : void
+    function build (cacheDensity : int, verbose : boolean) : void
     {
         for (var key in this._metadatas)
         {
             this._metadatas[key]._build();
         }
-        this._fmindex.build(Oktavia.eof, 4, verbose);
+        var cacheRange = Math.round(Math.max(1, (100 / Math.min(100, Math.max(0.01, cacheDensity)))));
+        if (this.sizeOptimize)
+        {
+            var maxChar = this._compressCode2utf16.length;
+            this._fmindex.build(Oktavia.eof, maxChar, cacheRange, verbose);
+        }
+        else
+        {
+            this._fmindex.build(Oktavia.eof, cacheRange, verbose);
+        }
     }
 
     function dump () : string
@@ -229,16 +307,33 @@ class Oktavia
     function dump (verbose : boolean, sizeOptimize : boolean) : string
     {
         var header = "oktavia01";
+        if (verbose)
+        {
+            console.log("Source text size: " + (this._fmindex.size() * 2) as string + ' bytes');
+        }
         var fmdata = this._fmindex.dump(sizeOptimize, verbose);
         var result = [
             header,
-            fmdata,
-            Binary.dump16bitNumber(this._metadataLabels.length)
+            fmdata
         ];
-        if (verbose)
+        if (this.sizeOptimize)
         {
-            log 'fmindex: ' + (fmdata.length * 2) as string + ' bytes';
+            result.push(Binary.dump16bitNumber(this._compressCode2utf16.length));
+            for (var i = 3; i < this._compressCode2utf16.length; i++)
+            {
+                result.push(this._compressCode2utf16[i]);
+            }
+            if (verbose)
+            {
+                console.log('Char Code Map: ' + (this._compressCode2utf16.length * 2 - 2) as string + ' bytes');
+            }
         }
+        else
+        {
+            result.push(Binary.dump16bitNumber(0));
+        }
+
+        result.push(Binary.dump16bitNumber(this._metadataLabels.length));
         for (var i = 0; i < this._metadataLabels.length; i++)
         {
             var name = this._metadataLabels[i];
@@ -246,7 +341,7 @@ class Oktavia
             result.push(Binary.dumpString(name), data);
             if (verbose)
             {
-                log 'metadata ' + name + ': ' + (data.length * 2) as string + ' bytes';
+                console.log('Meta Data ' + name + ': ' + (data.length * 2) as string + ' bytes');
             }
         }
         return result.join('');
@@ -263,6 +358,23 @@ class Oktavia
 
         var offset = 9;
         offset = this._fmindex.load(data, offset);
+        var charCodeCount = Binary.load16bitNumber(data, offset++);
+        if (charCodeCount == 0)
+        {
+            this.sizeOptimize = false;
+        }
+        else
+        {
+            this.sizeOptimize = true;
+            this._compressCode2utf16 = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
+            this._utf162compressCode = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
+            for (var i = 3; i < charCodeCount; i++)
+            {
+                var charCode = Binary.load16bitNumber(data, offset++);
+                this._compressCode2utf16.push(String.fromCharCode(charCode));
+                this._utf162compressCode[charCode] = String.fromCharCode(i);
+            }
+        }
         var metadataCount = Binary.load16bitNumber(data, offset++);
         for (var i = 0; i < metadataCount; i++)
         {
@@ -321,6 +433,16 @@ class Oktavia
 
     function _getSubstring (position : int, length : int) : string
     {
-        return this._fmindex.getSubstring(position, length);
+        var result = this._fmindex.getSubstring(position, length);
+        if (this.sizeOptimize)
+        {
+            var str = [] : string[];
+            for (var i = 0; i < result.length; i++)
+            {
+                str.push(this._compressCode2utf16[result.charCodeAt(i)]);
+            }
+            result = str.join('');
+        }
+        return result;
     }
 }

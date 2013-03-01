@@ -139,15 +139,15 @@ class FMIndex
 
     function build () : void
     {
-        this.build(String.fromCharCode(0), 4, false);
-    }
-
-    function build (end_marker : string, num : int) : void
-    {
-        this.build(end_marker, num, false);
+        this.build(String.fromCharCode(0), 65536, 20, false);
     }
 
     function build(end_marker : string, ddic : int, verbose : boolean) : void
+    {
+        this.build(end_marker, 65536, ddic, verbose);
+    }
+
+    function build(end_marker : string, maxChar : int, ddic : int, verbose : boolean) : void
     {
         if (verbose)
         {
@@ -169,6 +169,9 @@ class FMIndex
         {
             console.time("building wavelet matrix");
         }
+        this._sv.setMaxCharCode(maxChar);
+            console.log("  maxCharCode: ", maxChar);
+            console.log("  bitSize: ", this._sv.bitsize());
         this._sv.build(s);
         if (verbose)
         {
@@ -179,7 +182,7 @@ class FMIndex
         {
             console.time("caching rank less than");
         }
-        for (var c = 0; c < 65536; c++)
+        for (var c = 0; c < maxChar; c++)
         {
             this._rlt[c] = this._sv.rank_less_than(this._sv.size(), c);
         }
@@ -212,11 +215,11 @@ class FMIndex
         do {
             if ((i % this._ddic) == 0)
             {
-                this._posdic[i / this._ddic] = pos;
+                this._posdic[Math.floor(i / this._ddic)] = pos;
             }
             if ((pos % this._ddic) == 0)
             {
-                this._idic[pos / this._ddic] = i;
+                this._idic[Math.floor(pos / this._ddic)] = i;
             }
             var c = this._sv.get(i);
             i = this._rlt[c] + this._sv.rank(i, c); //LF
@@ -256,32 +259,17 @@ class FMIndex
         return this.dump(false, false);
     }
 
-    function dump (omitDict : boolean, print : boolean) : string
+    function dump (omitDict : boolean, verbose : boolean) : string
     {
         var contents = [] : string[];
         contents.push(Binary.dump64bitNumber(this._ddic));
         contents.push(Binary.dump64bitNumber(this._ssize));
         contents.push(Binary.dump64bitNumber(this._head));
         contents.push(this._sv.dump());
-        if (print)
+        if (verbose)
         {
-            log 'wavelet matrix: ' + (contents[3].length * 2) as string + ' bytes';
-        }
-        var wmsize = this._sv.size();
-        var rlt_cache = [] : string[];
-        for (var i = 0; i < 65536; i++)
-        {
-            var pos = this._rlt[i];
-            if (pos != wmsize)
-            {
-                rlt_cache.push(Binary.dump16bitNumber(i) + Binary.dump64bitNumber(pos));
-            }
-        };
-        contents.push(Binary.dump16bitNumber(rlt_cache.length));
-        contents.push(rlt_cache.join(""));
-        if (print)
-        {
-            log 'rank less than cache: ' + (rlt_cache.length * 2) as string + ' bytes';
+            console.log("Serializing FM-index");
+            console.log('    Wavelet Matrix: ' + (contents[3].length * 2) as string + ' bytes');
         }
         if (omitDict)
         {
@@ -298,9 +286,9 @@ class FMIndex
             {
                 contents.push(Binary.dump64bitNumber(this._idic[i]));
             }
-            if (print)
+            if (verbose)
             {
-                log 'dictionary cache: ' + (this._idic.length * 8) as string + ' bytes';
+                console.log('    Dictionary Cache: ' + (this._idic.length * 16) as string + ' bytes');
             }
         }
         return contents.join("");
@@ -317,7 +305,7 @@ class FMIndex
         this._ssize = Binary.load64bitNumber(data, offset + 4);
         this._head = Binary.load64bitNumber(data, offset + 8);
         offset = this._sv.load(data, offset + 12);
-        var wmsize = this._sv.size();
+        /*var wmsize = this._sv.size();
         var rlt_cache_size = Binary.load16bitNumber(data, offset++);
         for (var i = 0; i < rlt_cache_size; i++, offset += 5)
         {
@@ -325,12 +313,17 @@ class FMIndex
             var pos = Binary.load64bitNumber(data, offset + 1);
             this._rlt[index] = pos;
         }
-        for (var i = 0; i < 65536; i++)
+        for (var i = 0; i < maxChar; i++)
         {
             if (this._rlt[i] == null)
             {
                 this._rlt[i] = wmsize;
             }
+        }*/
+        var maxChar = Math.pow(2, this._sv.bitsize());
+        for (var c = 0; c < maxChar; c++)
+        {
+            this._rlt[c] = this._sv.rank_less_than(this._sv.size(), c);
         }
         var size = Binary.load64bitNumber(data, offset);
         offset += 4;

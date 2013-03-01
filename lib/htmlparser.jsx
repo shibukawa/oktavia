@@ -245,14 +245,15 @@ class HTMLParser
     var root : string;
     var prefix : string;
     var filter : TagFilter;
+    var sizeOptimize : boolean;
 
-    function constructor (unit : int, root : string, prefix : string, filter : string[], stemmer : Nullable.<Stemmer>)
+    function constructor (unit : int, root : string, prefix : string, filter : string[], stemmer : Nullable.<Stemmer>, sizeOptimize : boolean)
     {
         this.unit = unit;
         this.root = root;
         this.prefix = prefix;
         this.filter = new TagFilter(filter);
-        this.oktavia = new Oktavia();
+        this.oktavia = new Oktavia(sizeOptimize);
         this.oktavia.addSection('section');
         this.oktavia.addBlock('tag');
         if (stemmer)
@@ -271,16 +272,16 @@ class HTMLParser
         parser.parse(lines);
     }
 
-    function dump (filepath : string, sizeOptimize : boolean, verbose : boolean) : void
+    function dump (filepath : string, cacheDensity : int, verbose : boolean) : void
     {
         console.log('\nbuilding...\n');
-        this.oktavia.build(verbose);
+        this.oktavia.build(cacheDensity, verbose);
         console.log('writing: ' + filepath);
         if (verbose)
         {
             console.log('');
         }
-        var dump = this.oktavia.dump(verbose, sizeOptimize);
+        var dump = this.oktavia.dump(verbose, this.sizeOptimize);
         node.fs.writeFileSync(filepath, dump, "utf16le");
     }
 }

@@ -1,6 +1,10 @@
 Oktavia
 =======
 
+.. image::
+
+   https://travis-ci.org/shibukawa/oktavia.png
+
 Oktavia is a full text search engine for JavaScript environment. It uses FM-Index.
 
 Current Status

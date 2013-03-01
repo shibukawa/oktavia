@@ -39,7 +39,10 @@ class _Main
             "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
             "                                  : Others are base64 source code style output.",
             " -m, --mode [mode]                : Mode type. 'html', 'csv', 'text' are available.",
-            " -S, --size-optimize              : Optimize file size.",
+            " -S, --size-optimize              : Optimize file size. Remap character code and compress size.",
+            " -c, --cache-density [percent]    : Cache data density. It effects file size and search speed.",
+            "                                  : 100% become four times of base index file size. Default value is 5%.",
+            "                                  : Valid value is 0.1% - 100%.",
             " -v, --verbose                    : Show detail information.",
             " -h, --help                       : Display this message.",
             "",
@@ -90,6 +93,7 @@ class _Main
         var algorithm : Nullable.<string> = null;
         var wordsplitter : Nullable.<string> = null;
         var sizeOptimize = false;
+        var cacheDensity : number = 5.0;
 
         var validModes = ['html', 'csv', 'text'];
         var validUnitsForHTML = ['file', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
@@ -102,7 +106,7 @@ class _Main
         var validTypes = ['index', 'cmd', 'jsx', 'js', 'commonjs'];
         var validWordSplitters = ['ts'];
 
-        var optstring = "v(verbose)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)";
+        var optstring = "v(verbose)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)c:(cache-density)";
         var parser = new BasicParser(optstring, args);
         var opt = parser.getopt();
         while (opt)
@@ -152,7 +156,7 @@ class _Main
             case "t":
                 if (validTypes.indexOf(opt.optarg) == -1)
                 {
-                    console.error('Option t/type is invalid.');
+                    console.error('Option -t/--type is invalid.');
                     notrun = true;
                 }
                 else
@@ -163,7 +167,7 @@ class _Main
             case "s":
                 if (validStemmers.indexOf(opt.optarg) == -1)
                 {
-                    console.error('Option s/stemmer is invalid.');
+                    console.error('Option -s/--stemmer is invalid.');
                     notrun = true;
                 }
                 else
@@ -176,6 +180,27 @@ class _Main
                 break;
             case "S":
                 sizeOptimize = true;
+                break;
+            case "c":
+                var match = /(\d+\.?\d*)/.exec(opt.optarg);
+                if (match)
+                {
+                    var tmpValue = match[1] as number;
+                    if (0.1 <= tmpValue && tmpValue <= 100)
+                    {
+                        cacheDensity = tmpValue;
+                    }
+                    else
+                    {
+                        console.error('Option -c/--cache-density should be in 0.1 - 100.');
+                        notrun = true;
+                    }
+                }
+                else
+                {
+                    console.error('Option -c/--cache-density is invalid.');
+                    notrun = true;
+                }
                 break;
             case "?":
                 notrun = true;
@@ -240,16 +265,16 @@ class _Main
                 var unitIndex = validUnitsForHTML.indexOf(unit);
                 if (unitIndex == -1)
                 {
-                    console.error('Option u/unit should be file, h1, h2, h3, h4, h5, h6. But ' + unit);
+                    console.error('Option -u/--unit should be file, h1, h2, h3, h4, h5, h6. But ' + unit);
                 }
                 else
                 {
-                    var htmlParser = new HTMLParser(unitIndex, root, prefix, filter, stemmer);
+                    var htmlParser = new HTMLParser(unitIndex, root, prefix, filter, stemmer, sizeOptimize);
                     for (var i = 0; i < inputHTMLFiles.length; i++)
                     {
                         htmlParser.parse(inputHTMLFiles[i]);
                     }
-                    htmlParser.dump(indexFilePath, sizeOptimize, verbose);
+                    htmlParser.dump(indexFilePath, cacheDensity, verbose);
                 }
                 break;
             case 'csv':

@@ -7,6 +7,7 @@
 
 import "bit-vector.jsx";
 import "binary-util.jsx";
+import "console.jsx";
 
 
 class WaveletMatrix
@@ -29,6 +30,11 @@ class WaveletMatrix
     function bitsize () : int
     {
         return this._bitsize;
+    }
+
+    function setMaxCharCode (charCode : int) : void
+    {
+        this._bitsize = Math.ceil(Math.log(charCode) / Math.LN2);
     }
 
     function clear () : void
@@ -61,7 +67,7 @@ class WaveletMatrix
         var depth : int = 1;
         while (depth < bitsize)
         {
-            var range_tmp = this._shallow_copy(this._range); // copy
+            var range_tmp = WaveletMatrix._shallow_copy(this._range); // copy
             for (var i = 0; i < size; i++)
             {
                 var code = v.charCodeAt(i);
@@ -209,8 +215,10 @@ class WaveletMatrix
 
     function dump () : string
     {
-        var contents = [] : string[];
-        contents.push(Binary.dump64bitNumber(this._size));
+        var contents = [
+            Binary.dump16bitNumber(this._bitsize),
+            Binary.dump64bitNumber(this._size)
+        ];
         for (var i = 0; i < this.bitsize(); i++)
         {
             contents.push(this._bv[i].dump());
@@ -239,6 +247,7 @@ class WaveletMatrix
     function load (data : string, offset : int) : int
     {
         this.clear();
+        this._bitsize = Binary.load16bitNumber(data, offset++);
         this._size = Binary.load64bitNumber(data, offset);
         offset += 4; 
         for (var i = 0; i < this.bitsize(); i++)
@@ -264,7 +273,7 @@ class WaveletMatrix
         return offset;
     }
 
-    function _shallow_copy (input : Map.<int>) : Map.<int>
+    static function _shallow_copy (input : Map.<int>) : Map.<int>
     {
         var result = {} : Map.<int>;
         for (var key in input)
@@ -276,7 +285,7 @@ class WaveletMatrix
 
     function _uint2bit (c : int, i : int) : boolean
     {
-        return ((c >>> (16 - 1 - i)) & 0x1) == 0x1;
+        return ((c >>> (this._bitsize - 1 - i)) & 0x1) == 0x1;
     }
 }
 

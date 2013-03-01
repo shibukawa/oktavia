@@ -1,5 +1,6 @@
 import "test-case.jsx";
 import "bit-vector.jsx";
+import "console.jsx";
 
 class _Test extends TestCase
 {
@@ -69,9 +70,13 @@ class _Test extends TestCase
 
     function test_load_dump_and_size () : void
     {
+        console.log('dump1');
         var dump1 = this.bv1.dump();
+        console.log('dump0');
         var dump0 = this.bv0.dump();
+        console.log('load1');
         this.bv1.load(dump1);
+        console.log('load0');
         this.bv0.load(dump0);
 
         this.expect(this.bv1.size()).toBe(this.src_values[this.src_values.length - 1] + 1); // == 3001
