@@ -93,7 +93,7 @@ class Search
             /*console.log(info.replace(Oktavia.eob, ' -- ') + '\n');
                     + ' ----------------------------------------------- '
                     + unit.score as string + ' pt');*/
-            console.log(style.convert('<title>' + info[0] + '</title>') + ' ' + style.convert('<url>' + info[1] + '</url>')); 
+            console.log(style.convert('<title>' + info[0] + '</title>') + ' ' + style.convert('<url>' + info[1] + '</url>'));
             var offset = info[0].length + 1;
             var content = metadata.getContent(unit.id);
             var start = 0;
@@ -129,16 +129,19 @@ class Search
                     ].join('');
                 }
             }
+            var text : string;
             if (split)
             {
-                console.log([
+                text = [
                     content.slice(0, Math.floor(num / 2)) + ' ...',
-                    content.slice(-Math.floor(num / 2), end - start)].join('\n'));
+                    content.slice(-Math.floor(num / 2), end - start)].join('\n');
             }
             else
             {
-                console.log(content.slice(0, end - start) + ' ...\n');
+                text = content.slice(0, end - start) + ' ...\n';
             }
+            text = text.replace(Oktavia.eob, ' ').replace(/\n\n+/, '\n\n');
+            console.log(text);
         }
         console.log(style.convert('<summary>' + (summary.size() as string) + " results.</summary>\n"));
     }

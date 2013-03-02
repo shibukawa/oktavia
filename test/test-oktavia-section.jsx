@@ -24,7 +24,7 @@ class _Test extends TestCase
         this.section.setTail("doc2");
         this.oktavia.addWord("abracadabra mississippi");
         this.section.setTail("doc3");
-        this.oktavia.build();
+        this.oktavia.build(25, false);
     }
 
     function test_doc_sizes () : void
@@ -64,9 +64,9 @@ class _Test extends TestCase
 
     function test_get_section_content () : void
     {
-        this.expect(this.section.getContent(2)).toBe("abracadabra mississippi");
-        this.expect(this.section.getContent(1)).toBe("mississippi");
         this.expect(this.section.getContent(0)).toBe("abracadabra");
+        this.expect(this.section.getContent(1)).toBe("mississippi");
+        this.expect(this.section.getContent(2)).toBe("abracadabra mississippi");
     }
 
     function test_get_section_content_boundary () : void
@@ -169,9 +169,9 @@ class _Test extends TestCase
         this.oktavia.load(dump);
         this.section = this.oktavia.getSection('document');
 
-        this.expect(this.section.getContent(2)).toBe("abracadabra mississippi");
-        this.expect(this.section.getContent(1)).toBe("mississippi");
         this.expect(this.section.getContent(0)).toBe("abracadabra");
+        this.expect(this.section.getContent(1)).toBe("mississippi");
+        this.expect(this.section.getContent(2)).toBe("abracadabra mississippi");
     }
 
     function test_load_dump_and_get_section_content_boundary () : void

@@ -32,7 +32,9 @@ class Metadata
         {
             startPosition = this._bitVector.select(index - 1) + 1;
         }
+        console.log(startPosition);
         var length = this._bitVector.select(index) - startPosition + 1;
+        console.log(length);
         return this._parent._getSubstring(startPosition, length);
     }
 

@@ -139,12 +139,12 @@ class FMIndex
 
     function build () : void
     {
-        this.build(String.fromCharCode(0), 65536, 20, false);
+        this.build(String.fromCharCode(0), 65535, 20, false);
     }
 
     function build(end_marker : string, ddic : int, verbose : boolean) : void
     {
-        this.build(end_marker, 65536, ddic, verbose);
+        this.build(end_marker, 65535, ddic, verbose);
     }
 
     function build(end_marker : string, maxChar : int, ddic : int, verbose : boolean) : void
@@ -170,8 +170,11 @@ class FMIndex
             console.time("building wavelet matrix");
         }
         this._sv.setMaxCharCode(maxChar);
+        if (verbose)
+        {
             console.log("  maxCharCode: ", maxChar);
             console.log("  bitSize: ", this._sv.bitsize());
+        }
         this._sv.build(s);
         if (verbose)
         {
@@ -305,21 +308,6 @@ class FMIndex
         this._ssize = Binary.load64bitNumber(data, offset + 4);
         this._head = Binary.load64bitNumber(data, offset + 8);
         offset = this._sv.load(data, offset + 12);
-        /*var wmsize = this._sv.size();
-        var rlt_cache_size = Binary.load16bitNumber(data, offset++);
-        for (var i = 0; i < rlt_cache_size; i++, offset += 5)
-        {
-            var index = Binary.load16bitNumber(data, offset);
-            var pos = Binary.load64bitNumber(data, offset + 1);
-            this._rlt[index] = pos;
-        }
-        for (var i = 0; i < maxChar; i++)
-        {
-            if (this._rlt[i] == null)
-            {
-                this._rlt[i] = wmsize;
-            }
-        }*/
         var maxChar = Math.pow(2, this._sv.bitsize());
         for (var c = 0; c < maxChar; c++)
         {

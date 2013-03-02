@@ -797,10 +797,8 @@ class SAXParser
 
     function textopts (text : string) : string
     {
-        //if (opt.trim)
-        text = text.trim();
-        //if (opt.normalize)
-        text = text.replace(/\s+/g, " ");
+        text = text.replace(/[\n\t]/g, ' ');
+        text = text.replace(/\s\s+/g, " ");
         return text;
     }
 

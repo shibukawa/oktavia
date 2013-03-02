@@ -1,0 +1,23 @@
+{
+    "author": "Yoshiki Shibukawa <yoshiki@shibu.jp>",
+    "name": "oktavia",
+    "description": "A full text search engine for JavaScript environment. It is based on FM-index algorithm.",
+    "version": "0.1.0",
+    "homepage": "http://oktavia.info",
+    "main": "./tool/oktavia-mkindex.jsx",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:shibukawa/oktavia.git"
+    },
+    "scripts": {
+        "test": "prove",
+        "install": "make"
+     },
+    "engines": {
+        "node": ">= 0.8"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "jsx": "latest"
+    }
+}
