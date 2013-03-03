@@ -78,6 +78,11 @@ class Metadata
     {
         return this._bitVector.dump();
     }
+
+    function _dump (report : CompressionReport) : string
+    {
+        return this._bitVector.dump(report);
+    }
 }
 
 class Section extends Metadata
@@ -156,6 +161,12 @@ class Section extends Metadata
     {
         return [Binary.dump16bitNumber(0), Binary.dumpStringList(this._names), super._dump()].join('');
     }
+
+    override function _dump (report : CompressionReport) : string
+    {
+        report.add(1, 1);
+        return [Binary.dump16bitNumber(0), Binary.dumpStringList(this._names, report), super._dump(report)].join('');
+    }
 }
 
 class Splitter extends Metadata
@@ -221,6 +232,12 @@ class Splitter extends Metadata
     override function _dump () : string
     {
         return [Binary.dump16bitNumber(1), super._dump()].join('');
+    }
+
+    override function _dump (report : CompressionReport) : string
+    {
+        report.add(1, 1);
+        return [Binary.dump16bitNumber(1), super._dump(report)].join('');
     }
 }
 
@@ -326,6 +343,15 @@ class Table extends Metadata
         return [
             Binary.dump16bitNumber(2), Binary.dumpStringList(this._headers),
             super._dump(), this._columnTails.dump()
+        ].join('');
+    }
+
+    override function _dump (report : CompressionReport) : string
+    {
+        report.add(1, 1);
+        return [
+            Binary.dump16bitNumber(2), Binary.dumpStringList(this._headers, report),
+            super._dump(report), this._columnTails.dump(report)
         ].join('');
     }
 }
@@ -454,6 +480,12 @@ class Block extends Metadata
     override function _dump () : string
     {
         return [Binary.dump16bitNumber(3), Binary.dumpStringList(this._names), super._dump()].join('');
+    }
+
+    override function _dump (report : CompressionReport) : string
+    {
+        report.add(1, 1);
+        return [Binary.dump16bitNumber(3), Binary.dumpStringList(this._names, report), super._dump(report)].join('');
     }
 }
 

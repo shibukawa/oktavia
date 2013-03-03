@@ -6,6 +6,7 @@ import "getopt.jsx";
 import "htmlparser.jsx";
 import "csvparser.jsx";
 import "textparser.jsx";
+import "binary-util.jsx";
 
 import "stemmer/stemmer.jsx";
 import "stemmer/danish-stemmer.jsx";
@@ -35,15 +36,19 @@ class _Main
             "",
             "Common Options:",
             " -i, --input [input folder/file ] : Target files to search. .html, .csv, .txt are available.",
-            " -t, --type [type]                : Export type. 'index'(default), 'cmd', 'jsx', 'js', 'commonjs' are available.",
+            " -t, --type [type]                : Export type. 'index'(default), 'base64', 'cmd', 'js',",
+            "                                  : 'commonjs' are available.",
             "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
             "                                  : Others are base64 source code style output.",
             " -m, --mode [mode]                : Mode type. 'html', 'csv', 'text' are available.",
-            " -S, --size-optimize              : Optimize file size. Remap character code and compress size.",
+            " -S, --speed-optimize             : Optimize search speed instead of file size.",
+            "                                  : Disable character code remapping.",
             " -c, --cache-density [percent]    : Cache data density. It effects file size and search speed.",
             "                                  : 100% become four times of base index file size. Default value is 5%.",
             "                                  : Valid value is 0.1% - 100%.",
-            " -v, --verbose                    : Show detail information.",
+            " -n, --name [function]            : Callback function name for 'js' output or property name",
+            "                                  : for 'commonjs'. This function will receive base64 encoded index data. ",
+            " -q, --quiet                      : Hide detail information.",
             " -h, --help                       : Display this message.",
             "",
             "HTML Mode Options:",
@@ -88,13 +93,13 @@ class _Main
         var unit = 'file';
         var type = 'index';
         var mode = '';
-        var verbose = false;
+        var verbose = true;
         var filter = [] : string[];
         var algorithm : Nullable.<string> = null;
         var wordsplitter : Nullable.<string> = null;
-        var sizeOptimize = false;
+        var sizeOptimize = true;
         var cacheDensity : number = 5.0;
-
+        var name = null : Nullable.<string>;
         var validModes = ['html', 'csv', 'text'];
         var validUnitsForHTML = ['file', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
         var validUnitsForText = ['file', 'block', 'line'];
@@ -103,10 +108,10 @@ class _Main
             'italian', 'norwegian', 'porter', 'portuguese', 'romanian', 'russian',
             'spanish', 'swedish', 'turkish'
         ];
-        var validTypes = ['index', 'cmd', 'jsx', 'js', 'commonjs'];
+        var validTypes = ['index', 'base64', 'cmd', 'js', 'commonjs'];
         var validWordSplitters = ['ts'];
 
-        var optstring = "v(verbose)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(size-optimize)c:(cache-density)";
+        var optstring = "n:(name)q(quiet)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(speed-optimize)c:(cache-density)";
         var parser = new BasicParser(optstring, args);
         var opt = parser.getopt();
         while (opt)
@@ -130,6 +135,9 @@ class _Main
             case "p":
                 prefix = opt.optarg;
                 break;
+            case "n":
+                name = opt.optarg;
+                break;
             case "o":
                 output = opt.optarg;
                 if (output.slice(0, 1) == '/')
@@ -140,8 +148,8 @@ class _Main
             case "h":
                 showhelp = true;
                 break;
-            case "v":
-                verbose = true;
+            case "q":
+                verbose = false;
                 break;
             case "u":
                 unit = opt.optarg;
@@ -179,7 +187,7 @@ class _Main
 
                 break;
             case "S":
-                sizeOptimize = true;
+                sizeOptimize = false;
                 break;
             case "c":
                 var match = /(\d+\.?\d*)/.exec(opt.optarg);
@@ -251,14 +259,12 @@ class _Main
         }
         else if (!notrun)
         {
-            var indexFilePath = node.path.resolve(root, output, 'index.okt');
-            var dirPath = node.path.dirname(indexFilePath);
-            _Main._mkdirP(dirPath);
             var stemmer : Nullable.<Stemmer> = null;
             if (algorithm)
             {
                 stemmer = _Main._createStemmer(algorithm);
             }
+            var dump = null : Nullable.<string>;
             switch (mode)
             {
             case 'html':
@@ -274,7 +280,12 @@ class _Main
                     {
                         htmlParser.parse(inputHTMLFiles[i]);
                     }
-                    htmlParser.dump(indexFilePath, cacheDensity, verbose);
+                    console.log('generating index...');
+                    if (verbose)
+                    {
+                        console.log('');
+                    }
+                    dump = htmlParser.dump(cacheDensity, verbose);
                 }
                 break;
             case 'csv':
@@ -298,6 +309,54 @@ class _Main
                     }
                 }
                 break;
+            }
+            if (dump)
+            {
+                switch (type)
+                {
+                case 'index':
+                    var indexFilePath = node.path.resolve(root, output, 'searchindex.okt');
+                    var dirPath = node.path.dirname(indexFilePath);
+                    _Main._mkdirP(dirPath);
+                    node.fs.writeFileSync(indexFilePath, dump, "utf16le");
+                    break;
+                case 'base64':
+                    var indexFilePath = node.path.resolve(root, output, 'searchindex.okt.b64');
+                    var dirPath = node.path.dirname(indexFilePath);
+                    _Main._mkdirP(dirPath);
+                    node.fs.writeFileSync(indexFilePath, Binary.base64encode(dump), "utf8");
+                    break;
+                case 'cmd':
+                    break;
+                case 'js':
+                    var indexFilePath = node.path.resolve(root, output, 'searchindex.js');
+                    var dirPath = node.path.dirname(indexFilePath);
+                    _Main._mkdirP(dirPath);
+                    if (name == null)
+                    {
+                        name = 'readySearchIndex';
+                    }
+                    var contents = [
+                        '// Oktavia Search Index',
+                        name + '("' + Binary.base64encode(dump) + '");', ''
+                    ];
+                    node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
+                    break;
+                case 'commonjs':
+                    var indexFilePath = node.path.resolve(root, output, 'searchindex.js');
+                    var dirPath = node.path.dirname(indexFilePath);
+                    _Main._mkdirP(dirPath);
+                    if (name == null)
+                    {
+                        name = 'searchIndex';
+                    }
+                    var contents = [
+                        '// Oktavia Search Index',
+                        'exports.' + name + ' = "' + Binary.base64encode(dump) + '";', ''
+                    ];
+                    node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
+                    break;
+                }
             }
         }
     }

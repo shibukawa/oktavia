@@ -272,6 +272,17 @@ class BitVector
         return contents.join('');
     }
 
+    function dump (report : CompressionReport) : string
+    {
+        var contents = [] : string[];
+        contents.push(Binary.dump32bitNumber(this._size));
+        contents.push(Binary.dump32bitNumber(this._size1));
+        report.add(4, 4);
+        contents.push(Binary.dump32bitNumberList(this._v, report));
+        contents.push(Binary.dump32bitNumberList(this._r, report));
+        return contents.join('');
+    }
+
     function load (data : string) : int
     {
         return this.load(data, 0);

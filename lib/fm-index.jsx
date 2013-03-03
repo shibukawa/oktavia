@@ -259,40 +259,35 @@ class FMIndex
 
     function dump () : string
     {
-        return this.dump(false, false);
+        return this.dump(false);
     }
 
-    function dump (omitDict : boolean, verbose : boolean) : string
+    function dump (verbose : boolean) : string
     {
         var contents = [] : string[];
+        var report = new CompressionReport();
         contents.push(Binary.dump32bitNumber(this._ddic));
         contents.push(Binary.dump32bitNumber(this._ssize));
         contents.push(Binary.dump32bitNumber(this._head));
-        contents.push(this._sv.dump());
+        report.add(6, 6);
+        contents.push(this._sv.dump(report));
         if (verbose)
         {
             console.log("Serializing FM-index");
-            console.log('    Wavelet Matrix: ' + (contents[3].length * 2) as string + ' bytes');
+            console.log('    Wavelet Matrix: ' + (contents[3].length * 2) as string + ' bytes (' + report.rate() as string + '%)');
         }
-        if (omitDict)
+        contents.push(Binary.dump32bitNumber(this._posdic.length));
+        for (var i in this._posdic)
         {
-            contents.push(Binary.dump32bitNumber(0));
+            contents.push(Binary.dump32bitNumber(this._posdic[i]));
         }
-        else
+        for (var i in this._idic)
         {
-            contents.push(Binary.dump32bitNumber(this._posdic.length));
-            for (var i in this._posdic)
-            {
-                contents.push(Binary.dump32bitNumber(this._posdic[i]));
-            }
-            for (var i in this._idic)
-            {
-                contents.push(Binary.dump32bitNumber(this._idic[i]));
-            }
-            if (verbose)
-            {
-                console.log('    Dictionary Cache: ' + (this._idic.length * 16) as string + ' bytes');
-            }
+            contents.push(Binary.dump32bitNumber(this._idic[i]));
+        }
+        if (verbose)
+        {
+            console.log('    Dictionary Cache: ' + (this._idic.length * 16) as string + ' bytes');
         }
         return contents.join("");
     }
@@ -315,20 +310,13 @@ class FMIndex
         }
         var size = Binary.load32bitNumber(data, offset);
         offset += 2;
-        if (size == 0)
+        for (var i = 0; i < size; i++, offset += 2)
         {
-            this._buildDictionaries();
+            this._posdic.push(Binary.load32bitNumber(data, offset));
         }
-        else
+        for (var i = 0; i < size; i++, offset += 2)
         {
-            for (var i = 0; i < size; i++, offset += 2)
-            {
-                this._posdic.push(Binary.load32bitNumber(data, offset));
-            }
-            for (var i = 0; i < size; i++, offset += 2)
-            {
-                this._idic.push(Binary.load32bitNumber(data, offset));
-            }
+            this._idic.push(Binary.load32bitNumber(data, offset));
         }
         return offset;
     }

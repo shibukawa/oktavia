@@ -306,12 +306,13 @@ class Oktavia
 
     function dump (verbose : boolean, sizeOptimize : boolean) : string
     {
-        var header = "oktavia01";
+        var headerSource = "oktavia-01";
+        var header = Binary.dumpString(headerSource).slice(1);
         if (verbose)
         {
             console.log("Source text size: " + (this._fmindex.size() * 2) as string + ' bytes');
         }
-        var fmdata = this._fmindex.dump(sizeOptimize, verbose);
+        var fmdata = this._fmindex.dump(verbose);
         var result = [
             header,
             fmdata
@@ -336,12 +337,13 @@ class Oktavia
         result.push(Binary.dump16bitNumber(this._metadataLabels.length));
         for (var i = 0; i < this._metadataLabels.length; i++)
         {
+            var report = new CompressionReport();
             var name = this._metadataLabels[i];
-            var data = this._metadatas[name]._dump();
-            result.push(Binary.dumpString(name), data);
+            var data = this._metadatas[name]._dump(report);
+            result.push(Binary.dumpString(name, report), data);
             if (verbose)
             {
-                console.log('Meta Data ' + name + ': ' + (data.length * 2) as string + ' bytes');
+                console.log('Meta Data ' + name + ': ' + (data.length * 2) as string + ' bytes (' + report.rate() as string + '%)');
             }
         }
         return result.join('');
@@ -349,14 +351,16 @@ class Oktavia
 
     function load (data : string) : void
     {
-        if (data.slice(0, 9) != "oktavia01")
+        var headerSource = "oktavia-01";
+        var header = Binary.dumpString(headerSource).slice(1);
+        if (data.slice(0, 5) != header)
         {
             throw new Error('Invalid data file');
         }
         this._metadatas = {} : Map.<Metadata>;
         this._metadataLabels = [] : string[];
 
-        var offset = 9;
+        var offset = 5;
         offset = this._fmindex.load(data, offset);
         var charCodeCount = Binary.load16bitNumber(data, offset++);
         if (charCodeCount == 0)

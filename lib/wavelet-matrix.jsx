@@ -239,6 +239,36 @@ class WaveletMatrix
         return contents.join('') + range_contents.join('');
     }
 
+    function dump (report : CompressionReport) : string
+    {
+        var contents = [
+            Binary.dump16bitNumber(this._bitsize),
+            Binary.dump32bitNumber(this._size)
+        ];
+        report.add(3, 3);
+        for (var i = 0; i < this.bitsize(); i++)
+        {
+            contents.push(this._bv[i].dump(report));
+        }
+        for (var i = 0; i < this.bitsize(); i++)
+        {
+            contents.push(Binary.dump32bitNumber(this._seps[i]));
+            report.add(2, 2);
+        }
+        var range_contents = [] : string[];
+        var counter = 0;
+        for (var key in this._range)
+        {
+            range_contents.push(Binary.dump32bitNumber(key as int));
+            range_contents.push(Binary.dump32bitNumber(this._range[key]));
+            report.add(4, 4);
+            counter++;
+        }
+        report.add(2, 2);
+        contents.push(Binary.dump32bitNumber(counter));
+        return contents.join('') + range_contents.join('');
+    }
+
     function load (data : string) : int
     {
         return this.load(data, 0);

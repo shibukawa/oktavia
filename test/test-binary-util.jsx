@@ -132,4 +132,15 @@ class _Test extends TestCase
         this.expect(loaded.result[6]).toBe(1);
         this.expect(loaded.offset).toBe(2 + 1 + 1 + 2);
     }
+
+    function test_base64_encode_decode() : void
+    {
+        var allChars = [] : string[];
+        for (var i = 256; i < 65536; i++)
+        {
+            allChars.push(String.fromCharCode(i));
+        }
+        var allCharSource = allChars.join('');
+        this.expect(Binary.base64decode(Binary.base64encode(allCharSource))).toBe(allCharSource);
+    }
 }
