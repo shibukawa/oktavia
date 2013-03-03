@@ -265,9 +265,9 @@ class FMIndex
     function dump (omitDict : boolean, verbose : boolean) : string
     {
         var contents = [] : string[];
-        contents.push(Binary.dump64bitNumber(this._ddic));
-        contents.push(Binary.dump64bitNumber(this._ssize));
-        contents.push(Binary.dump64bitNumber(this._head));
+        contents.push(Binary.dump32bitNumber(this._ddic));
+        contents.push(Binary.dump32bitNumber(this._ssize));
+        contents.push(Binary.dump32bitNumber(this._head));
         contents.push(this._sv.dump());
         if (verbose)
         {
@@ -276,18 +276,18 @@ class FMIndex
         }
         if (omitDict)
         {
-            contents.push(Binary.dump64bitNumber(0));
+            contents.push(Binary.dump32bitNumber(0));
         }
         else
         {
-            contents.push(Binary.dump64bitNumber(this._posdic.length));
+            contents.push(Binary.dump32bitNumber(this._posdic.length));
             for (var i in this._posdic)
             {
-                contents.push(Binary.dump64bitNumber(this._posdic[i]));
+                contents.push(Binary.dump32bitNumber(this._posdic[i]));
             }
             for (var i in this._idic)
             {
-                contents.push(Binary.dump64bitNumber(this._idic[i]));
+                contents.push(Binary.dump32bitNumber(this._idic[i]));
             }
             if (verbose)
             {
@@ -304,30 +304,30 @@ class FMIndex
 
     function load (data : string, offset : int) : int
     {
-        this._ddic = Binary.load64bitNumber(data, offset);
-        this._ssize = Binary.load64bitNumber(data, offset + 4);
-        this._head = Binary.load64bitNumber(data, offset + 8);
-        offset = this._sv.load(data, offset + 12);
+        this._ddic = Binary.load32bitNumber(data, offset);
+        this._ssize = Binary.load32bitNumber(data, offset + 2);
+        this._head = Binary.load32bitNumber(data, offset + 4);
+        offset = this._sv.load(data, offset + 6);
         var maxChar = Math.pow(2, this._sv.bitsize());
         for (var c = 0; c < maxChar; c++)
         {
             this._rlt[c] = this._sv.rank_less_than(this._sv.size(), c);
         }
-        var size = Binary.load64bitNumber(data, offset);
-        offset += 4;
+        var size = Binary.load32bitNumber(data, offset);
+        offset += 2;
         if (size == 0)
         {
             this._buildDictionaries();
         }
         else
         {
-            for (var i = 0; i < size; i++, offset += 4)
+            for (var i = 0; i < size; i++, offset += 2)
             {
-                this._posdic.push(Binary.load64bitNumber(data, offset));
+                this._posdic.push(Binary.load32bitNumber(data, offset));
             }
-            for (var i = 0; i < size; i++, offset += 4)
+            for (var i = 0; i < size; i++, offset += 2)
             {
-                this._idic.push(Binary.load64bitNumber(data, offset));
+                this._idic.push(Binary.load32bitNumber(data, offset));
             }
         }
         return offset;

@@ -217,7 +217,7 @@ class WaveletMatrix
     {
         var contents = [
             Binary.dump16bitNumber(this._bitsize),
-            Binary.dump64bitNumber(this._size)
+            Binary.dump32bitNumber(this._size)
         ];
         for (var i = 0; i < this.bitsize(); i++)
         {
@@ -225,17 +225,17 @@ class WaveletMatrix
         }
         for (var i = 0; i < this.bitsize(); i++)
         {
-            contents.push(Binary.dump64bitNumber(this._seps[i]));
+            contents.push(Binary.dump32bitNumber(this._seps[i]));
         }
         var range_contents = [] : string[];
         var counter = 0;
         for (var key in this._range)
         {
-            range_contents.push(Binary.dump64bitNumber(key as int));
-            range_contents.push(Binary.dump64bitNumber(this._range[key]));
+            range_contents.push(Binary.dump32bitNumber(key as int));
+            range_contents.push(Binary.dump32bitNumber(this._range[key]));
             counter++;
         }
-        contents.push(Binary.dump64bitNumber(counter));
+        contents.push(Binary.dump32bitNumber(counter));
         return contents.join('') + range_contents.join('');
     }
 
@@ -248,8 +248,8 @@ class WaveletMatrix
     {
         this.clear();
         this._bitsize = Binary.load16bitNumber(data, offset++);
-        this._size = Binary.load64bitNumber(data, offset);
-        offset += 4; 
+        this._size = Binary.load32bitNumber(data, offset);
+        offset += 2; 
         for (var i = 0; i < this.bitsize(); i++)
         {
             var bit_vector = new BitVector();
@@ -257,17 +257,17 @@ class WaveletMatrix
             this._bv.push(bit_vector);
         }
         var sep = 0;
-        for (var i = 0; i < this.bitsize(); i++, offset += 4)
+        for (var i = 0; i < this.bitsize(); i++, offset += 2)
         {
-            this._seps.push(Binary.load64bitNumber(data, offset));
+            this._seps.push(Binary.load32bitNumber(data, offset));
         }
 
-        var range_size = Binary.load64bitNumber(data, offset);
-        offset += 4;
-        for (var i = 0; i < range_size; i++, offset += 8)
+        var range_size = Binary.load32bitNumber(data, offset);
+        offset += 2;
+        for (var i = 0; i < range_size; i++, offset += 4)
         {
-            var key = Binary.load64bitNumber(data, offset);
-            var value = Binary.load64bitNumber(data, offset + 4);
+            var key = Binary.load32bitNumber(data, offset);
+            var value = Binary.load32bitNumber(data, offset + 2);
             this._range[key as string] = value;
         }
         return offset;
