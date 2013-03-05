@@ -7,7 +7,6 @@
 
 import "binary-util.jsx";
 
-
 class BitVector
 {
     static const SMALL_BLOCK_SIZE : int =  32;
@@ -113,9 +112,9 @@ class BitVector
             return 0;
         }
         i--;
-        var q_large : int = i / BitVector.LARGE_BLOCK_SIZE;
-        var q_small : int = i / BitVector.SMALL_BLOCK_SIZE;
-        var r       : int = i % BitVector.SMALL_BLOCK_SIZE;
+        var q_large : int = Math.floor(i / BitVector.LARGE_BLOCK_SIZE);
+        var q_small : int = Math.floor(i / BitVector.SMALL_BLOCK_SIZE);
+        var r       : int = Math.floor(i % BitVector.SMALL_BLOCK_SIZE);
         var rank : int = this._r[q_large];
         if (!b)
         {
@@ -266,9 +265,7 @@ class BitVector
     {
         var contents = [] : string[];
         contents.push(Binary.dump32bitNumber(this._size));
-        contents.push(Binary.dump32bitNumber(this._size1));
         contents.push(Binary.dump32bitNumberList(this._v));
-        contents.push(Binary.dump32bitNumberList(this._r));
         return contents.join('');
     }
 
@@ -276,10 +273,8 @@ class BitVector
     {
         var contents = [] : string[];
         contents.push(Binary.dump32bitNumber(this._size));
-        contents.push(Binary.dump32bitNumber(this._size1));
-        report.add(4, 4);
+        report.add(2, 2);
         contents.push(Binary.dump32bitNumberList(this._v, report));
-        contents.push(Binary.dump32bitNumberList(this._r, report));
         return contents.join('');
     }
 
@@ -292,12 +287,9 @@ class BitVector
     {
         this.clear();
         this._size = Binary.load32bitNumber(data, offset);
-        this._size1 = Binary.load32bitNumber(data, offset + 2);
-
-        var result1 = Binary.load32bitNumberList(data, offset + 4);
-        this._v = result1.result;
-        var result2 = Binary.load32bitNumberList(data, result1.offset);
-        this._r = result2.result;
-        return result2.offset;
+        var result = Binary.load32bitNumberList(data, offset + 2);
+        this._v = result.result;
+        this.build();
+        return result.offset;
     }
 }

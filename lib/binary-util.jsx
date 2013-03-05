@@ -1,6 +1,3 @@
-import "console.jsx";
-
-
 class Binary
 {
     static function dump32bitNumber (num : number) : string
@@ -241,15 +238,14 @@ class Binary
             if (length > 16384)
             {
                 blockLength = 16384;
-                result.push(Binary.dump16bitNumber((length - 1) + 0x4000));
                 length -= 16384;
             }
             else
             {
                 blockLength = length;
-                result.push(Binary.dump16bitNumber((length - 1) + 0x4000));
                 length = 0;
             }
+            result.push(Binary.dump16bitNumber((blockLength - 1) + 0x4000));
             for (var i = offset; i < offset + blockLength; i++)
             {
                 result.push(Binary.dump32bitNumber(array[i]));
@@ -488,12 +484,13 @@ class LoadedNumberListResult
     function constructor(data : string, offset : int)
     {
         var resultLength = Binary.load32bitNumber(data, offset);
+        var originalOffset = offset;
         offset += 2;
         var result = [] : number[];
         while (result.length < resultLength)
         {
             var tag = data.charCodeAt(offset++);
-            if (tag & 0x8000) // zebra
+            if ((tag >>> 15) == 1) // zebra
             {
                 var length = Math.min(resultLength - result.length, 15);
                 for (var i = 0; i < length; i++)
@@ -509,9 +506,9 @@ class LoadedNumberListResult
                     }
                 }
             }
-            else if (tag & 0x4000) // non-zero
+            else if ((tag >>> 14) == 1) // non-zero
             {
-                var length = (tag & 0x3fff) + 1;
+                var length = tag - 0x4000 + 1;
                 for (var i = 0; i < length; i++)
                 {
                     result.push(Binary.load32bitNumber(data, offset));

@@ -62,6 +62,7 @@ class _Test extends TestCase
         this.expect(loaded.result.length).toBe(6);
         this.expect(loaded.result[0]).toBe(1);
         this.expect(loaded.result[5]).toBe(1);
+        this.expect(loaded.offset).toBe(2 * 6 + 2 + 1);
     }
 
     function test_32bit_number_list_zebra() : void
@@ -77,6 +78,7 @@ class _Test extends TestCase
         this.expect(loaded.result[3]).toBe(0);
         this.expect(loaded.result[4]).toBe(1);
         this.expect(loaded.result[5]).toBe(0);
+        this.expect(loaded.offset).toBe(2 * 3 + 2 + 1);
     }
 
     function test_32bit_number_list_combo1() : void
@@ -91,6 +93,7 @@ class _Test extends TestCase
         this.expect(loaded.result[15]).toBe(1);
         this.expect(loaded.result[17]).toBe(0);
         this.expect(loaded.result[19]).toBe(0);
+        this.expect(loaded.offset).toBe(2 + 1 + 2 * 17 + 1);
     }
 
     function test_32bit_number_list_combo2() : void
@@ -105,6 +108,7 @@ class _Test extends TestCase
         this.expect(loaded.result[2]).toBe(0);
         this.expect(loaded.result[3]).toBe(1);
         this.expect(loaded.result[19]).toBe(1);
+        this.expect(loaded.offset).toBe(2 + 1 + 1 + 2 * 17);
     }
 
     function test_32bit_number_list_combo3() : void
@@ -119,10 +123,27 @@ class _Test extends TestCase
         this.expect(loaded.result[9]).toBe(1);
         this.expect(loaded.result[16]).toBe(0);
         this.expect(loaded.result[18]).toBe(1);
+        this.expect(loaded.offset).toBe(2 + 1 + 2 * 16 + 1 + 1 + 2 * 3);
     }
 
     function test_32bit_number_list_combo4() : void
     {
+        // zebra + non-block
+        var list = [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2];
+        var dumped = Binary.dump32bitNumberList(list);
+        this.expect(dumped.length).toBe(2 + 1 + 2 * 11 + 1 + 2 * 16);
+        var loaded = Binary.load32bitNumberList(dumped, 0);
+        this.expect(loaded.result.length).toBe(list.length);
+        this.expect(loaded.result[0]).toBe(1);
+        this.expect(loaded.result[14]).toBe(0);
+        this.expect(loaded.result[15]).toBe(1);
+        this.expect(loaded.result[30]).toBe(2);
+        this.expect(loaded.offset).toBe(2 + 1 + 2 * 11 + 1 + 2 * 16);
+    }
+
+    function test_32bit_number_list_combo5() : void
+    {
+        // zero + zebra
         var list = [0, 0, 0, 0, 0, 0, 1];
         var dumped = Binary.dump32bitNumberList(list);
         this.expect(dumped.length).toBe(2 + 1 + 1 + 2);
@@ -131,6 +152,21 @@ class _Test extends TestCase
         this.expect(loaded.result[0]).toBe(0);
         this.expect(loaded.result[6]).toBe(1);
         this.expect(loaded.offset).toBe(2 + 1 + 1 + 2);
+    }
+
+    function test_32bit_number_list_combo6() : void
+    {
+        // zebra + zero
+        var list = [1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        var dumped = Binary.dump32bitNumberList(list);
+        this.expect(dumped.length).toBe(2 + 1 + 2 * 12 + 1);
+        var loaded = Binary.load32bitNumberList(dumped, 0);
+        this.expect(loaded.result.length).toBe(list.length);
+        this.expect(loaded.result[0]).toBe(1);
+        this.expect(loaded.result[14]).toBe(1);
+        this.expect(loaded.result[15]).toBe(0);
+        this.expect(loaded.result[23]).toBe(0);
+        this.expect(loaded.offset).toBe(2 + 1 + 2 * 12 + 1);
     }
 
     function test_base64_encode_decode() : void
