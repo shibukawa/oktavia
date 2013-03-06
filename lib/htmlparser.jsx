@@ -245,15 +245,14 @@ class HTMLParser
     var root : string;
     var prefix : string;
     var filter : TagFilter;
-    var sizeOptimize : boolean;
 
-    function constructor (unit : int, root : string, prefix : string, filter : string[], stemmer : Nullable.<Stemmer>, sizeOptimize : boolean)
+    function constructor (unit : int, root : string, prefix : string, filter : string[], stemmer : Nullable.<Stemmer>)
     {
         this.unit = unit;
         this.root = root;
         this.prefix = prefix;
         this.filter = new TagFilter(filter);
-        this.oktavia = new Oktavia(sizeOptimize);
+        this.oktavia = new Oktavia();
         this.oktavia.addSection('section');
         this.oktavia.addBlock('tag');
         if (stemmer)
@@ -276,6 +275,6 @@ class HTMLParser
     {
         console.log('\nbuilding...\n');
         this.oktavia.build(cacheDensity, verbose);
-        return this.oktavia.dump(verbose, this.sizeOptimize);
+        return this.oktavia.dump(verbose);
     }
 }

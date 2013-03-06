@@ -87,7 +87,7 @@ class Binary
 
     static function dumpStringList (strList : string[], report : Nullable.<CompressionReport>) : string
     {
-        var result = [Binary.dump16bitNumber(strList.length)];
+        var result = [Binary.dump32bitNumber(strList.length)];
         for (var i = 0; i < strList.length; i++)
         {
             result.push(Binary.dumpString(strList[i], report));
@@ -98,6 +98,29 @@ class Binary
     static function loadStringList (buffer : string, offset : int) : LoadedStringListResult
     {
         return new LoadedStringListResult(buffer, offset);
+    }
+
+    static function dumpStringListMap (strMap : Map.<string[]>) : string
+    {
+        return Binary.dumpStringListMap(strMap, null);
+    }
+
+    static function dumpStringListMap (strMap : Map.<string[]>, report : Nullable.<CompressionReport>) : string
+    {
+        var result = [] : string[];
+        var counter = 0;
+        for (var key in strMap)
+        {
+            result.push(Binary.dumpString(key, report));
+            result.push(Binary.dumpStringList(strMap[key], report));
+            counter++;
+        }
+        return Binary.dump32bitNumber(counter) + result.join('');
+    }
+
+    static function loadStringListMap (buffer : string, offset : int) : LoadedStringListMapResult
+    {
+        return new LoadedStringListMapResult(buffer, offset);
     }
 
     static function dump32bitNumberList (array : number[]) : string
@@ -443,7 +466,8 @@ class LoadedStringListResult
     {
         this.result = [] : string[];
 
-        var length = Binary.load16bitNumber(data, offset++);
+        var length = Binary.load32bitNumber(data, offset);
+        offset += 2;
         for (var i = 0; i < length; i++)
         {
             var strLength = Binary.load16bitNumber(data, offset++);
@@ -452,7 +476,6 @@ class LoadedStringListResult
             {
                 var strLength = strLength - 32768;
                 var bytes = [] : string[];
-
                 for (var j = 0; j < strLength; j += 2)
                 {
                     var code = data.charCodeAt(offset);
@@ -471,6 +494,28 @@ class LoadedStringListResult
                 offset = offset + strLength;
             }
             this.result.push(resultStr);
+        }
+        this.offset = offset;
+    }
+}
+
+class LoadedStringListMapResult
+{
+    var result : Map.<string[]>;
+    var offset : int;
+
+    function constructor (data : string, offset : int)
+    {
+        this.result = {} : Map.<string[]>;
+
+        var length = Binary.load32bitNumber(data, offset);
+        offset += 2;
+        for (var i = 0; i < length; i++)
+        {
+            var keyResult = Binary.loadString(data, offset);
+            var valueResult = Binary.loadStringList(data, keyResult.offset);
+            this.result[keyResult.result] = valueResult.result;
+            offset = valueResult.offset;
         }
         this.offset = offset;
     }

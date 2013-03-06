@@ -14,24 +14,42 @@ class _Test extends TestCase
         this.oktavia = new Oktavia();
         this.oktavia.setStemmer(new EnglishStemmer());
         this.section = this.oktavia.addSection('document');
-        this.oktavia.addWord("stemming skiing", true);
+        this.oktavia.addWord("stemming baby", true);
         this.section.setTail("doc1");
-        this.oktavia.addWord("stemmed skied", true);
+        this.oktavia.addWord("stemmed babies", true);
         this.section.setTail("doc2");
         this.oktavia.build();
-
-        console.log(this.oktavia._stemmingResult);
     }
 
     function test_search_without_stemming () : void
     {
-        var results = this.oktavia.rawSearch('skied', false);
+        var results = this.oktavia.rawSearch('baby', false);
         this.expect(results.length).toBe(1);
     }
 
     function test_search_with_stemming () : void
     {
-        var results = this.oktavia.rawSearch('skied', true);
+        var results = this.oktavia.rawSearch('baby', true);
+        this.expect(results.length).toBe(1);
+    }
+
+    function test_load_dump_and_search_without_stemming () : void
+    {
+        var dump = this.oktavia.dump();
+        var oktavia = new Oktavia();
+        oktavia.setStemmer(new EnglishStemmer());
+        oktavia.load(dump);
+        var results = oktavia.rawSearch('baby', false);
+        this.expect(results.length).toBe(1);
+    }
+
+    function test_load_dump_and_search_with_stemming () : void
+    {
+        var dump = this.oktavia.dump();
+        var oktavia = new Oktavia();
+        oktavia.setStemmer(new EnglishStemmer());
+        oktavia.load(dump);
+        var results = oktavia.rawSearch('baby', true);
         this.expect(results.length).toBe(1);
     }
 }

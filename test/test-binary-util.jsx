@@ -41,6 +41,14 @@ class _Test extends TestCase
         this.expect(list.result[1]).toBe('\u2222');
     }
 
+    function test_string_list_map() : void
+    {
+        var src = {'hello': ['HELLO'], 'world': ['WORLD']};
+        var list = Binary.loadStringListMap(Binary.dumpStringListMap(src), 0);
+        this.expect(list.result['hello'][0]).toBe('HELLO');
+        this.expect(list.result['world'][0]).toBe('WORLD');
+    }
+
     function test_32bit_number_list_blank() : void
     {
         var list = [0, 0, 0, 0, 0, 0];

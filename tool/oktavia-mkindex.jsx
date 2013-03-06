@@ -41,8 +41,6 @@ class _Main
             "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
             "                                  : Others are base64 source code style output.",
             " -m, --mode [mode]                : Mode type. 'html', 'csv', 'text' are available.",
-            " -S, --speed-optimize             : Optimize search speed instead of file size.",
-            "                                  : Disable character code remapping.",
             " -c, --cache-density [percent]    : Cache data density. It effects file size and search speed.",
             "                                  : 100% become four times of base index file size. Default value is 5%.",
             "                                  : Valid value is 0.1% - 100%.",
@@ -97,7 +95,6 @@ class _Main
         var filter = [] : string[];
         var algorithm : Nullable.<string> = null;
         var wordsplitter : Nullable.<string> = null;
-        var sizeOptimize = true;
         var cacheDensity : number = 5.0;
         var name = null : Nullable.<string>;
         var validModes = ['html', 'csv', 'text'];
@@ -111,7 +108,7 @@ class _Main
         var validTypes = ['index', 'base64', 'cmd', 'js', 'commonjs'];
         var validWordSplitters = ['ts'];
 
-        var optstring = "n:(name)q(quiet)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)S(speed-optimize)c:(cache-density)";
+        var optstring = "n:(name)q(quiet)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)c:(cache-density)";
         var parser = new BasicParser(optstring, args);
         var opt = parser.getopt();
         while (opt)
@@ -185,9 +182,6 @@ class _Main
                 break;
             case "w":
 
-                break;
-            case "S":
-                sizeOptimize = false;
                 break;
             case "c":
                 var match = /(\d+\.?\d*)/.exec(opt.optarg);
@@ -275,7 +269,7 @@ class _Main
                 }
                 else
                 {
-                    var htmlParser = new HTMLParser(unitIndex, root, prefix, filter, stemmer, sizeOptimize);
+                    var htmlParser = new HTMLParser(unitIndex, root, prefix, filter, stemmer);
                     for (var i = 0; i < inputHTMLFiles.length; i++)
                     {
                         htmlParser.parse(inputHTMLFiles[i]);
