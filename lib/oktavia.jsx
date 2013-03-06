@@ -1,7 +1,7 @@
 import "metadata.jsx";
 import "fm-index.jsx";
 import "binary-util.jsx";
-import "query-parser.jsx";
+import "query.jsx";
 import "search-result.jsx";
 import "stemmer/stemmer.jsx";
 import "console.jsx";
@@ -228,14 +228,12 @@ class Oktavia
         return result;
     }
 
-    function search (queryWords : string []) : SearchSummary
+    function search (queries : Query[]) : SearchSummary
     {
-        var parser = new QueryParser();
         var summary = new SearchSummary(this);
-        parser.parse(queryWords);
-        for (var i = 0; i < parser.queries.length; i++)
+        for (var i = 0; i < queries.length; i++)
         {
-            summary.addQuery(this._searchQuery(parser.queries[i]));
+            summary.addQuery(this._searchQuery(queries[i]));
         }
         summary.mergeResult();
         return summary;

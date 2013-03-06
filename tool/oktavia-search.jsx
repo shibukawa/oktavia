@@ -6,6 +6,7 @@ import "getopt.jsx";
 import "htmlparser.jsx";
 import "csvparser.jsx";
 import "textparser.jsx";
+import "query-parser.jsx";
 import "search-result.jsx";
 import "style.jsx";
 
@@ -32,7 +33,7 @@ class Search
 {
     var style : Style;
 
-    function search (indexFile : string, query : string[], num : int, style : Style, algorithm : Nullable.<string>) : void
+    function search (indexFile : string, queryStrings : string[], num : int, style : Style, algorithm : Nullable.<string>) : void
     {
         this.style = style;
         var oktavia = new Oktavia();
@@ -42,11 +43,13 @@ class Search
         }
         oktavia.load(node.fs.readFileSync(indexFile, "utf16le"));
         console.time('searching');
-        var summary = oktavia.search(query);
+        var queryParser = new QueryParser();
+        queryParser.parse(queryStrings);
+        var summary = oktavia.search(queryParser.queries);
         console.timeEnd('searching');
         if (summary.size() == 0)
         {
-            this.notFound(summary, query);
+            this.notFound(summary, queryStrings);
         }
         else
         {
@@ -267,7 +270,7 @@ class _Main {
         var notrun = false;
         var styleType = 'console'; 
         var num : int = 250;
-        var query = [] : string[];
+        var queryStrings = [] : string[];
         var algorithm : Nullable.<string> = null;
 
         var validStemmers = [
@@ -318,12 +321,12 @@ class _Main {
                 showhelp = true;
                 break;
             default:
-                query.push(opt.option);
+                queryStrings.push(opt.option);
                 break;
             }
             opt = parser.getopt();
         }
-        if (showhelp || query.length == 0)
+        if (showhelp || queryStrings.length == 0)
         {
             _Main.usage();
         }
@@ -331,7 +334,7 @@ class _Main {
         {
             var style = new Style(styleType);
             var search = new Search();
-            search.search(indexFile, query, num, style, algorithm);
+            search.search(indexFile, queryStrings, num, style, algorithm);
         }
     }
 }

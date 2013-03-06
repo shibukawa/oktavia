@@ -1,18 +1,18 @@
 import "test-case.jsx";
-import "query-parser.jsx";
+import "query-string-parser.jsx";
 
 class _Test extends TestCase
 {
-    var parser : QueryParser;
+    var parser : QueryStringParser;
 
     override function setUp () : void
     {
-        this.parser = new QueryParser();
+        this.parser = new QueryStringParser();
     }
 
-    function test_and () : void
+    function test_single_string_and () : void
     {
-        this.parser.parse(['word1', 'word2']);
+        this.parser.parse('word1 word2');
         this.expect(this.parser.queries.length).toBe(2);
 
         this.expect(this.parser.queries[0].word).toBe('word1');
@@ -26,9 +26,9 @@ class _Test extends TestCase
         this.expect(this.parser.queries[1].raw).toBe(false);
     }
 
-    function test_or () : void
+    function test_single_string_or () : void
     {
-        this.parser.parse(['word1', 'OR', 'word2']);
+        this.parser.parse('word1 OR word2');
         this.expect(this.parser.queries.length).toBe(2);
 
         this.expect(this.parser.queries[0].word).toBe('word1');
@@ -42,9 +42,9 @@ class _Test extends TestCase
         this.expect(this.parser.queries[1].raw).toBe(false);
     }
 
-    function test_not () : void
+    function test_single_string_not () : void
     {
-        this.parser.parse(['word1', '-word2']);
+        this.parser.parse('word1 -word2');
         this.expect(this.parser.queries.length).toBe(2);
 
         this.expect(this.parser.queries[0].word).toBe('word1');
@@ -58,9 +58,9 @@ class _Test extends TestCase
         this.expect(this.parser.queries[1].raw).toBe(false);
     }
 
-    function test_raw () : void
+    function test_single_string_raw () : void
     {
-        this.parser.parse(['word1', '"word2"']);
+        this.parser.parse('word1 "word2"');
         this.expect(this.parser.queries.length).toBe(2);
 
         this.expect(this.parser.queries[0].word).toBe('word1');
@@ -74,9 +74,9 @@ class _Test extends TestCase
         this.expect(this.parser.queries[1].raw).toBe(true);
     }
 
-    function test_raw_not () : void
+    function test_single_string_raw_not () : void
     {
-        this.parser.parse(['word1', '-"word2"']);
+        this.parser.parse('word1 -"word2"');
         this.expect(this.parser.queries.length).toBe(2);
 
         this.expect(this.parser.queries[0].word).toBe('word1');
@@ -89,4 +89,6 @@ class _Test extends TestCase
         this.expect(this.parser.queries[1].not).toBe(true);
         this.expect(this.parser.queries[1].raw).toBe(true);
     }
+
 }
+
