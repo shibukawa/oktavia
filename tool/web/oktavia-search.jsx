@@ -35,10 +35,11 @@ class _Proposal
     }
 }
 
-class Search
+class OktaviaSearch
 {
     var _oktavia : Nullable.<Oktavia>;
-    var _stemmer : Nullable.<Stemmer>;
+    static var _stemmer : Nullable.<Stemmer> = null;
+    static var _instance : Nullable.<OktaviaSearch> = null;
     var _queryString : Nullable.<string>;
     var _queries : Query[];
     var _callback : Nullable.<function(:int, :int):void>;
@@ -51,29 +52,31 @@ class Search
     function constructor (entriesPerPage : int)
     {
         this._oktavia = null;
-        this._stemmer = null;
         this._entriesPerPage = entriesPerPage;
         this._currentPage = 1;
         this._queryString = null;
         this._callback = null;
+        OktaviaSearch._instance = this;
     }
 
-    function constructor (entriesPerPage : int, stemmer : Stemmer)
+    static function setStemmer(stemmer : Stemmer) : void
     {
-        this._oktavia = null;
-        this._stemmer = stemmer;
-        this._entriesPerPage = entriesPerPage;
-        this._currentPage = 1;
-        this._queryString = null;
-        this._callback = null;
+        if (OktaviaSearch._instance)
+        {
+            OktaviaSearch._instance._oktavia.setStemmer(stemmer);
+        }
+        else
+        {
+            OktaviaSearch._stemmer = stemmer;
+        }
     }
 
     function loadIndex (index : string) : void
     {
         this._oktavia = new Oktavia();
-        if (this._stemmer)
+        if (OktaviaSearch._stemmer)
         {
-            this._oktavia.setStemmer(this._stemmer);
+            this._oktavia.setStemmer(OktaviaSearch._stemmer);
         }
         this._oktavia.load(Binary.base64decode(index));
         if (this._queryString)
@@ -259,5 +262,12 @@ class Search
             unit.score = score;
         }
         return summary.getSortedResult();
+    }
+}
+
+class _Main
+{
+    static function main(args : string[]) : void
+    {    
     }
 }

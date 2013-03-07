@@ -103,4 +103,3 @@ class Style
         return handler.result();
     }
 }
-
