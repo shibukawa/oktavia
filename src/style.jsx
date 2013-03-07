@@ -4,10 +4,17 @@ class _HTMLHandler extends SAXHandler
 {
     var text : string[];
     var styles : Map.<string[]>;
+    var escape : boolean;
 
-    function constructor (styles : Map.<string[]>)
+    static function escapeHTML (str : string) : string
+    {
+        return str.replace(/\n/g, "<br/>").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function constructor (styles : Map.<string[]>, escape : boolean)
     {
         this.text = [] : string[];
+        this.escape = escape;
         this.styles = styles;
     }
 
@@ -23,7 +30,14 @@ class _HTMLHandler extends SAXHandler
 
     override function ontext (text : string) : void
     {
-        this.text.push(text);
+        if (this.escape)
+        {
+            this.text.push(_HTMLHandler.escapeHTML(text));
+        }
+        else
+        {
+            this.text.push(text);
+        }
     }
 
     function result () : string
@@ -35,6 +49,7 @@ class _HTMLHandler extends SAXHandler
 class Style
 {
     var styles : Map.<string[]>;
+    var escapeHTML : boolean;
 
     static const console = {
       'title'   : ['\x1B[32m\x1b[4m', '\x1B[39m\x1b[0m'],
@@ -73,12 +88,16 @@ class Style
         case 'ignore':
             this.styles = Style.ignore;
             break;
+        default:
+            this.styles = Style.ignore;
+            break;
         }
+        this.escapeHTML = (mode == 'html');
     }
 
     function convert (source : string) : string
     {
-        var handler = new _HTMLHandler(this.styles);
+        var handler = new _HTMLHandler(this.styles, this.escapeHTML);
         var parser = new SAXParser(handler);
         parser.parse(source);
         return handler.result();

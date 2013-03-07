@@ -3,9 +3,6 @@ import "js/nodejs.jsx";
 
 import "oktavia.jsx";
 import "getopt.jsx";
-import "htmlparser.jsx";
-import "csvparser.jsx";
-import "textparser.jsx";
 import "query-parser.jsx";
 import "search-result.jsx";
 import "style.jsx";
@@ -53,8 +50,7 @@ class Search
         }
         else
         {
-            var results = this.sortResult(oktavia, summary);
-            this.showResult(oktavia, summary, results, num);
+            this.showResult(oktavia, summary, num);
         }
     }
 
@@ -85,8 +81,9 @@ class Search
         return summary.getSortedResult();
     }
 
-    function showResult (oktavia : Oktavia, summary : SearchSummary, results : SearchUnit[], num : int) : void
+    function showResult (oktavia : Oktavia, summary : SearchSummary, num : int) : void
     {
+        var results = this.sortResult(oktavia, summary);
         var style = this.style;
         var metadata = oktavia.getPrimaryMetadata();
         for (var i = 0; i < results.length; i++)
