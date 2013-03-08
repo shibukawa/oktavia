@@ -5,6 +5,7 @@ import "query-string-parser.jsx";
 import "search-result.jsx";
 import "style.jsx";
 import "stemmer/stemmer.jsx";
+import "console.jsx";
 
 
 class _Result
@@ -37,7 +38,7 @@ class _Proposal
 
 class OktaviaSearch
 {
-    var _oktavia : Nullable.<Oktavia>;
+    var _oktavia : Oktavia;
     static var _stemmer : Nullable.<Stemmer> = null;
     static var _instance : Nullable.<OktaviaSearch> = null;
     var _queryString : Nullable.<string>;
@@ -51,7 +52,7 @@ class OktaviaSearch
 
     function constructor (entriesPerPage : int)
     {
-        this._oktavia = null;
+        this._oktavia = new Oktavia();
         this._entriesPerPage = entriesPerPage;
         this._currentPage = 1;
         this._queryString = null;
@@ -73,7 +74,6 @@ class OktaviaSearch
 
     function loadIndex (index : string) : void
     {
-        this._oktavia = new Oktavia();
         if (OktaviaSearch._stemmer)
         {
             this._oktavia.setStemmer(OktaviaSearch._stemmer);
@@ -104,7 +104,14 @@ class OktaviaSearch
             else
             {
                 this._result = [] : SearchUnit[];
-                this._proposals = summary.getProposal();
+                if (this._queries.length > 1)
+                {
+                    this._proposals = summary.getProposal();
+                }
+                else
+                {
+                    this._proposals = [] : Proposal[];
+                }
                 this._currentPage = 1;
             }
             callback(this.resultSize(), this.totalPages());
@@ -150,7 +157,7 @@ class OktaviaSearch
     {
         var style = new Style('html');
         var start = (this._currentPage - 1) * this._entriesPerPage;
-        var last = this._currentPage * this._entriesPerPage;
+        var last = Math.min(this._currentPage * this._entriesPerPage, this._result.length);
         var metadata = this._oktavia.getPrimaryMetadata();
         var num = 250;
 
@@ -202,7 +209,6 @@ class OktaviaSearch
             }
             text = text.replace(Oktavia.eob, ' ').replace(/(<br\/>)(<br\/>)+/, '<br/><br/>');
             results.push(new _Result(info[0], info[1], text, unit.score));
-             
         }
         return results;
     }
@@ -217,21 +223,24 @@ class OktaviaSearch
             for (var i = 0; i < this._proposals.length; i++)
             {
                 var proposal = this._proposals[i];
-                var label = [] : string[];
-                var option = [] : string[];
-                for (var j = 0; j < this._queries.length; j++)
+                if (proposal.expect > 0)
                 {
-                    if (j != proposal.omit)
+                    var label = [] : string[];
+                    var option = [] : string[];
+                    for (var j = 0; j < this._queries.length; j++)
                     {
-                        label.push(style.convert('<hit>' + this._queries[j].toString() + '</hit>'));
-                        option.push(this._queries[j].toString());
+                        if (j != proposal.omit)
+                        {
+                            label.push(style.convert('<hit>' + this._queries[j].toString() + '</hit>'));
+                            option.push(this._queries[j].toString());
+                        }
+                        else
+                        {
+                            label.push(style.convert('<del>' + this._queries[j].toString() + '</del>'));
+                        }
                     }
-                    else
-                    {
-                        label.push(style.convert('<del>' + this._queries[j].toString() + '</del>'));
-                    }
+                    results.push(new _Proposal(option.join(' '), label.join('&nbsp;'), proposal.expect));
                 }
-                results.push(new _Proposal(option.join(' '), label.join('&nbsp;'), proposal.expect)); 
             }
         }
         return results;
@@ -268,6 +277,6 @@ class OktaviaSearch
 class _Main
 {
     static function main(args : string[]) : void
-    {    
+    {
     }
 }

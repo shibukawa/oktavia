@@ -22,19 +22,13 @@ bin/oktavia-mkindex: tool/oktavia-mkindex.jsx
 bin/oktavia-search: tool/oktavia-search.jsx
 	$(JSX) --executable node --add-search-path ./src --output $@ $<
 
-libs: lib/oktavia-search.js lib/oktavia-search.min.js $(stemmers:%=lib/oktavia-%-search.js) $(stemmers:%=lib/oktavia-%-search.min.js)
+libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js)
 
 lib/oktavia-search.js: tool/web/oktavia-search.jsx
 	$(JSX) --executable web --add-search-path ./src --output $@ $<
 
 lib/oktavia-%-search.js: tool/web/oktavia-%-search.jsx
 	$(JSX) --executable web --add-search-path ./src --output $@ $<
-
-lib/oktavia-search.min.js: lib/oktavia-search.js
-	node_modules/uglify-js/bin/uglifyjs --output $@ $<
-
-lib/oktavia-%-search.min.js: lib/oktavia-%-search.js
-	node_modules/uglify-js/bin/uglifyjs --output $@ $<
 
 test:
 	prove

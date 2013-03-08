@@ -305,7 +305,6 @@ class Oktavia
         if (verbose)
         {
             console.log('Stemmed Word Table: ' + (result[result.length - 1].length) as string + ' bytes (' + report.rate() as string + '%)');
-            log (this._stemmingResult);
         }
 
         result.push(Binary.dump16bitNumber(this._metadataLabels.length));

@@ -44,8 +44,8 @@ class _Main
             " -c, --cache-density [percent]    : Cache data density. It effects file size and search speed.",
             "                                  : 100% become four times of base index file size. Default value is 5%.",
             "                                  : Valid value is 0.1% - 100%.",
-            " -n, --name [function]            : Callback function name for 'js' output or property name",
-            "                                  : for 'commonjs'. This function will receive base64 encoded index data. ",
+            " -n, --name [function]            : A variable name for 'js' output or property name",
+            "                                  : for 'js' and 'commonjs'. Default value is 'searchIndex'.",
             " -q, --quiet                      : Hide detail information.",
             " -h, --help                       : Display this message.",
             "",
@@ -328,11 +328,11 @@ class _Main
                     _Main._mkdirP(dirPath);
                     if (name == null)
                     {
-                        name = 'readySearchIndex';
+                        name = 'searchIndex';
                     }
                     var contents = [
                         '// Oktavia Search Index',
-                        name + '("' + Binary.base64encode(dump) + '");', ''
+                        'var ' + name + ' = "' + Binary.base64encode(dump) + '";', ''
                     ];
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;
