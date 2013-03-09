@@ -6,20 +6,11 @@ stemmers = danish dutch english finnish french german hungarian \
 	   norwegian porter portuguese romanian \
 	   russian spanish swedish turkish
 
-build: node_modules/uglify-js/bin/uglifyjs bin/httpstatus bin/oktavia-mkindex bin/oktavia-search libs
+build: bin/httpstatus bin/oktavia-mkindex bin/oktavia-search libs
 
 .PHONY: test clean
 
-node_modules/uglify-js/bin/uglifyjs:
-	$(NPM) install uglify-js
-
-bin/httpstatus: tool/httpstatus.jsx
-	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
-
-bin/oktavia-mkindex: tool/oktavia-mkindex.jsx
-	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
-
-bin/oktavia-search: tool/oktavia-search.jsx
+bin/%: tool/%.jsx
 	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
 
 libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js)

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// generatedy by JSX compiler 0.9.11 (2013-03-08 14:25:46 +0900; f02b3e07fd5a16f2eae7adb28276b7a6227c1cf2)
+// generatedy by JSX compiler 0.9.12 (2013-03-09 18:35:13 +0900; 6846a9e07a0a3637c4b95c6ccdd2e8b63fac899f)
 var JSX = {};
 (function (JSX) {
 /**

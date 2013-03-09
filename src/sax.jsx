@@ -412,7 +412,7 @@ class SAXParser
                 if (c == ">") {
                     this.state = _State.TEXT;
                     this.closetext_if_exist();
-                    this.handler.ondoctype(this.doctype);
+                    this.handler.ondoctype(this.doctype.trim());
                 } else {
                     this.doctype += c;
                     if (c == "[") this.state = _State.DOCTYPE_DTD;
@@ -465,7 +465,7 @@ class SAXParser
                     if (this.comment)
                     {
                         this.closetext_if_exist();
-                        this.handler.oncomment(this.comment);
+                        this.handler.oncomment(this.comment.trim());
                     }
                     this.comment = "";
                 } else {
