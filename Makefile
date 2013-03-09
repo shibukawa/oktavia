@@ -14,21 +14,21 @@ node_modules/uglify-js/bin/uglifyjs:
 	$(NPM) install uglify-js
 
 bin/httpstatus: tool/httpstatus.jsx
-	$(JSX) --executable node --add-search-path ./src --output $@ $<
+	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
 
 bin/oktavia-mkindex: tool/oktavia-mkindex.jsx
-	$(JSX) --executable node --add-search-path ./src --output $@ $<
+	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
 
 bin/oktavia-search: tool/oktavia-search.jsx
-	$(JSX) --executable node --add-search-path ./src --output $@ $<
+	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
 
 libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js)
 
 lib/oktavia-search.js: tool/web/oktavia-search.jsx
-	$(JSX) --executable web --add-search-path ./src --output $@ $<
+	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
 
 lib/oktavia-%-search.js: tool/web/oktavia-%-search.jsx
-	$(JSX) --executable web --add-search-path ./src --output $@ $<
+	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
 
 test:
 	prove

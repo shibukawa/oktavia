@@ -1,7 +1,7 @@
 The MIT License
 ===============
 
-Copyright (c) 2012 Yoshiki Shibukawa (DeNA Co.,Ltd, and ngmoco LLC)
+Copyright (c) 2013 Yoshiki Shibukawa (DeNA Co.,Ltd, and ngmoco LLC)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
