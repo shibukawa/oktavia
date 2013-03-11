@@ -1,0 +1,12 @@
+Sitemap
+=======
+
+.. toctree::
+   :maxdepth: 1
+
+   pages/document
+   pages/inside_oktavia
+   pages/license
+   2013/03/09/first_website_it_uses_oktavia
+   2013/03/09/implementation_status
+
