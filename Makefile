@@ -13,13 +13,16 @@ build: bin/httpstatus bin/oktavia-mkindex bin/oktavia-search libs
 bin/%: tool/%.jsx
 	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
 
-libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js)
+libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js) lib/oktavia-jquery-ui.js
 
 lib/oktavia-search.js: tool/web/oktavia-search.jsx
 	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
 
 lib/oktavia-%-search.js: tool/web/oktavia-%-search.jsx
 	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
+
+lib/oktavia-jquery-ui.js: tool/web/oktavia-jquery-ui.js
+	cp $< $@
 
 test:
 	prove

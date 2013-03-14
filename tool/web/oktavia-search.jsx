@@ -153,6 +153,45 @@ class OktaviaSearch
         return (this._currentPage != this.totalPages());
     }
 
+    function pageIndexes () : string[]
+    {
+        var result = [] : string[];
+        var total = this.totalPages();
+        if (total < 10)
+        {
+            for (var i = 1; i <= total; i++)
+            {
+                result.push(i as string);
+            }
+        }
+        else if (this._currentPage <= 5)
+        {
+            for (var i = 1; i <= 7; i++)
+            {
+                result.push(i as string);
+            }
+            result.push('...', total as string);
+        }
+        else if (total - 5 <= this._currentPage)
+        {
+            result.push('1', '...');
+            for (var i = total - 8; i <= total; i++)
+            {
+                result.push(i as string);
+            }
+        }
+        else
+        {
+            result.push('1', '...');
+            for (var i = this._currentPage - 3; i <= this._currentPage + 3; i++)
+            {
+                result.push(i as string);
+            }
+            result.push('...', total as string);
+        }
+        return result;
+    }
+
     function getResult () : _Result[]
     {
         var style = new Style('html');

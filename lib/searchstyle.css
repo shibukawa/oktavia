@@ -1,14 +1,30 @@
-.search {
+form.oktavia_form {
     position: absolute;
+    display: block;
     right: 10px;
-    top: 105px;
+    bottom: 6px;
     width: 240px;
+    height: 25px;
 }
 
-#searchresult_box {
+input.oktavia_search {
+    -webkit-appearance: searchfield;
+    -webkit-user-select: text;
+    cursor: auto;
+    background-color: white;
+    color: black;
+    line-height: normal;
+    display: inline-block;
+    padding: 1px;
+    text-align: start;
+    margin: 2px 0px 2px 0px;
+    padding: 1px;
+}
+
+div.oktavia_searchresult_box {
     display: none;
     position: absolute;
-    top: 135px;
+    top: 35px;
     right: 0px;
     width: 500px;
     padding: 10px;
@@ -21,7 +37,7 @@
     z-index: 100000;
 }
 
-#close_search_box {
+div.oktavia_close_search_box {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -32,73 +48,91 @@
     color: #666;
 }
 
-#close_search_box:hover {
+div.oktavia_close_search_box:hover {
     background-color: #d1e8ff;
     border: 1px solid gray;
 }
 
-#close_search_box:active {
+div.oktavia_close_search_box:active {
     background-color: #b4c8db;
     border: 1px solid gray;
 }
 
 
-#searchresult_summary {
+div.oktavia_searchresult_summary {
     color: #444;
 }
 
-#searchresult .entry {
+div.oktavia_searchresult .entry {
     margin: 10px 10px 10px 10px;
     color: black;
 }
 
-#searchresult .entry .title {
+div.oktavia_searchresult .entry .title {
     font-size: normal;
 }
 
-#searchresult .entry .url {
+div.oktavia_searchresult .entry .title a:link {
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+div.oktavia_searchresult .entry .title a:visited {
+    color: #551A8B;
+    text-decoration: underline;
+}
+
+div.oktavia_searchresult .entry .title a:hover {
+}
+
+div.oktavia_searchresult .entry .title a:active {
+    color: #FF0000;
+    text-decoration: underline;
+}
+
+div.oktavia_searchresult .entry .url {
     font-size: 14px!important;
     color: #093;
     font-style: normal;
     font-family: arial,sans-serif;
 }
 
-#searchresult .entry .content {
+div.oktavia_searchresult .entry .resultcontent {
     font-size: small;
     font-family: arial,sans-serif;
     color: #222;
 }
 
-#searchresult .entry .content .hit {
+div.oktavia_searchresult .entry .resultcontent .hit {
     font-weight: bolder;
     text-decoration: underline;
 }
 
-#searchresult .proposal {
+div.oktavia_searchresult .proposal {
     margin: 10px 10px 10px 10px;
     color: #222;
     font-size: small;
     font-family: arial,sans-serif;
 }
-#searchresult .proposal .option {
+
+div.oktavia_searchresult .proposal .option {
     background-color: #e8f4ff;
     border-bottom: 1px solid blue;
 }
 
-#searchresult .proposal .option:hover {
+div.oktavia_searchresult .proposal .option:hover {
     background-color: #d1e8ff;
 }
 
-#searchresult .proposal .option:active {
+div.oktavia_searchresult .proposal .option:active {
     background-color: #b4c8db;
 }
 
-#searchresult_nav .selected {
-    background-color: #b4c8db;
-    border: 1px solid #6c83db;
+div.oktavia_searchresult_nav span.leader {
+    color: #228;
 }
 
-#searchresult_nav span {
+div.oktavia_searchresult_nav span.page {
     background-color: #ffffff;
     border: 1px solid #888888;
     padding: 5px;
@@ -106,17 +140,32 @@
     color: #222;
 }
 
-#searchresult_nav span:hover {
+div.oktavia_searchresult_nav span.page:hover {
     background-color: #d1e8ff;
     border: 1px solid #7d98ff;
 }
 
-#searchresult_nav span:active {
+div.oktavia_searchresult_nav span.page:active {
     background-color: #b4c8db;
     border: 1px solid #6c83db;
 }
 
-#searchresult_box span.pr {
+div.oktavia_searchresult_nav span.selected {
+    background-color: #b4c8db;
+    border: 1px solid #6c83db;
+}
+
+div.oktavia_searchresult_nav span.selected:hover {
+    background-color: #b4c8db;
+    border: 1px solid #6c83db;
+}
+
+div.oktavia_searchresult_nav span.selected:active {
+    background-color: #b4c8db;
+    border: 1px solid #6c83db;
+}
+
+div.oktavia_searchresult_box span.pr {
     position: absolute;
     right: 10px;
     bottom: 10px;
