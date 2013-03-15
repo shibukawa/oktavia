@@ -1,13 +1,42 @@
+/**
+ * @fileOverview
+ * A UI script that creates search form, loads an index files and show search results.
+ * It needs jQuery and <tt>oktavia-search.js</tt> or <tt>oktavia-*-search.js</tt>
+ * (stemming library supported versions).
+ * @author Yoshiki Shibukawa, yoshiki@shibu.jp
+ */
+
 (function ($)
 {
+    /**
+     * @name SearchView
+     * @class
+     * Provides searching feature to your website.
+     * @constructor
+     * @param {jQeury} node Target node it has a search form and a search result window.
+     * @param {string} documentRoot Document root folder like '.', '../', '/'
+     * @param {string} index Index file path.
+     */
     function SearchView(node, documentRoot, index)
     {
         var OktaviaSearch = JSX.require("tool/web/oktavia-search.jsx").OktaviaSearch$I;
 
+        /**
+         * Target node it contains a search form and a search result window.
+         * @type jQuery
+         */
         this.node = node;
+        /**
+         * Search engine core
+         * @type OktaviaSearch
+         */
         this.engine = new OktaviaSearch(5);
         if (documentRoot === '')
         {
+            /**
+             * Document root path
+             * @type string[]
+             */
             this.documentRoot = [];
         }
         else if (documentRoot.slice(-1) === '/')
@@ -19,7 +48,15 @@
             this.documentRoot = documentRoot.split(/\//g);
         }
 
+        /**
+         * It is true if an index file is loaded.
+         * @type boolean
+         */
         this.initialized = false;
+        /**
+         * It is true if an user search before loading an index.
+         * @type boolean
+         */
         this.reserveSearch = false;
 
         var indexURL;
@@ -47,19 +84,38 @@
         });
     }
 
+    /**
+     * Changes result page.
+     * @param {integer} page Page number
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.changePage = function (page)
     {
         this.engine.setCurrentPage$I(page);
         this.updateResult();
     };
 
+    /**
+     * Clears a search form and a reult window.
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.clearResult = function ()
     {
         $('.oktavia_search', this.node).val('');
         $('.oktavia_searchresult_box', this.node).fadeOut();
     };
 
-    // http://os0x.hatenablog.com/entry/20080827/1219815828
+    /**
+     * Loads an external JavaScript file.
+     *
+     * This code is based on: http://os0x.hatenablog.com/entry/20080827/1219815828
+     * @param {string} src A JavaScript source file path
+     * @param {function} callback It is called when the target JavaScript file is loaded
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.loadJavaScript = function (src, callback)
     {
         var sc = document.createElement('script');
@@ -85,6 +141,11 @@
         document.body.appendChild(sc);
     };
 
+    /**
+     * Updates page navigation list.
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.updatePageList = function ()
     {
         var self = this;
@@ -124,6 +185,11 @@
         }
     };
 
+    /**
+     * Updates result list in a result window.
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.updateResult = function ()
     {
         var totalPages = this.engine.totalPages$();
@@ -150,12 +216,23 @@
         this.updatePageList();
     };
 
+    /**
+     * Searchs again by using proposal search words.
+     * @param {string} option Proposal search words
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.searchProposal = function (option)
     {
         $('.oktavia_search', this.node).val(option);
         this.search();
     };
 
+    /**
+     * Shows proposals when no result.
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.updateProposal = function ()
     {
         var nav = $('.oktavia_searchresult_nav', this.node);
@@ -185,6 +262,11 @@
         }
     };
 
+    /**
+     * Performs search and shows results.
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.search = function ()
     {
         if (!this.initialized)
@@ -211,6 +293,13 @@
         });
     };
 
+    /**
+     * Converts file path in index.
+     * @param {string} filePath Source filepath
+     * @returns {string} Result filepath
+     * @memberOf SearchView.prototype
+     * @method
+     */
     SearchView.prototype.getDocumentPath = function (filePath)
     {
         var resultFilePath;
@@ -242,16 +331,31 @@
         return resultFilePath;
     };
 
+    /**
+     * Hides all result windows.
+     * @function
+     */
     function eraseResultWindow()
     {
         $('.oktavia_searchresult_box:visible').fadeOut();
     }
 
+    /**
+     * jQuery plug-in to create search form and window.
+     * It can receive options from data attributes or an <tt>option</tt> parameter.
+     * @param {object} [option] Option
+     * @param {string} [option.index='search/searchindex.js'] Index file path.
+     * @param {string} [option.documentRoot='.'] Document root folder.
+     * @param {string} [option.logo='true'] Show logo in result windows. <tt>'false'</tt> or <tt>'disable'</tt> or falsy value disable logo.
+     * @name oktaviaSearch
+     * @function
+     */
     jQuery.fn.oktaviaSearch = function (option)
     {
         var data = {
             'index': 'search/searchindex.js',
-            'documentRoot': '.'
+            'documentRoot': '.',
+            'logo': 'true'
         };
         if (window.DOCUMENTATION_OPTIONS) // Sphinx
         {
@@ -280,6 +384,14 @@
                 data[key] = option[key];
             }
         }
+        if (data.logo === 'false' || data.logo === 'disable' || !data.logo)
+        {
+            data.logo = false;
+        }
+        else
+        {
+            data.logo = true;
+        }
         var view = new SearchView(this, data.documentRoot, data.index);
 
         var form = $('<form class="oktavia_form"><input class="oktavia_search" result="10" type="search" name="search" value="" placeholder="Search" /></form>');
@@ -297,9 +409,12 @@
             '<div class="oktavia_searchresult_summary"></div>',
             '<div class="oktavia_searchresult"></div>',
             '<div class="oktavia_searchresult_nav"></div>',
-            '<span class="pr">Powered by <a href="http://oktavia.info">Oktavia</a></span>',
             '</div>'
         ].join(''));
+        if (data.logo)
+        {
+            resultForm.append($('<span class="pr">Powered by <a href="http://oktavia.info">Oktavia</a></span>'));
+        }
         this.append(resultForm);
         $('.oktavia_close_search_box', this.node).on('click', function (event) {
             view.clearResult();
@@ -311,6 +426,12 @@
         });
     };
 
+    /**
+     * Global initailization.
+     * It add some event handlers.
+     * @name initialize
+     * @function
+     */
     function initialize()
     {
         $(document).on('click', function () {
