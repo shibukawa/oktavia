@@ -21,9 +21,7 @@ input.oktavia_search {
 
 div.oktavia_searchresult_box {
     display: none;
-    position: absolute;
-    top: 35px;
-    right: 0px;
+    position: relative;
     width: 500px;
     padding: 10px;
     background-color: #ffffff;

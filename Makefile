@@ -13,7 +13,7 @@ build: bin/httpstatus bin/oktavia-mkindex bin/oktavia-search libs template-files
 bin/%: tool/%.jsx
 	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
 
-libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js)
+libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js) template-files
 
 lib/oktavia-search.js: tool/web/oktavia-search.jsx
 	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
@@ -21,11 +21,22 @@ lib/oktavia-search.js: tool/web/oktavia-search.jsx
 lib/oktavia-%-search.js: tool/web/oktavia-%-search.jsx
 	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
 
-template-files: templates/jsdoc3/static/scripts/oktavia-search.js
+template-files: templates/jsdoc3/static/scripts/oktavia-search.js templates/sphinx/_static/oktavia-search.js templates/tinkerer/_static/oktavia-search.js
 
-templates/jsdoc3/static/scripts/oktavia-search.js: lib/oktavia-search.js
-	cp lib/oktavia-search.js templates/jsdoc3/static/scripts/
+templates/jsdoc3/static/scripts/oktavia-search.js: lib/oktavia-english-search.js
+	cp lib/oktavia-english-search.js templates/jsdoc3/static/scripts/
 	cp lib/oktavia-jquery-ui.js templates/jsdoc3/static/scripts/
+	cp lib/searchstyle.css templates/jsdoc3/static/styles/
+
+templates/sphinx/_static/oktavia-search.js: lib/oktavia-search.js
+	cp lib/oktavia-search.js templates/sphinx/_static/
+	cp lib/oktavia-jquery-ui.js templates/sphinx/_static/
+	cp lib/searchstyle.css templates/sphinx/_static/
+
+templates/tinkerer/_static/oktavia-search.js: lib/oktavia-search.js
+	cp lib/oktavia-search.js templates/tinkerer/_static/
+	cp lib/oktavia-jquery-ui.js templates/tinkerer/_static/
+	cp lib/searchstyle.css templates/tinkerer/_static/
 
 test:
 	prove

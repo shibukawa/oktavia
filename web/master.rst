@@ -4,6 +4,7 @@ Sitemap
 .. toctree::
    :maxdepth: 1
 
+   2013/03/15/add_supporting_sphinx_tinkerer_jsdoc3
    pages/document
    pages/inside_oktavia
    pages/license

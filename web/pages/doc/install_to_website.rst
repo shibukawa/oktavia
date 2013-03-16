@@ -1,4 +1,3 @@
-==========================
 Install Oktavia to Website
 ==========================
 
@@ -8,9 +7,6 @@ This search engine provides a basic web interface and a style sheet it is based 
 
    There are many styles of HTML all over the world. This search engine is very early version and have tried to install few cases.
    If your HTML files are not matched with its assumption, you should have to modify the interface script.
-
-Basic Way
-=========
 
 Basic Folder Structure
 ----------------------
@@ -61,10 +57,10 @@ You should add five files to your folder:
   It contains a base64 encoded binary search index.
 
 
-Add Files / Tags to your HTML
------------------------------
+Add Files
+---------
 
-Add following lines to ``<head>`` section in your HTML files that you want to add a search form:
+Add following lines in your HTML files that you want to add a search form:
 
 .. code-block:: html
 
@@ -75,50 +71,68 @@ Add following lines to ``<head>`` section in your HTML files that you want to ad
 
 .. note::
 
-   This code sample uses jQuery 1.9.1 minified version. You can use your favorite version. The web interface doesn't use newer features of jQuery. It can work with older jQuery.
+   This code sample uses jQuery 1.9.1 minified version. You can use older version of jQuery. jQuery 1.4 was confirmed to work with Oktavia.
 
-Add following lines in your HTML files where you want to show search form.
-
-.. code-block:: html
-
-   <div id="oktavia_searchform"/>
-
-The default ``oktavia-jquery-ui.js`` converts above tag into following tags.
-
-.. code-block:: html
-
-   <form id="oktavia_form">
-       <input class="search" type="search" name="search" id="oktavia_search" value="" placeholder="Search" />
-   </form>
-   <div id="oktavia_searchresult_box">
-       <div id="oktavia_close_search_box">&times;</div>
-       <div id="oktavia_searchresult_summary"></div>
-       <div id="oktavia_searchresult"></div>
-       <div id="oktavia_searchresult_nav"></div>
-       <span class="pr">Powered by <a href="http://oktavia.info">Oktavia</a></span>
-   </div>
-
-Specify an Index File Location
-------------------------------
+Tags to your HTML and Specify an Index File Location
+----------------------------------------------------
 
 In above instruction, there are five need files and four of them are already specified in your HTML files. Only an index file is remained.
 
 This search engine reads index file asynchronously to support big index files (for example, the index file of Python document become more than 6.7MB),
 so should specify an index file location.
 
-There are three ways to specify the location:
+There are two ways to specify the position to create a search form.
 
-* ``<base>`` tag
+* Using the tag it has a predefined ID.
 
-  If your website already use ``<base>`` tag, you don't have to do anything. The search engine reads an index file from ``search/searchindex.js``.
-
-* ``<link>`` tag
-
-  Some HTML generators (e.g. jsdoc) can resolve link path during build time. In this case this method is the best.
+  ``#oktavia_search_form`` is a special name. If there is a tag it has this ID, jQuery UI code convert it to a search form.
 
   .. code-block:: html
 
-     <link rel="search" type="application/javascript" title="oktavia" href="./search/searchindex.js">
+     <div id="oktavia_search_form"/>
+
+  This tag can have parameters to specify a, document root, an index file path, a flag to show logo:
+
+  .. code-block:: html
+
+     ``<div id="oktavia_search_form" data-document-root="." data-index="./scripts/searchindex.js" data-logo="enabled"/>``
+
+* Using the jQuery plug-in.
+
+  ``oktavia-jquery-ui.js`` provides jQuery plug-in too. You can convert any tag into a search form:
+
+  .. code-block:: javascript
+
+     $('#search').oktaviaSearch({
+         documentRoot: '..',
+         index: '../search/searchindex.js',
+         logo: false
+     });
+
+Parameters are omitted, following values are used:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 5 5 15
+
+   - * Parameter
+     * Default Value
+     * Comment
+   - * ``documentRoot``
+     * ``"."``
+     * It is used for resolving an index file location and search result URLs.
+   - * ``index``
+     * ``"search/searchindex.js"``
+     * An index file path. If it is not started with ``"."`` or ``"/"``, it is searched from a document root.
+   - * ``logo``
+     * ``true``
+     * If it is not ``"false"`` or ``"disabled"`` or falsy value, the search engine name and a home page link are printed on a search result window.
+
+Only ``documentRoot`` has two extra methods to specify the value:
+
+* ``<base>`` tag
+
+  If your website already use ``<base>`` tag, you don't have to do anything. An index file is searched from this location.
 
 * ``DOCUMENTATION_OPTIONS.URL_ROOT``
 
@@ -137,18 +151,18 @@ There are three ways to specify the location:
      };
      </script>
 
-This setting is used to resolve document URL in result page.
- 
-Install to JSDoc
-================
+``oktavia-jquery-ui.js`` add following contents into the target tag into following tags.
 
-Customize Existing Template
----------------------------
+.. code-block:: html
 
-Use Template
-------------
-
-Install to Sphinx
-=================
-
+   <form id="oktavia_form">
+       <input class="oktavia_search" type="search" name="search" value="" placeholder="Search" />
+   </form>
+   <div class="oktavia_searchresult_box">
+       <div class="oktavia_close_search_box">&times;</div>
+       <div class="oktavia_searchresult_summary"></div>
+       <div class="oktavia_searchresult"></div>
+       <div class="oktavia_searchresult_nav"></div>
+       <span class="pr">Powered by <a href="http://oktavia.info">Oktavia</a></span>
+   </div>
 

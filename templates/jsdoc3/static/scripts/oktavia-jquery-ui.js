@@ -104,7 +104,7 @@
     SearchView.prototype.clearResult = function ()
     {
         $('.oktavia_search', this.node).val('');
-        $('.oktavia_searchresult_box', this.node).fadeOut();
+        $('.oktavia_searchresult_box', this.node).hide();
     };
 
     /**
@@ -170,11 +170,9 @@
             else
             {
                 pageItem.addClass('page');
-                console.log(pages[i]);
-                console.log(currentPage);
                 if (pages[i] !== currentPage)
                 {
-                    pageItem.on('click', createCallback(Number(pages[i])));
+                    pageItem.bind('click', createCallback(Number(pages[i])));
                 }
                 else
                 {
@@ -207,7 +205,7 @@
             var url = this.getDocumentPath(result.url.slice(1));
             var entry = $('<div/>', { "class": "entry" });
             var link = $('<a/>', { "href": url }).text(result.title);
-            link.on('click', clearCallback);
+            link.bind('click', clearCallback);
             entry.append($('<div/>', { "class": "title" }).append(link));
             entry.append($('<div/>', { "class": "url" }).text(url));
             entry.append($('<div/>', { "class": "resultcontent" }).html(result.content));
@@ -255,7 +253,7 @@
             listitem.append('<span>Search with:&nbsp;</span>');
             var option = $('<span/>', {"class": "option"});
             option.html(proposal.label);
-            option.on('click', createCallback(proposal.options));
+            option.bind('click', createCallback(proposal.options));
             listitem.append(option);
             listitem.append('<span>&nbsp;&#x2192;&nbsp;' + proposal.count + ' results.</span>');
             resultslot.append(listitem);
@@ -274,7 +272,9 @@
             this.reserveSearch = true;
             return;
         }
-        var queryWord = $('.oktavia_search', this.node).val();
+        var searchInput = $('.oktavia_search', this.node);
+        var queryWord = searchInput.val();
+        searchInput.blur();
         var self = this;
         this.engine.search$SF$IIV$(queryWord, function (total, pages)
         {
@@ -337,7 +337,7 @@
      */
     function eraseResultWindow()
     {
-        $('.oktavia_searchresult_box:visible').fadeOut();
+        $('.oktavia_searchresult_box:visible').hide();
     }
 
     /**
@@ -395,7 +395,7 @@
         var view = new SearchView(this, data.documentRoot, data.index);
 
         var form = $('<form class="oktavia_form"><input class="oktavia_search" result="10" type="search" name="search" value="" placeholder="Search" /></form>');
-        form.on('submit', function (event) {
+        form.submit(function (event) {
             event.stopPropagation();
             setTimeout(function () {
                 view.search();
@@ -416,12 +416,12 @@
             resultForm.append($('<span class="pr">Powered by <a href="http://oktavia.info">Oktavia</a></span>'));
         }
         this.append(resultForm);
-        $('.oktavia_close_search_box', this.node).on('click', function (event) {
+        $('.oktavia_close_search_box', this.node).bind('click', function (event) {
             view.clearResult();
         });
 
         // Click outside of the result window, close it
-        resultForm.on('click', function (event) {
+        resultForm.bind('click', function (event) {
             event.stopPropagation();
         });
     };
@@ -434,11 +434,13 @@
      */
     function initialize()
     {
-        $(document).on('click', function () {
+
+        function onClick() {
             eraseResultWindow();
             return true;
-        });
-        $(document).on('keydown', function (event) {
+        }
+        function onKeyDown(event)
+        {
             switch (event.keyCode)
             {
             case 191: // / : focus form
@@ -479,7 +481,20 @@
                 break;
             }
             return true;
-        });
+        }
+        var version = $.fn.jquery.split(/\./g);
+        var major = Number(version[0]);
+        var minor = Number(version[1]);
+        if (major === 1 && minor < 7)
+        {
+            $(document).live('click', onClick);
+            $(document).live('keydown', onKeyDown);
+        }
+        else
+        {
+            $(document).on('click', onClick);
+            $(document).on('keydown', onKeyDown);
+        }
     }
     initialize();
 })(jQuery);
