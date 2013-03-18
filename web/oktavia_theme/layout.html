@@ -1,0 +1,347 @@
+{#
+    oktavia_theme/layout.html
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Based on Sphinx's basic/layout.html, tinkerbase/layout.html
+#}
+{%- block doctype -%}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{%- endblock %}
+{%- set reldelim1 = reldelim1 is not defined and ' &raquo;' or reldelim1 %}
+{%- set reldelim2 = reldelim2 is not defined and ' |' or reldelim2 %}
+{%- set render_sidebar = (not embedded) and (not theme_nosidebar|tobool) and
+                         (sidebars != []) %}
+{%- set url_root = pathto('', 1) %}
+{# XXX necessary? #}
+{%- if url_root == '#' %}{% set url_root = '' %}{% endif %}
+{%- if not embedded and docstitle %}
+  {%- set titlesuffix = " &mdash; "|safe + docstitle|e %}
+{%- else %}
+  {%- set titlesuffix = "" %}
+{%- endif %}
+{# Macros ------------------------------------------------------------------- #}
+{%- macro relbar() %}
+    <div class="related">
+      <h3>{{ _('Navigation') }}</h3>
+      <ul>
+        {%- for rellink in rellinks %}
+        <li class="right" {% if loop.first %}style="margin-right: 10px"{% endif %}>
+          <a href="{{ pathto(rellink[0]) }}" title="{{ rellink[1]|striptags|e }}"
+             {{ accesskey(rellink[2]) }}>{{ rellink[3] }}</a>
+          {%- if not loop.first %}{{ reldelim2 }}{% endif %}</li>
+        {%- endfor %}
+        {%- block rootrellink %}
+        <li><a href="{{ pathto(master_doc) }}">{{ shorttitle|e }}</a>{{ reldelim1 }}</li>
+        {%- endblock %}
+        {%- for parent in parents %}
+          <li><a href="{{ parent.link|e }}" {% if loop.last %}{{ accesskey("U") }}{% endif %}>{{ parent.title }}</a>{{ reldelim1 }}</li>
+        {%- endfor %}
+        {%- block relbaritems %} {% endblock %}
+      </ul>
+    </div>
+{%- endmacro %}
+{%- macro sidebar() %}
+      {%- if render_sidebar %}
+      <div id="sidebar">
+          {%- block sidebarlogo %}
+          {%- if logo %}
+            <p class="logo"><a href="{{ pathto(master_doc) }}">
+              <img class="logo" src="{{ pathto('_static/' + logo, 1) }}" alt="Logo"/>
+            </a></p>
+          {%- endif %}
+          {%- endblock %}
+          {%- if sidebars != None %}
+            {#- new style sidebar: explicitly include/exclude templates #}
+            {%- for sidebartemplate in sidebars %}
+            {%- include sidebartemplate %}
+            {%- endfor %}
+          {%- else %}
+            {#- old style sidebars: using blocks -- should be deprecated #}
+            {%- block sidebartoc %}
+            {%- include "localtoc.html" %}
+            {%- endblock %}
+            {%- block sidebarrel %}
+            {%- include "relations.html" %}
+            {%- endblock %}
+            {%- block sidebarsourcelink %}
+            {%- include "sourcelink.html" %}
+            {%- endblock %}
+            {%- if customsidebar %}
+            {%- include customsidebar %}
+            {%- endif %}
+            {%- block sidebarsearch %}
+            {%- include "searchbox.html" %}
+            {%- endblock %}
+          {%- endif %}
+      </div>
+      {%- endif %}
+{%- endmacro %}
+{%- macro script() %}
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '{{ url_root }}',
+        VERSION:     '{{ release|e }}',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '{{ '' if no_search_suffix else file_suffix }}',
+        HAS_SOURCE:  {{ has_source|lower }}
+      };
+    </script>
+    {%- set script_files = script_files + ['_static/oktavia-search.js', '_static/oktavia-jquery-ui.js'] %}
+    {%- for scriptfile in script_files %}
+    <script type="text/javascript" src="{{ pathto(scriptfile, 1) }}"></script>
+    {%- endfor %}
+{%- endmacro %}
+{%- macro css() %}
+    <link href="http://fonts.googleapis.com/css?family=Bitter:400,700" rel="stylesheet" type="text/css" />
+    <link href="{{ pathto('_static/default.css', 1) }} " rel="stylesheet" type="text/css" media="all" />
+    <link rel="stylesheet" href="{{ pathto('_static/' + style, 1) }}" type="text/css" />
+    <!--[if lte IE 7]>
+    <link href="{{ pathto('_static/ie6.css', 1) }}" rel="stylesheet" type="text/css" />
+    <![endif]-->
+    <link rel="stylesheet" href="{{ pathto('_static/pygments.css', 1) }}" type="text/css" />
+    {%- set css_files = css_files + ['_static/searchstyle.css'] %}
+    {%- for cssfile in css_files %}
+    <link rel="stylesheet" href="{{ pathto(cssfile, 1) }}" type="text/css" />
+    {%- endfor %}
+{%- endmacro %}
+{# Blog header #}
+{%- macro blog_header() %}
+  <div id="top-header" class="container">
+    <div id="logo">
+      <h1><a href="{{ pathto(pages[0][0]) }}"><span>{{ shorttitle|e }}</span></a></h1>
+      <!--<h2 class="tagline">{{ tagline }}</h2>-->
+    </div>
+    <div id="search">
+      <div id="oktavia_search_form" data-index="search/searchindex.js"/></div>
+    </div>
+  </div>
+{%- endmacro %}
+{# RSS nav #}
+{%- macro rss_nav() %}
+    <div class="rss">
+        <a href="{{ rss_feed_link }}" title="Subscribe via RSS">
+            {%- if rss_symbol %}<span class="webfont">B</span>{%- endif %}
+            {% if rss_link_text %}{{ rss_link_text }}{% endif %}
+        </a>
+    </div>
+{%- endmacro %}
+{# List of blog pages #}
+{%- macro page_nav() %}
+  <div id="header" class="container">
+    {%- block banner %}{% endblock %}
+    <div id="menu">
+      <ul>
+        {% for page in pages %}
+        <li>
+          <a href="{{ pathto(page[0]) }}">{{ page[1] }}</a>
+        </li>
+        {% endfor %}
+        {%- if rss_in_page_nav %}
+        <li class="right">
+          {{ rss_nav() }}
+        </li>
+        {%- endif %}
+      </ul>
+    </div>
+  </div>
+{%- endmacro %}
+{%- macro page_nav_simple() %}
+  <p class="links">
+    {% for page in pages %}
+      <a href="{{ pathto(page[0]) }}">{{ page[1] }}</a>{%- if not loop.last %} | {%- endif %}
+    {% endfor %}
+  </p>
+{%- endmacro %}
+{# Navigation #}
+{%- macro tinkerer_relbar() %}
+    {%- if prev or next %}
+    <div class="related">
+        <ul>
+            {%- if prev %}
+            <li>
+                {{ prevchar }}<a href="{{ prev.link|e }}">{{ prev.title }}</a>
+            </li>
+            {%- endif %}
+            {%- if next %}
+            <li class="right">
+                <a href="{{ next.link|e }}">{{ next.title }}</a>{{ nextchar }}
+            </li>
+            {%- endif %}
+        </ul>
+    </div>
+    {%- endif %}
+{%- endmacro %}
+{# Timestamp #}
+{%- macro timestamp(date) %}
+    {%- if date %}
+        <div class="timestamp postmeta">
+            <span>{{ date }}</span> 
+        </div>
+    {%- endif %}
+{%- endmacro %}
+{# Author #}
+{%- macro author(author_name) %}
+    {%- if author_name %}
+        <div class="author">
+            <span>{{ text_posted_by }} {{ author_name }}</span>
+        </div>
+    {%- endif %}
+{%- endmacro %}
+{# Categories #}
+{%- macro category_list(post_categories) %}
+    {%- if post_categories %}
+        <div class="categories">
+            <span>
+                {{ text_filed_under }}:
+                {% for link, category in post_categories %}
+                    <a href="{{ pathto('categories/' + link + '.html', 1) }}">{{ category }}</a>
+                    {%- if not loop.last %}, {%- endif %}
+                {% endfor %}
+            </span>
+        </div>
+    {%- endif %}
+{%- endmacro %}
+{# Tags #}
+{%- macro tag_list(post_tags) %}
+    {%- if post_tags %}
+        <div class="tags">
+            <span>
+                {{ text_tags }}:
+                {% for link, tag in post_tags %}
+                    <a href="{{ pathto('tags/' + link + '.html', 1) }}">{{ tag }}</a>
+                    {%- if not loop.last %}, {%- endif %}
+                {% endfor %}
+            </span>
+        </div>
+    {%- endif %}
+{%- endmacro %}
+{# Comment count #}
+{%- macro comment_count(code) %}
+    {%- if code %}
+        <div class="comments">
+            {{ code }}
+        </div>
+    {%- endif %}
+{%- endmacro %}
+{# Post metadata #}
+{%- macro post_meta(metadata, comment_count_code=None) %}
+    <div class="postmeta">
+        {{ author(metadata.author) }}
+        {{ category_list(metadata.filing["categories"]) }}
+        {{ tag_list(metadata.filing["tags"]) }}
+        {{ comment_count(comment_count_code) }}
+    </div>
+{%- endmacro %}
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset={{ encoding }}" />
+    {{ metatags }}
+    {%- block htmltitle %}
+    <title>{{ title|striptags|e }}{{ titlesuffix }}</title>
+    {%- endblock %}
+    {{ css() }}
+    {%- if not embedded %}
+    {{ script() }}
+    {%- if use_opensearch %}
+    <link rel="search" type="application/opensearchdescription+xml"
+          title="{% trans docstitle=docstitle|e %}Search within {{ docstitle }}{% endtrans %}"
+          href="{{ pathto('_static/opensearch.xml', 1) }}"/>
+    {%- endif %}
+    {%- if favicon %}
+    <link rel="shortcut icon" href="{{ pathto('_static/' + favicon, 1) }}"/>
+    {%- endif %}
+    {%- endif %}
+{%- block linktags %}
+    {%- if hasdoc('about') %}
+    <link rel="author" title="{{ _('About these documents') }}" href="{{ pathto('about') }}" />
+    {%- endif %}
+    {%- if hasdoc('genindex') %}
+    <link rel="index" title="{{ _('Index') }}" href="{{ pathto('genindex') }}" />
+    {%- endif %}
+    {%- if hasdoc('search') %}
+    <link rel="search" title="{{ _('Search') }}" href="{{ pathto('search') }}" />
+    {%- endif %}
+    {%- if hasdoc('copyright') %}
+    <link rel="copyright" title="{{ _('Copyright') }}" href="{{ pathto('copyright') }}" />
+    {%- endif %}
+    <link rel="top" title="{{ docstitle|e }}" href="{{ pathto('index') }}" />
+    {%- if parents %}
+    <link rel="up" title="{{ parents[-1].title|striptags|e }}" href="{{ parents[-1].link|e }}" />
+    {%- endif %}
+    {%- if next %}
+    <link rel="next" title="{{ next.title|striptags|e }}" href="{{ next.link|e }}" />
+    {%- endif %}
+    {%- if prev %}
+    <link rel="prev" title="{{ prev.title|striptags|e }}" href="{{ prev.link|e }}" />
+    {%- endif %}
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="{{ rss_feed_link }}" />
+{%- endblock %}
+{%- block extrahead %} {% endblock %}
+  </head>
+{%- block bodytag %}<body>{% endblock %}
+<div id="wrapper-top">
+{%- block header %}
+    {{ blog_header() }}
+    {{ page_nav() }}
+{% endblock %}
+</div>
+{%- block marketing %}{% endblock %}
+<div id="wrapper">
+  <div id="page" class="container">
+{%- block content %}
+    <div id="content">
+      <div class="box-style2">
+  {%- block document %}
+        {% block body %} {% endblock %}
+  {%- endblock %}
+      </div>
+    </div>
+    {%- block sidebar2 %}{{ sidebar() }}{% endblock %}
+{%- endblock %}
+  </div>
+</div>
+{%- block footer %}
+<div id="footer" class="container">
+  {{ page_nav_simple() }}
+  <p class="copyright">
+    {%- if show_copyright %}
+        {% trans copyright=copyright|e %}&copy; Copyright {{ copyright }}.{% endtrans %}
+    {%- endif %}
+    {%- if show_sphinx %}
+        Powered by <a href="http://www.tinkerer.me/">Tinkerer</a> and <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+    {%- endif %}
+
+    {# Comment plug-in can initialize here #}
+    {%- if comment_enabler %}{{ comment_enabler }}{%- endif %}
+  </p>
+</div>
+{%- endblock %}
+  </body>
+</html>
+{# From tinkererbase #}
+{# Prev/next nav ------------------------------------------------------------ #}
+{# characters displayed before/after prev/next links #}
+{%- set prevchar = prevchar is not defined and ' &laquo; ' or prevchar %}
+{%- set nextchar = nextchar is not defined and ' &raquo; ' or nextchar %}
+{# character displyed before and after "Blog Archive" #}
+{%- set archivechar = archivechar is not defined and ' &mdash; ' or archivechar %}
+{# RSS feed ----------------------------------------------------------------- #}
+{# RSS feed link #}
+{%- if rss_service %}
+    {%- set rss_feed_link = rss_service %}
+{%- else %}
+    {%- set rss_feed_link = pathto('rss') %}
+{%- endif %}
+{# include RSS feed link in page_nav (default True) #}
+{%- set rss_in_page_nav = rss_in_page_nav is not defined or rss_in_page_nav %}
+{# RSS link text (default None) #}
+{%- set rss_link_text = rss_link_text is not defined and None or rss_link_text %}
+{# RSS symbol in link (default True) #}
+{%- set rss_symbol = rss_symbol is not defined or rss_symbol %}
+{# Timestamp format --------------------------------------------------------- #}
+{# Timestamp format #}
+{%- set timestamp_format = timestamp_format is not defined and 
+    '<span class="month">%B</span> <span class="day">%d</span>, <span class="year">%Y</day>' 
+    or timestamp_format %}
+{%- set timestamp_short_format = timestamp_short_format is not defined and 
+    '<span class="month">%b</span> <span class="day">%d</span>' or timestamp_short_format %}

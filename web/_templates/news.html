@@ -1,0 +1,25 @@
+{%- set recent_count = recent_count is not defined and 10 or recent_count %}
+
+<div id="box4" class="box-style1">
+    <h2 class="title">News</h2>
+    <h3>Recent News</h3>
+    <ul>
+        {%- for post, post_title in recent[:recent_count] %}
+        <li class="recent_post">
+            <a href="{{ pathto(post) }}">{{ post_title }}</a>
+        </li>
+        {%- endfor %}
+    </ul>
+    <h3>Categories</h3>
+    <ul>
+      {%- for category, count in categories|dictsort %}
+        <li><a href="{{ pathto('categories/' + catlinks[category]) }}">{{ category }}</a> ({{ count }})</li>
+      {%- endfor %}
+    </ul>
+    <h3>Tags</h3>
+    {%- for tag, count in tags|dictsort %}
+      <a href="{{ pathto('tags/' + taglinks[tag]) }}">{{ tag }}</a> ({{ count }})
+      {%- if not loop.last %}, {%- endif %}
+    {%- endfor %}
+</div>
+

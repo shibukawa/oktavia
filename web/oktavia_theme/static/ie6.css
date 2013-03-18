@@ -1,0 +1,33 @@
+
+#menu {
+	padding-left: 50px;
+}
+
+#menu li {
+	float: left;
+}
+
+#menu a {
+	display: block;
+	float: left;
+}
+
+.image-style1a span {
+	background: url(images/bg07.gif) no-repeat left top;
+}
+
+.image-style2a span {
+	background: url(images/bg08.gif) no-repeat left top;
+}
+
+.link-style1 {
+	float: left;
+}
+
+.link-style2 {
+	float: left;
+	margin-bottom: 20px;
+}
+
+ul.style1 li {
+}

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import tinkerer
 import tinkerer.paths
 
@@ -33,7 +34,7 @@ disqus_shortname = None
 html_favicon = 'tinkerer.ico'
 
 # Pick another Tinkerer theme or use your own
-html_theme = "modern5"
+html_theme = "oktavia_theme"
 
 # Theme-specific options, see docs
 html_theme_options = { }
@@ -59,14 +60,15 @@ templates_path = ['_templates']
 html_static_path = ['_static', tinkerer.paths.static]
 
 # Add other theme paths here
-html_theme_path = [tinkerer.paths.themes]
+html_theme_path = [tinkerer.paths.themes, os.path.abspath('.')]
 
 # Add file patterns to exclude from build
 exclude_patterns = ["drafts/*"]
 
 # Add templates to be rendered in sidebar here
 html_sidebars = {
-    "**": ["oktaviasearch.html", "install.html", "recent.html", "tags.html"]
+    "index": ["installguide.html", "example.html", "trouble.html", "ads.html", "news.html", "ads.html"],
+    "**": ["install.html", "ads2.html", "news.html", "ads.html"]
 }
 
 # **************************************************************

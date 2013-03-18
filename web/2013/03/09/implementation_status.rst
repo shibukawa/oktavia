@@ -3,6 +3,8 @@ Implementation Status
 
 This project was started January, 2013. Following items are already implemented:
 
+.. more::
+
 * Search engine core
 
   * Bit Vector

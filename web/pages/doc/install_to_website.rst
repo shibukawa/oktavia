@@ -89,13 +89,13 @@ There are two ways to specify the position to create a search form.
 
   .. code-block:: html
 
-     <div id="oktavia_search_form"/>
+     <div id="oktavia_search_form"></div>
 
   This tag can have parameters to specify a, document root, an index file path, a flag to show logo:
 
   .. code-block:: html
 
-     ``<div id="oktavia_search_form" data-document-root="." data-index="./scripts/searchindex.js" data-logo="enabled"/>``
+     <div id="oktavia_search_form" data-document-root="." data-index="./scripts/searchindex.js" data-logo="enabled"></div>
 
 * Using the jQuery plug-in.
 

@@ -1,7 +1,9 @@
 License
 =======
 
-This software is released under MIT license.
+This software (source codes, logo file) is released under MIT license.
+
+This website uses a no-open web template. Only ``oktavia_theme`` folder contents in the repository is not open. Take care.
 
 The MIT License
 ---------------

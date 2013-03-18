@@ -2,7 +2,7 @@ html_files := $(shell find . -name "*.html" -print)
 js_files := $(shell find . -name "*.js" -print)
 css_files := $(shell find . -name "*.css" -print)
 
-all: makeblog makeindex htmlcomp jscomp csscomp
+all: htmlcomp jscomp csscomp
 
 htmlcomp: $(html_files:.html=.html.gz)
 jscomp: $(js_files:.js=.js.gz)
@@ -24,8 +24,3 @@ clean:
 %.css.gz: %.css
 	gzip -c $< > $<.gz
 
-makeblog:
-	tinker -b
-
-makeindex:
-	../bin/oktavia-mkindex -i blog/html -r blog/html -m html -f .main-container -t js -c 5 -u file

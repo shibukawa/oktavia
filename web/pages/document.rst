@@ -12,3 +12,5 @@ Document
    doc/install_to_jsdoc3
    doc/command_reference
    doc/customize
+   doc/troubleshooting
+   doc/examples

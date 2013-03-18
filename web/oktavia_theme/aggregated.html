@@ -1,0 +1,47 @@
+{#
+    oktavia_theme/aggregated.html
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Based on tinkerbase/aggregated.html
+#}
+
+{%- macro articleseparator() %}
+{%- endmacro %}
+
+{% extends "page.html" %}
+
+{%- block bodytag %}<body class="homepage">{% endblock %}
+
+{% block banner %}
+<div id="banner">
+    <h2>Can you search your github pages?</h2>
+    <p>Oktavia provides powerful search algorithm, FM-index, to your static websites on github pages, Bitbucket page, PyPI docs, Google Drive and local HTML documents.</p>
+    <p class="link-style1"><a href="https://github.com/shibukawa/oktavia"><span>Fork Now!</span></a></p>
+</div>
+{% endblock %}
+
+{% block marketing %}
+{% endblock %}
+
+{%- set archive_title = archive_title is not defined and text_blog_archive or archive_title %}
+
+{% block content %}
+        <div id="content">
+            <h2 class="title">News</h2>
+            {{ tinkerer_relbar() }}
+            {%- for metadata in posts %}
+            <div class="box-style3">
+                {{ timestamp(metadata.formatted_date) }}
+                {{ metadata.body }}
+                {{ post_meta(metadata, metadata.comment_count) }}
+                {%- if not loop.last %}{{ articleseparator() }}{%- endif %}
+            </div>
+            {%- endfor %}
+            {{ tinkerer_relbar() }}
+            <p>
+            <div class="archive_link"><a href="{{ pathto('archive') }}">Older News Archive</a></div>
+            </p>
+        </div>
+        {%- block sidebar2 %}{{ sidebar() }}{% endblock %}
+{% endblock %}
+
