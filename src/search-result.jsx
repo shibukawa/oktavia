@@ -86,7 +86,7 @@ class SearchUnit
         {
             result.push(this.positions[pos]);
         }
-        result.sort((a : Position, b : Position) -> (a.position - b.position));
+        result.sort((a : Position, b : Position) -> ((a.position - b.position) as number));
         return result;
     }
 }
@@ -264,14 +264,14 @@ class SearchSummary
             var result = this.mergeResult(tmpSource);
             proposals.push(new Proposal(i, result.size()));
         }
-        proposals.sort((a : Proposal, b : Proposal) -> (b.expect - a.expect));
+        proposals.sort((a : Proposal, b : Proposal) -> ((b.expect - a.expect) as number));
         return proposals;
     }
 
     function getSortedResult () : SearchUnit[]
     {
         var result = this.result.units.slice(0, this.result.units.length);
-        result.sort((a : SearchUnit, b : SearchUnit) -> (b.score - a.score));
+        result.sort((a : SearchUnit, b : SearchUnit) -> ((b.score - a.score) as number));
         return result;
     }
 
