@@ -157,27 +157,36 @@ class Oktavia
     function addWord (words : string, stemming : boolean) : void
     {
         this.addWord(words);
-        if (stemming && this._stemmer)
+        var wordList = words.split(/\s+/);
+        for (var i = 0; i < wordList.length; i++)
         {
-            var wordList = words.split(/\s+/);
-            for (var i = 0; i < wordList.length; i++)
+            var originalWord = wordList[i];
+            var smallWord = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+            var registerWord : Nullable.<string> = null;
+            if (stemming && this._stemmer)
             {
-                var originalWord = wordList[i];
-                var headSmall = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
                 var baseWord = this._stemmer.stemWord(originalWord.toLowerCase());
-                if (originalWord.indexOf(baseWord) == -1 && headSmall.indexOf(baseWord) == -1)
+                if (originalWord.indexOf(baseWord) == -1)
                 {
-                    var compressedCodeWord = this._convertToCompressionCode(originalWord);
-                    var stemmedList = this._stemmingResult[baseWord];
-                    if (!stemmedList)
-                    {
-                        stemmedList = [compressedCodeWord];
-                        this._stemmingResult[baseWord] = stemmedList;
-                    }
-                    else if (stemmedList.indexOf(compressedCodeWord) == -1)
-                    {
-                        stemmedList.push(compressedCodeWord);
-                    }
+                    registerWord = baseWord;
+                }
+            }
+            else if (originalWord != smallWord)
+            {
+                registerWord = smallWord;
+            }
+            if (registerWord)
+            {
+                var compressedCodeWord = this._convertToCompressionCode(originalWord);
+                var stemmedList = this._stemmingResult[registerWord];
+                if (!stemmedList)
+                {
+                    stemmedList = [compressedCodeWord];
+                    this._stemmingResult[registerWord] = stemmedList;
+                }
+                else if (stemmedList.indexOf(compressedCodeWord) == -1)
+                {
+                    stemmedList.push(compressedCodeWord);
                 }
             }
         }
