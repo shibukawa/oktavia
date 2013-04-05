@@ -21,9 +21,10 @@ input.oktavia_search {
 
 div.oktavia_searchresult_box {
     display: none;
-    position: relative;
+    position: absolute;
     width: 500px;
     padding: 10px;
+    right: 10px;
     background-color: #ffffff;
     -moz-border-radius: 8px;
     border-radius: 8px;
@@ -165,6 +166,9 @@ div.oktavia_searchresult_box span.pr {
     position: absolute;
     right: 10px;
     bottom: 10px;
-    font-size: x-small;
     color: #555;
+}
+
+.highlighted {
+    background-color: #fbe54e;
 }

@@ -1,6 +1,5 @@
 import "oktavia.jsx";
 
-
 class Proposal
 {
     var omit : int;

@@ -9,7 +9,7 @@ class QueryStringParser
         this.queries = [] : Query[];
     }
 
-    function parse (queryString : string) : void
+    function parse (queryString : string) : Query[]
     {
         var nextOr = false;
         var nextNot = false;
@@ -109,5 +109,20 @@ class QueryStringParser
             this.queries.push(query);
             break;
         }
+        return this.queries;
+    }
+
+    function highlight () : string
+    {
+        var result = [] : string[];
+        for (var i = 0; i < this.queries.length; i++)
+        {
+            var query = this.queries[i];
+            if (!query.not)
+            {
+                result.push("highlight=" + String.encodeURIComponent(query.word));
+            }
+        }
+        return '?' + result.join('&');
     }
 }

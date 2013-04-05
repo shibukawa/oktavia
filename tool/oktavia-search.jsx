@@ -6,6 +6,7 @@ import "getopt.jsx";
 import "query-parser.jsx";
 import "search-result.jsx";
 import "style.jsx";
+import "binary-util.jsx";
 
 import "stemmer/stemmer.jsx";
 import "stemmer/danish-stemmer.jsx";
@@ -38,7 +39,10 @@ class Search
         {
             oktavia.setStemmer(this.createStemmer(algorithm));
         }
-        oktavia.load(node.fs.readFileSync(indexFile, "utf16le"));
+        if (!this.loadIndex(oktavia, indexFile))
+        {
+            return;
+        }
         console.time('searching');
         var queryParser = new QueryParser();
         queryParser.parse(queryStrings);
@@ -52,6 +56,35 @@ class Search
         {
             this.showResult(oktavia, summary, num);
         }
+    }
+
+    function loadIndex (oktavia : Oktavia, filepath : string) : boolean
+    {
+        var ext = node.path.extname(filepath);
+        var content : string;
+        var result = true;
+        switch (ext)
+        {
+        case ".okt":
+            content = node.fs.readFileSync(filepath, "utf16le");
+            oktavia.load(content);
+            break;
+        case ".b64":
+            content = node.fs.readFileSync(filepath, "utf8");
+            oktavia.load(Binary.base64decode(content));
+            break;
+        case ".js":
+            content = node.fs.readFileSync(filepath, "utf8");
+            var index = content.indexOf('"');
+            var lastIndex = content.lastIndexOf('"');
+            oktavia.load(Binary.base64decode(content.slice(index, lastIndex)));
+            break;
+        default:
+            console.log("unknown file extension: " + ext);
+            result = false;
+            break;
+        }
+        return result;
     }
 
     function sortResult (oktavia : Oktavia, summary : SearchSummary) : SearchUnit[]
@@ -265,7 +298,7 @@ class _Main {
         var indexFile : Nullable.<string> = null;
         var showhelp = false;
         var notrun = false;
-        var styleType = 'console'; 
+        var styleType = 'console';
         var num : int = 250;
         var queryStrings = [] : string[];
         var algorithm : Nullable.<string> = null;

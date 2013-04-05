@@ -26,6 +26,7 @@ template-files: templates/jsdoc3/static/scripts/oktavia-search.js templates/sphi
 templates/jsdoc3/static/scripts/oktavia-search.js: lib/oktavia-english-search.js
 	cp lib/oktavia-english-search.js templates/jsdoc3/static/scripts/
 	cp lib/oktavia-jquery-ui.js templates/jsdoc3/static/scripts/
+	cp lib/oktavia-jquery-highlight.js templates/jsdoc3/static/scripts/
 	cp lib/searchstyle.css templates/jsdoc3/static/styles/
 
 templates/sphinx/_static/oktavia-search.js: lib/oktavia-search.js

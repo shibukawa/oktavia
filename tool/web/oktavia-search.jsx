@@ -43,6 +43,7 @@ class OktaviaSearch
     static var _instance : Nullable.<OktaviaSearch> = null;
     var _queryString : Nullable.<string>;
     var _queries : Query[];
+    var _highlight : string;
     var _callback : Nullable.<function(:int, :int):void>;
     var _entriesPerPage : int;
     var _currentPage : int;
@@ -92,9 +93,9 @@ class OktaviaSearch
         if (this._oktavia)
         {
             var queryParser = new QueryStringParser();
-            queryParser.parse(queryString);
-            this._queries = queryParser.queries;
-            var summary = this._oktavia.search(queryParser.queries);
+            this._queries = queryParser.parse(queryString);
+            this._highlight = queryParser.highlight();
+            var summary = this._oktavia.search(this._queries);
             if (summary.size() > 0)
             {
                 this._result = this._sortResult(summary);
@@ -250,6 +251,11 @@ class OktaviaSearch
             results.push(new _Result(info[0], info[1], text, unit.score));
         }
         return results;
+    }
+
+    function getHighlight () : string
+    {
+        return this._highlight;
     }
 
     function getProposals () : _Proposal[]

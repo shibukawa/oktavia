@@ -1,4 +1,4 @@
-// generatedy by JSX compiler 0.9.12 (2013-03-09 18:35:13 +0900; 6846a9e07a0a3637c4b95c6ccdd2e8b63fac899f)
+// generatedy by JSX compiler 0.9.24 (2013-04-05 13:45:00 +0900; 1b229cc6a411f674f0f7cf7a79b7a8b3f8eb7414)
 var JSX = {};
 (function (JSX) {
 /**
@@ -77,10 +77,10 @@ JSX.getProfileResults = function () {
 	return ($__jsx_profiler.getResults || function () { return {}; })();
 };
 
-JSX.postProfileResults = function (url) {
+JSX.postProfileResults = function (url, cb) {
 	if ($__jsx_profiler.postResults == null)
 		throw new Error("profiler has not been turned on");
-	return $__jsx_profiler.postResults(url);
+	return $__jsx_profiler.postResults(url, cb);
 };
 
 JSX.resetProfileResults = function () {
@@ -146,6 +146,7 @@ function OktaviaSearch() {
  */
 function OktaviaSearch$I(entriesPerPage) {
 	this._queries = null;
+	this._highlight = "";
 	this._result = null;
 	this._proposals = null;
 	this._currentFolderDepth = 0;
@@ -205,15 +206,13 @@ OktaviaSearch.prototype.search$SF$IIV$ = function (queryString, callback) {
 	var queryParser;
 	/** @type {SearchSummary} */
 	var summary;
-	/** @type {Array.<undefined|Query>} */
-	var queries$0;
 	/** @type {Array.<undefined|SearchUnit>} */
 	var _result$0;
 	if (this._oktavia) {
 		queryParser = ({queries: [  ]});
-		QueryStringParser$parse$LQueryStringParser$S(queryParser, queryString);
-		this._queries = queries$0 = queryParser.queries;
-		summary = this._oktavia.search$ALQuery$(queries$0);
+		this._queries = QueryStringParser$parse$LQueryStringParser$S(queryParser, queryString);
+		this._highlight = QueryStringParser$highlight$LQueryStringParser$(queryParser);
+		summary = this._oktavia.search$ALQuery$(this._queries);
 		if (SearchSummary$size$LSearchSummary$(summary) > 0) {
 			this._result = this._sortResult$LSearchSummary$(summary);
 			this._proposals = [  ];
@@ -398,6 +397,13 @@ OktaviaSearch.prototype.getResult$ = function () {
 		results.push(({title: info[0], url: info[1], content: text, score: unit.score}));
 	}
 	return results;
+};
+
+/**
+ * @return {!string}
+ */
+OktaviaSearch.prototype.getHighlight$ = function () {
+	return this._highlight;
 };
 
 /**
@@ -692,7 +698,9 @@ Oktavia.prototype.addWord$SB = function (words, stemming) {
 	/** @type {undefined|!string} */
 	var originalWord;
 	/** @type {!string} */
-	var headSmall;
+	var smallWord;
+	/** @type {undefined|!string} */
+	var registerWord;
 	/** @type {!string} */
 	var baseWord;
 	/** @type {!string} */
@@ -700,22 +708,30 @@ Oktavia.prototype.addWord$SB = function (words, stemming) {
 	/** @type {Array.<undefined|!string>} */
 	var stemmedList;
 	this.addWord$S(words);
-	if (stemming && this._stemmer) {
-		wordList = words.split(/\s+/);
-		for (i = 0; i < wordList.length; i++) {
-			originalWord = wordList[i];
-			headSmall = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+	wordList = words.split(/\s+/);
+	for (i = 0; i < wordList.length; i++) {
+		originalWord = wordList[i];
+		smallWord = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+		registerWord = null;
+		if (stemming && this._stemmer) {
 			baseWord = this._stemmer.stemWord$S(originalWord.toLowerCase());
-			if (originalWord.indexOf(baseWord) === -1 && headSmall.indexOf(baseWord) === -1) {
-				compressedCodeWord = this._convertToCompressionCode$S(originalWord);
-				stemmedList = this._stemmingResult[baseWord];
-				if (! stemmedList) {
-					stemmedList = [ compressedCodeWord ];
-					this._stemmingResult[baseWord] = stemmedList;
-				} else {
-					if (stemmedList.indexOf(compressedCodeWord) === -1) {
-						stemmedList.push(compressedCodeWord);
-					}
+			if (originalWord.indexOf(baseWord) === -1) {
+				registerWord = baseWord;
+			}
+		} else {
+			if (originalWord != smallWord) {
+				registerWord = smallWord;
+			}
+		}
+		if (registerWord) {
+			compressedCodeWord = this._convertToCompressionCode$S(originalWord);
+			stemmedList = this._stemmingResult[registerWord];
+			if (! stemmedList) {
+				stemmedList = [ compressedCodeWord ];
+				this._stemmingResult[registerWord] = stemmedList;
+			} else {
+				if (stemmedList.indexOf(compressedCodeWord) === -1) {
+					stemmedList.push(compressedCodeWord);
 				}
 			}
 		}
@@ -1956,6 +1972,7 @@ QueryStringParser$.prototype = new QueryStringParser;
 /**
  * @param {QueryStringParser} $this
  * @param {!string} queryString
+ * @return {Array.<undefined|Query>}
  */
 QueryStringParser.parse$LQueryStringParser$S = function ($this, queryString) {
 	/** @type {!boolean} */
@@ -2056,9 +2073,33 @@ QueryStringParser.parse$LQueryStringParser$S = function ($this, queryString) {
 		$this.queries.push(query);
 		break;
 	}
+	return $this.queries;
 };
 
 var QueryStringParser$parse$LQueryStringParser$S = QueryStringParser.parse$LQueryStringParser$S;
+
+/**
+ * @param {QueryStringParser} $this
+ * @return {!string}
+ */
+QueryStringParser.highlight$LQueryStringParser$ = function ($this) {
+	/** @type {Array.<undefined|!string>} */
+	var result;
+	/** @type {!number} */
+	var i;
+	/** @type {Query} */
+	var query;
+	result = [  ];
+	for (i = 0; i < $this.queries.length; i++) {
+		query = $this.queries[i];
+		if (! query.not) {
+			result.push("highlight=" + $__jsx_encodeURIComponent(query.word));
+		}
+	}
+	return '?' + result.join('&');
+};
+
+var QueryStringParser$highlight$LQueryStringParser$ = QueryStringParser.highlight$LQueryStringParser$;
 
 /**
  * class Proposal extends Object
@@ -2971,6 +3012,23 @@ Splitter.prototype.getIndex$I = function (position) {
  * @param {!boolean} stemmed
  */
 Splitter.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+	/** @type {!number} */
+	var i;
+	/** @type {undefined|!number} */
+	var position;
+	/** @type {!number} */
+	var index;
+	/** @type {SearchUnit} */
+	var unit;
+	for (i = 0; i < positions.length; i++) {
+		position = positions[i];
+		index = this.getIndex$I(position);
+		unit = SingleResult$getSearchUnit$LSingleResult$I(result, index);
+		if (unit.startPosition < 0) {
+			unit.startPosition = this.getStartPosition$I(index);
+		}
+		SearchUnit$addPosition$LSearchUnit$SIB(unit, word, position - unit.startPosition, stemmed);
+	}
 };
 
 /**

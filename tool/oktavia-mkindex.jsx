@@ -89,7 +89,7 @@ class _Main
         var showhelp = false;
         var notrun = false;
         var unit = 'file';
-        var type = 'index';
+        var type = 'js';
         var mode = '';
         var verbose = true;
         var filter = [] : string[];
@@ -306,16 +306,17 @@ class _Main
             }
             if (dump)
             {
+                var indexFilePath = "";
                 switch (type)
                 {
                 case 'index':
-                    var indexFilePath = node.path.resolve(root, output, 'searchindex.okt');
+                    indexFilePath = node.path.resolve(root, output, 'searchindex.okt');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
                     node.fs.writeFileSync(indexFilePath, dump, "utf16le");
                     break;
                 case 'base64':
-                    var indexFilePath = node.path.resolve(root, output, 'searchindex.okt.b64');
+                    indexFilePath = node.path.resolve(root, output, 'searchindex.okt.b64');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
                     node.fs.writeFileSync(indexFilePath, Binary.base64encode(dump), "utf8");
@@ -323,7 +324,7 @@ class _Main
                 case 'cmd':
                     break;
                 case 'js':
-                    var indexFilePath = node.path.resolve(root, output, 'searchindex.js');
+                    indexFilePath = node.path.resolve(root, output, 'searchindex.js');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
                     if (name == null)
@@ -337,7 +338,7 @@ class _Main
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;
                 case 'commonjs':
-                    var indexFilePath = node.path.resolve(root, output, 'searchindex.js');
+                    indexFilePath = node.path.resolve(root, output, 'searchindex.js');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
                     if (name == null)
@@ -350,6 +351,10 @@ class _Main
                     ];
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;
+                }
+                if (indexFilePath)
+                {
+                    console.log("generated: " + indexFilePath);
                 }
             }
         }

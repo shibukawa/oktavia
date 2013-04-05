@@ -91,8 +91,8 @@ class HTTPStatus
     function search (words : string[]) : string
     {
         var queryParser = new QueryParser();
-        queryParser.parse(words);
-        if (queryParser.queries.length == 0)
+        var queries = queryParser.parse(words);
+        if (queries.length == 0)
         {
             var result = this.httpstatus.join('\n');
             result = result + "\n\nToday's status: " + this.random();
@@ -100,107 +100,18 @@ class HTTPStatus
         }
         else
         {
-            var resultIndexes = [] : int[];
-            for (var i = 0; i < queryParser.queries.length; i++)
+            var summary = this.oktavia.search(queries);
+            if (summary.size() == 0)
             {
-                var query = queryParser.queries[i];
-                var newResultIndexes = this.search(query.word, !query.raw);
-                if (i == 0)
-                {
-                    if (!query.not)
-                    {
-                        resultIndexes = newResultIndexes;
-                    }
-                }
-                else
-                {
-                    if (query.or)
-                    {
-                        resultIndexes = this.sum(resultIndexes, newResultIndexes);
-                    }
-                    else if (query.not)
-                    {
-                        resultIndexes = this.sub(resultIndexes, newResultIndexes);
-                    }
-                    else
-                    {
-                        resultIndexes = this.multiply(resultIndexes, newResultIndexes);
-                    }
-                }
-            }
-            if (resultIndexes.length == 0)
-            {
-                return "not found";
+                return "not found ";
             }
             var resultWords = [] : string[];
-            for (var i in resultIndexes)
+            for (var i in summary.result.unitIds)
             {
-                resultWords.push(this.splitter.getContent(resultIndexes[i]));
+                resultWords.push(this.splitter.getContent(summary.result.unitIds[i]));
             }
             return resultWords.join('\n');
         }
-    }
-
-    function search (word : string, raw : boolean) : int []
-    {
-        var result = [] : int[];
-        var another = word.slice(0, 1).toUpperCase() + word.slice(1);
-        var searchWords = [word, another];
-        for (var i = 0; i < searchWords.length; i++)
-        {
-            var positions = this.oktavia.rawSearch(searchWords[i], !raw);
-            for (var j = 0; j < positions.length; j++)
-            {
-                var index = this.splitter.getIndex(positions[j]);
-                if (result.indexOf(index) == -1)
-                {
-                    result.push(index);
-                }
-            }
-        }
-        return result;
-    }
-
-    function sum (a : int[], b : int[]) : int[]
-    {
-        var result = a.slice(0, a.length);
-        for (var i = 0; i < b.length; i++)
-        {
-            var item = b[i];
-            if (result.indexOf(item) == -1)
-            {
-                result.push(item); 
-            }
-        }
-        return result;
-    }
-
-    function sub (a : int[], b : int[]) : int[]
-    {
-        var result = a.slice(0, a.length);
-        for (var i = 0; i < b.length; i++)
-        {
-            var item = b[i];
-            if (result.indexOf(item) != -1)
-            {
-                result.splice(result.indexOf(item), 1); 
-            }
-        }
-        return result;
-    }
-
-    function multiply (a : int[], b : int[]) : int[]
-    {
-        var result = [] : int[];
-        for (var i = 0; i < b.length; i++)
-        {
-            var item = b[i];
-            if (a.indexOf(item) != -1)
-            {
-                result.push(item); 
-            }
-        }
-        return result;
     }
 
     function random () : string

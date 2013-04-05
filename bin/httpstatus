@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// generatedy by JSX compiler 0.9.12 (2013-03-09 18:35:13 +0900; 6846a9e07a0a3637c4b95c6ccdd2e8b63fac899f)
+// generatedy by JSX compiler 0.9.24 (2013-04-05 13:45:00 +0900; 1b229cc6a411f674f0f7cf7a79b7a8b3f8eb7414)
 var JSX = {};
 (function (JSX) {
 /**
@@ -78,10 +78,10 @@ JSX.getProfileResults = function () {
 	return ($__jsx_profiler.getResults || function () { return {}; })();
 };
 
-JSX.postProfileResults = function (url) {
+JSX.postProfileResults = function (url, cb) {
 	if ($__jsx_profiler.postResults == null)
 		throw new Error("profiler has not been turned on");
-	return $__jsx_profiler.postResults(url);
+	return $__jsx_profiler.postResults(url, cb);
 };
 
 JSX.resetProfileResults = function () {
@@ -154,155 +154,33 @@ HTTPStatus.prototype.makeIndex$ = function () {
 HTTPStatus.prototype.search$AS = function (words) {
 	/** @type {QueryParser} */
 	var queryParser;
+	/** @type {Array.<undefined|Query>} */
+	var queries;
 	/** @type {!string} */
 	var result;
-	/** @type {Array.<undefined|!number>} */
-	var resultIndexes;
-	/** @type {!number} */
-	var i;
-	/** @type {Query} */
-	var query;
-	/** @type {Array.<undefined|!number>} */
-	var newResultIndexes;
+	/** @type {SearchSummary} */
+	var summary;
 	/** @type {Array.<undefined|!string>} */
 	var resultWords;
+	/** @type {!number} */
+	var i;
 	queryParser = ({queries: [  ]});
-	QueryParser$parse$LQueryParser$AS(queryParser, words);
-	if (queryParser.queries.length === 0) {
+	queries = QueryParser$parse$LQueryParser$AS(queryParser, words);
+	if (queries.length === 0) {
 		result = this.httpstatus.join('\n');
 		result = result + "\n\nToday's status: " + this.httpstatus[Math.round(Math.random() * this.httpstatus.length)];
 		return result;
 	} else {
-		resultIndexes = [  ];
-		for (i = 0; i < queryParser.queries.length; i++) {
-			query = queryParser.queries[i];
-			newResultIndexes = this.search$SB(query.word, ! query.raw);
-			if (i === 0) {
-				if (! query.not) {
-					resultIndexes = newResultIndexes;
-				}
-			} else {
-				if (query.or) {
-					resultIndexes = this.sum$AIAI(resultIndexes, newResultIndexes);
-				} else {
-					if (query.not) {
-						resultIndexes = this.sub$AIAI(resultIndexes, newResultIndexes);
-					} else {
-						resultIndexes = this.multiply$AIAI(resultIndexes, newResultIndexes);
-					}
-				}
-			}
-		}
-		if (resultIndexes.length === 0) {
-			return "not found";
+		summary = this.oktavia.search$ALQuery$(queries);
+		if (SearchSummary$size$LSearchSummary$(summary) === 0) {
+			return "not found ";
 		}
 		resultWords = [  ];
-		for (i in resultIndexes) {
-			resultWords.push(this.splitter.getContent$I(resultIndexes[i]));
+		for (i in summary.result.unitIds) {
+			resultWords.push(this.splitter.getContent$I(summary.result.unitIds[i]));
 		}
 		return resultWords.join('\n');
 	}
-};
-
-/**
- * @param {!string} word
- * @param {!boolean} raw
- * @return {Array.<undefined|!number>}
- */
-HTTPStatus.prototype.search$SB = function (word, raw) {
-	/** @type {Array.<undefined|!number>} */
-	var result;
-	/** @type {!string} */
-	var another;
-	/** @type {Array.<undefined|!string>} */
-	var searchWords;
-	/** @type {!number} */
-	var i;
-	/** @type {Array.<undefined|!number>} */
-	var positions;
-	/** @type {!number} */
-	var j;
-	/** @type {!number} */
-	var index;
-	result = [  ];
-	another = word.slice(0, 1).toUpperCase() + word.slice(1);
-	searchWords = [ word, another ];
-	for (i = 0; i < searchWords.length; i++) {
-		positions = this.oktavia.rawSearch$SB(searchWords[i], ! raw);
-		for (j = 0; j < positions.length; j++) {
-			index = this.splitter.getIndex$I(positions[j]);
-			if (result.indexOf(index) === -1) {
-				result.push(index);
-			}
-		}
-	}
-	return result;
-};
-
-/**
- * @param {Array.<undefined|!number>} a
- * @param {Array.<undefined|!number>} b
- * @return {Array.<undefined|!number>}
- */
-HTTPStatus.prototype.sum$AIAI = function (a, b) {
-	/** @type {Array.<undefined|!number>} */
-	var result;
-	/** @type {!number} */
-	var i;
-	/** @type {undefined|!number} */
-	var item;
-	result = a.slice(0, a.length);
-	for (i = 0; i < b.length; i++) {
-		item = b[i];
-		if (result.indexOf(item) === -1) {
-			result.push(item);
-		}
-	}
-	return result;
-};
-
-/**
- * @param {Array.<undefined|!number>} a
- * @param {Array.<undefined|!number>} b
- * @return {Array.<undefined|!number>}
- */
-HTTPStatus.prototype.sub$AIAI = function (a, b) {
-	/** @type {Array.<undefined|!number>} */
-	var result;
-	/** @type {!number} */
-	var i;
-	/** @type {undefined|!number} */
-	var item;
-	result = a.slice(0, a.length);
-	for (i = 0; i < b.length; i++) {
-		item = b[i];
-		if (result.indexOf(item) !== -1) {
-			result.splice(result.indexOf(item), 1);
-		}
-	}
-	return result;
-};
-
-/**
- * @param {Array.<undefined|!number>} a
- * @param {Array.<undefined|!number>} b
- * @return {Array.<undefined|!number>}
- */
-HTTPStatus.prototype.multiply$AIAI = function (a, b) {
-	/** @type {Array.<undefined|!number>} */
-	var result;
-	/** @type {!number} */
-	var i;
-	/** @type {undefined|!number} */
-	var item;
-	result = [  ];
-	for (i = 0; i < b.length; i++) {
-		item = b[i];
-		if (a.indexOf(item) !== -1) {
-			result.push(item);
-		}
-	}
-	return result;
 };
 
 /**
@@ -533,7 +411,9 @@ Oktavia.prototype.addWord$SB = function (words, stemming) {
 	/** @type {undefined|!string} */
 	var originalWord;
 	/** @type {!string} */
-	var headSmall;
+	var smallWord;
+	/** @type {undefined|!string} */
+	var registerWord;
 	/** @type {!string} */
 	var baseWord;
 	/** @type {!string} */
@@ -541,22 +421,30 @@ Oktavia.prototype.addWord$SB = function (words, stemming) {
 	/** @type {Array.<undefined|!string>} */
 	var stemmedList;
 	this.addWord$S(words);
-	if (stemming && this._stemmer) {
-		wordList = words.split(/\s+/);
-		for (i = 0; i < wordList.length; i++) {
-			originalWord = wordList[i];
-			headSmall = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+	wordList = words.split(/\s+/);
+	for (i = 0; i < wordList.length; i++) {
+		originalWord = wordList[i];
+		smallWord = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+		registerWord = null;
+		if (stemming && this._stemmer) {
 			baseWord = this._stemmer.stemWord$S(originalWord.toLowerCase());
-			if (originalWord.indexOf(baseWord) === -1 && headSmall.indexOf(baseWord) === -1) {
-				compressedCodeWord = this._convertToCompressionCode$S(originalWord);
-				stemmedList = this._stemmingResult[baseWord];
-				if (! stemmedList) {
-					stemmedList = [ compressedCodeWord ];
-					this._stemmingResult[baseWord] = stemmedList;
-				} else {
-					if (stemmedList.indexOf(compressedCodeWord) === -1) {
-						stemmedList.push(compressedCodeWord);
-					}
+			if (originalWord.indexOf(baseWord) === -1) {
+				registerWord = baseWord;
+			}
+		} else {
+			if (originalWord != smallWord) {
+				registerWord = smallWord;
+			}
+		}
+		if (registerWord) {
+			compressedCodeWord = this._convertToCompressionCode$S(originalWord);
+			stemmedList = this._stemmingResult[registerWord];
+			if (! stemmedList) {
+				stemmedList = [ compressedCodeWord ];
+				this._stemmingResult[registerWord] = stemmedList;
+			} else {
+				if (stemmedList.indexOf(compressedCodeWord) === -1) {
+					stemmedList.push(compressedCodeWord);
 				}
 			}
 		}
@@ -1249,6 +1137,23 @@ Splitter.prototype.getIndex$I = function (position) {
  * @param {!boolean} stemmed
  */
 Splitter.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+	/** @type {!number} */
+	var i;
+	/** @type {undefined|!number} */
+	var position;
+	/** @type {!number} */
+	var index;
+	/** @type {SearchUnit} */
+	var unit;
+	for (i = 0; i < positions.length; i++) {
+		position = positions[i];
+		index = this.getIndex$I(position);
+		unit = SingleResult$getSearchUnit$LSingleResult$I(result, index);
+		if (unit.startPosition < 0) {
+			unit.startPosition = this.getStartPosition$I(index);
+		}
+		SearchUnit$addPosition$LSearchUnit$SIB(unit, word, position - unit.startPosition, stemmed);
+	}
 };
 
 /**
@@ -1710,6 +1615,7 @@ QueryParser$.prototype = new QueryParser;
 /**
  * @param {QueryParser} $this
  * @param {Array.<undefined|!string>} queryStrings
+ * @return {Array.<undefined|Query>}
  */
 QueryParser.parse$LQueryParser$AS = function ($this, queryStrings) {
 	/** @type {!boolean} */
@@ -1743,9 +1649,33 @@ QueryParser.parse$LQueryParser$AS = function ($this, queryStrings) {
 			$this.queries.push(query);
 		}
 	}
+	return $this.queries;
 };
 
 var QueryParser$parse$LQueryParser$AS = QueryParser.parse$LQueryParser$AS;
+
+/**
+ * @param {QueryParser} $this
+ * @return {!string}
+ */
+QueryParser.highlight$LQueryParser$ = function ($this) {
+	/** @type {Array.<undefined|!string>} */
+	var result;
+	/** @type {!number} */
+	var i;
+	/** @type {Query} */
+	var query;
+	result = [  ];
+	for (i = 0; i < $this.queries.length; i++) {
+		query = $this.queries[i];
+		if (! query.not) {
+			result.push("highlight=" + $__jsx_encodeURIComponent(query.word));
+		}
+	}
+	return '?' + result.join('&');
+};
+
+var QueryParser$highlight$LQueryParser$ = QueryParser.highlight$LQueryParser$;
 
 /**
  * class FMIndex extends Object

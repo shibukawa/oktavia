@@ -1,4 +1,3 @@
-import "console.jsx";
 import "bit-vector.jsx";
 import "oktavia.jsx";
 import "binary-util.jsx";
@@ -209,7 +208,17 @@ class Splitter extends Metadata
 
     override function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
     {
-        // TODO
+        for (var i = 0; i < positions.length; i++)
+        {
+            var position = positions[i];
+            var index = this.getIndex(position);
+            var unit = result.getSearchUnit(index);
+            if (unit.startPosition < 0)
+            {
+                unit.startPosition = this.getStartPosition(index);
+            }
+            unit.addPosition(word, position - unit.startPosition, stemmed);
+        }
     }
 
     override function getInformation(index : int) : string

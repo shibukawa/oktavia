@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// generatedy by JSX compiler 0.9.12 (2013-03-09 18:35:13 +0900; 6846a9e07a0a3637c4b95c6ccdd2e8b63fac899f)
+// generatedy by JSX compiler 0.9.24 (2013-04-05 13:45:00 +0900; 1b229cc6a411f674f0f7cf7a79b7a8b3f8eb7414)
 var JSX = {};
 (function (JSX) {
 /**
@@ -78,10 +78,10 @@ JSX.getProfileResults = function () {
 	return ($__jsx_profiler.getResults || function () { return {}; })();
 };
 
-JSX.postProfileResults = function (url) {
+JSX.postProfileResults = function (url, cb) {
 	if ($__jsx_profiler.postResults == null)
 		throw new Error("profiler has not been turned on");
-	return $__jsx_profiler.postResults(url);
+	return $__jsx_profiler.postResults(url, cb);
 };
 
 JSX.resetProfileResults = function () {
@@ -129,7 +129,9 @@ Search.search$LSearch$SASILStyle$US = function ($this, indexFile, queryStrings, 
 		stemmer$0 = Search$createStemmer$LSearch$S($this, algorithm);
 		oktavia._stemmer = stemmer$0;
 	}
-	oktavia.load$S(node.fs.readFileSync(indexFile, "utf16le"));
+	if (! Search$loadIndex$LSearch$LOktavia$S($this, oktavia, indexFile)) {
+		return;
+	}
 	console.time('searching');
 	queryParser = ({queries: [  ]});
 	QueryParser$parse$LQueryParser$AS(queryParser, queryStrings);
@@ -143,6 +145,50 @@ Search.search$LSearch$SASILStyle$US = function ($this, indexFile, queryStrings, 
 };
 
 var Search$search$LSearch$SASILStyle$US = Search.search$LSearch$SASILStyle$US;
+
+/**
+ * @param {Search} $this
+ * @param {Oktavia} oktavia
+ * @param {!string} filepath
+ * @return {!boolean}
+ */
+Search.loadIndex$LSearch$LOktavia$S = function ($this, oktavia, filepath) {
+	/** @type {!string} */
+	var ext;
+	/** @type {!string} */
+	var content;
+	/** @type {!boolean} */
+	var result;
+	/** @type {!number} */
+	var index;
+	/** @type {!number} */
+	var lastIndex;
+	ext = node.path.extname(filepath);
+	result = true;
+	switch (ext) {
+	case ".okt":
+		content = node.fs.readFileSync(filepath, "utf16le");
+		oktavia.load$S(content);
+		break;
+	case ".b64":
+		content = node.fs.readFileSync(filepath, "utf8");
+		oktavia.load$S(Binary$base64decode$S(content));
+		break;
+	case ".js":
+		content = node.fs.readFileSync(filepath, "utf8");
+		index = content.indexOf('"');
+		lastIndex = content.lastIndexOf('"');
+		oktavia.load$S(Binary$base64decode$S(content.slice(index, lastIndex)));
+		break;
+	default:
+		console.log("unknown file extension: " + ext);
+		result = false;
+		break;
+	}
+	return result;
+};
+
+var Search$loadIndex$LSearch$LOktavia$S = Search.loadIndex$LSearch$LOktavia$S;
 
 /**
  * @param {Search} $this
@@ -695,7 +741,9 @@ Oktavia.prototype.addWord$SB = function (words, stemming) {
 	/** @type {undefined|!string} */
 	var originalWord;
 	/** @type {!string} */
-	var headSmall;
+	var smallWord;
+	/** @type {undefined|!string} */
+	var registerWord;
 	/** @type {!string} */
 	var baseWord;
 	/** @type {!string} */
@@ -703,22 +751,30 @@ Oktavia.prototype.addWord$SB = function (words, stemming) {
 	/** @type {Array.<undefined|!string>} */
 	var stemmedList;
 	this.addWord$S(words);
-	if (stemming && this._stemmer) {
-		wordList = words.split(/\s+/);
-		for (i = 0; i < wordList.length; i++) {
-			originalWord = wordList[i];
-			headSmall = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+	wordList = words.split(/\s+/);
+	for (i = 0; i < wordList.length; i++) {
+		originalWord = wordList[i];
+		smallWord = originalWord.slice(0, 1).toLowerCase() + originalWord.slice(1);
+		registerWord = null;
+		if (stemming && this._stemmer) {
 			baseWord = this._stemmer.stemWord$S(originalWord.toLowerCase());
-			if (originalWord.indexOf(baseWord) === -1 && headSmall.indexOf(baseWord) === -1) {
-				compressedCodeWord = this._convertToCompressionCode$S(originalWord);
-				stemmedList = this._stemmingResult[baseWord];
-				if (! stemmedList) {
-					stemmedList = [ compressedCodeWord ];
-					this._stemmingResult[baseWord] = stemmedList;
-				} else {
-					if (stemmedList.indexOf(compressedCodeWord) === -1) {
-						stemmedList.push(compressedCodeWord);
-					}
+			if (originalWord.indexOf(baseWord) === -1) {
+				registerWord = baseWord;
+			}
+		} else {
+			if (originalWord != smallWord) {
+				registerWord = smallWord;
+			}
+		}
+		if (registerWord) {
+			compressedCodeWord = this._convertToCompressionCode$S(originalWord);
+			stemmedList = this._stemmingResult[registerWord];
+			if (! stemmedList) {
+				stemmedList = [ compressedCodeWord ];
+				this._stemmingResult[registerWord] = stemmedList;
+			} else {
+				if (stemmedList.indexOf(compressedCodeWord) === -1) {
+					stemmedList.push(compressedCodeWord);
 				}
 			}
 		}
@@ -1320,6 +1376,7 @@ QueryParser$.prototype = new QueryParser;
 /**
  * @param {QueryParser} $this
  * @param {Array.<undefined|!string>} queryStrings
+ * @return {Array.<undefined|Query>}
  */
 QueryParser.parse$LQueryParser$AS = function ($this, queryStrings) {
 	/** @type {!boolean} */
@@ -1353,9 +1410,33 @@ QueryParser.parse$LQueryParser$AS = function ($this, queryStrings) {
 			$this.queries.push(query);
 		}
 	}
+	return $this.queries;
 };
 
 var QueryParser$parse$LQueryParser$AS = QueryParser.parse$LQueryParser$AS;
+
+/**
+ * @param {QueryParser} $this
+ * @return {!string}
+ */
+QueryParser.highlight$LQueryParser$ = function ($this) {
+	/** @type {Array.<undefined|!string>} */
+	var result;
+	/** @type {!number} */
+	var i;
+	/** @type {Query} */
+	var query;
+	result = [  ];
+	for (i = 0; i < $this.queries.length; i++) {
+		query = $this.queries[i];
+		if (! query.not) {
+			result.push("highlight=" + $__jsx_encodeURIComponent(query.word));
+		}
+	}
+	return '?' + result.join('&');
+};
+
+var QueryParser$highlight$LQueryParser$ = QueryParser.highlight$LQueryParser$;
 
 /**
  * class Proposal extends Object
@@ -1866,1286 +1947,6 @@ Style.prototype.convert$S = function (source) {
 	parser = new SAXParser$LSAXHandler$(handler);
 	parser.parse$S(source);
 	return handler.text.join('');
-};
-
-/**
- * class Stemmer
- * @constructor
- */
-function Stemmer() {
-}
-
-Stemmer.prototype.$__jsx_implements_Stemmer = true;
-
-/**
- * @constructor
- */
-function Stemmer$() {
-};
-
-Stemmer$.prototype = new Stemmer;
-
-/**
- * class js extends Object
- * @constructor
- */
-function js() {
-}
-
-/**
- * @constructor
- */
-function js$() {
-};
-
-js$.prototype = new js;
-
-/**
- * class Metadata extends Object
- * @constructor
- */
-function Metadata() {
-}
-
-/**
- * @constructor
- * @param {Oktavia} parent
- */
-function Metadata$LOktavia$(parent) {
-	this._parent = parent;
-	this._bitVector = new BitVector$();
-};
-
-Metadata$LOktavia$.prototype = new Metadata;
-
-/**
- * @return {!number}
- */
-Metadata.prototype._size$ = function () {
-	/** @type {BitVector} */
-	var this$0;
-	/** @type {!number} */
-	var i$0;
-	/** @type {BitVector} */
-	var _bitVector$0;
-	this$0 = _bitVector$0 = this._bitVector;
-	i$0 = _bitVector$0._size;
-	return this$0.rank$IB(i$0, true);
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Metadata.prototype.getContent$I = function (index) {
-	/** @type {!number} */
-	var startPosition;
-	/** @type {!number} */
-	var length;
-	if (index < 0 || this._size$() <= index) {
-		throw new Error("Section.getContent() : range error " + (index + ""));
-	}
-	startPosition = 0;
-	if (index > 0) {
-		startPosition = this._bitVector.select$I(index - 1) + 1;
-	}
-	length = this._bitVector.select$I(index) - startPosition + 1;
-	return this._parent._getSubstring$II(startPosition, length);
-};
-
-/**
- * @param {!number} index
- * @return {!number}
- */
-Metadata.prototype.getStartPosition$I = function (index) {
-	/** @type {!number} */
-	var startPosition;
-	if (index < 0 || this._size$() <= index) {
-		throw new Error("Section.getContent() : range error " + (index + ""));
-	}
-	startPosition = 0;
-	if (index > 0) {
-		startPosition = this._bitVector.select$I(index - 1) + 1;
-	}
-	return (startPosition | 0);
-};
-
-/**
- * @param {SingleResult} result
- * @param {Array.<undefined|!number>} positions
- * @param {!string} word
- * @param {!boolean} stemmed
- */
-Metadata.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Metadata.prototype.getInformation$I = function (index) {
-	return '';
-};
-
-/**
- */
-Metadata.prototype._build$ = function () {
-	this._bitVector.build$();
-};
-
-/**
- * @param {!string} name
- * @param {!string} data
- * @param {!number} offset
- * @return {!number}
- */
-Metadata.prototype._load$SSI = function (name, data, offset) {
-	offset = this._bitVector.load$SI(data, offset);
-	this._parent._metadataLabels.push(name);
-	this._parent._metadatas[name] = this;
-	return offset;
-};
-
-/**
- * @return {!string}
- */
-Metadata.prototype._dump$ = function () {
-	/** @type {BitVector} */
-	var this$0;
-	/** @type {Array.<undefined|!string>} */
-	var contents$0;
-	this$0 = this._bitVector;
-	contents$0 = [  ];
-	contents$0.push(Binary$dump32bitNumber$N(this$0._size));
-	contents$0.push(Binary$dump32bitNumberList$AN(this$0._v));
-	return contents$0.join('');
-};
-
-/**
- * @param {CompressionReport} report
- * @return {!string}
- */
-Metadata.prototype._dump$LCompressionReport$ = function (report) {
-	/** @type {BitVector} */
-	var this$0;
-	/** @type {Array.<undefined|!string>} */
-	var contents$0;
-	this$0 = this._bitVector;
-	contents$0 = [  ];
-	contents$0.push(Binary$dump32bitNumber$N(this$0._size));
-	CompressionReport$add$LCompressionReport$II(report, 2, 2);
-	contents$0.push(Binary$dump32bitNumberList$ANLCompressionReport$(this$0._v, report));
-	return contents$0.join('');
-};
-
-/**
- * class Section extends Metadata
- * @constructor
- */
-function Section() {
-}
-
-Section.prototype = new Metadata;
-/**
- * @constructor
- * @param {Oktavia} parent
- */
-function Section$LOktavia$(parent) {
-	this._parent = parent;
-	this._bitVector = new BitVector$();
-	this._names = [  ];
-};
-
-Section$LOktavia$.prototype = new Section;
-
-/**
- * @param {!string} name
- */
-Section.prototype.setTail$S = function (name) {
-	/** @type {!number} */
-	var index$0;
-	/** @type {Oktavia} */
-	var this$0;
-	/** @type {FMIndex} */
-	var this$0$0;
-	this$0 = this._parent;
-	this$0$0 = this$0._fmindex;
-	index$0 = this$0$0._substr.length;
-	this._names.push(name);
-	this._bitVector.set$I(index$0 - 1);
-};
-
-/**
- * @param {!string} name
- * @param {!number} index
- */
-Section.prototype.setTail$SI = function (name, index) {
-	this._names.push(name);
-	this._bitVector.set$I(index - 1);
-};
-
-/**
- * @return {!number}
- */
-Section.prototype.size$ = function () {
-	return (this._names.length | 0);
-};
-
-/**
- * @param {!number} position
- * @return {!number}
- */
-Section.prototype.getSectionIndex$I = function (position) {
-	/** @type {BitVector} */
-	var this$0;
-	if (position < 0 || this._bitVector.size$() <= position) {
-		throw new Error("Section.getSectionIndex() : range error " + (position + ""));
-	}
-	this$0 = this._bitVector;
-	return this$0.rank$IB(position, true);
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Section.prototype.getName$I = function (index) {
-	if (index < 0 || this._names.length <= index) {
-		throw new Error("Section.getName() : range error");
-	}
-	return this._names[index];
-};
-
-/**
- * @param {SingleResult} result
- * @param {Array.<undefined|!number>} positions
- * @param {!string} word
- * @param {!boolean} stemmed
- */
-Section.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
-	/** @type {!number} */
-	var i;
-	/** @type {undefined|!number} */
-	var position;
-	/** @type {!number} */
-	var index;
-	/** @type {SearchUnit} */
-	var unit;
-	for (i = 0; i < positions.length; i++) {
-		position = positions[i];
-		index = this.getSectionIndex$I(position);
-		unit = SingleResult$getSearchUnit$LSingleResult$I(result, index);
-		if (unit.startPosition < 0) {
-			unit.startPosition = this.getStartPosition$I(index);
-		}
-		SearchUnit$addPosition$LSearchUnit$SIB(unit, word, position - unit.startPosition, stemmed);
-	}
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Section.prototype.getInformation$I = function (index) {
-	return this.getName$I(index);
-};
-
-/**
- * @param {Oktavia} parent
- * @param {!string} name
- * @param {!string} data
- * @param {!number} offset
- * @return {!number}
- */
-Section._load$LOktavia$SSI = function (parent, name, data, offset) {
-	/** @type {LoadedStringListResult} */
-	var strs;
-	/** @type {Section} */
-	var section;
-	/** @type {!number} */
-	var offset$0;
-	strs = new LoadedStringListResult$SI(data, offset);
-	section = new Section$LOktavia$(parent);
-	section._names = strs.result;
-	offset$0 = strs.offset;
-	offset$0 = section._bitVector.load$SI(data, offset$0);
-	section._parent._metadataLabels.push(name);
-	section._parent._metadatas[name] = section;
-	return offset$0;
-};
-
-var Section$_load$LOktavia$SSI = Section._load$LOktavia$SSI;
-
-/**
- * @return {!string}
- */
-Section.prototype._dump$ = function () {
-	return [ Binary$dump16bitNumber$I(0), Binary$dumpStringList$AS(this._names), Metadata.prototype._dump$.call(this) ].join('');
-};
-
-/**
- * @param {CompressionReport} report
- * @return {!string}
- */
-Section.prototype._dump$LCompressionReport$ = function (report) {
-	CompressionReport$add$LCompressionReport$II(report, 1, 1);
-	return [ Binary$dump16bitNumber$I(0), Binary$dumpStringList$ASLCompressionReport$(this._names, report), Metadata.prototype._dump$LCompressionReport$.call(this, report) ].join('');
-};
-
-/**
- * class Splitter extends Metadata
- * @constructor
- */
-function Splitter() {
-}
-
-Splitter.prototype = new Metadata;
-/**
- * @constructor
- * @param {Oktavia} parent
- */
-function Splitter$LOktavia$(parent) {
-	this._parent = parent;
-	this._bitVector = new BitVector$();
-	this.name = null;
-};
-
-Splitter$LOktavia$.prototype = new Splitter;
-
-/**
- * @constructor
- * @param {Oktavia} parent
- * @param {!string} name
- */
-function Splitter$LOktavia$S(parent, name) {
-	this._parent = parent;
-	this._bitVector = new BitVector$();
-	this.name = name;
-};
-
-Splitter$LOktavia$S.prototype = new Splitter;
-
-/**
- * @return {!number}
- */
-Splitter.prototype.size$ = function () {
-	/** @type {BitVector} */
-	var this$0$0;
-	/** @type {!number} */
-	var i$0$0;
-	/** @type {BitVector} */
-	var _bitVector$0;
-	this$0$0 = _bitVector$0 = this._bitVector;
-	i$0$0 = _bitVector$0._size;
-	return this$0$0.rank$IB(i$0$0, true);
-};
-
-/**
- */
-Splitter.prototype.split$ = function () {
-	/** @type {!number} */
-	var index$0;
-	/** @type {Oktavia} */
-	var this$0;
-	/** @type {FMIndex} */
-	var this$0$0;
-	this$0 = this._parent;
-	this$0$0 = this$0._fmindex;
-	index$0 = this$0$0._substr.length;
-	this._bitVector.set$I(index$0 - 1);
-};
-
-/**
- * @param {!number} index
- */
-Splitter.prototype.split$I = function (index) {
-	this._bitVector.set$I(index - 1);
-};
-
-/**
- * @param {!number} position
- * @return {!number}
- */
-Splitter.prototype.getIndex$I = function (position) {
-	/** @type {BitVector} */
-	var this$0;
-	if (position < 0 || this._bitVector.size$() <= position) {
-		throw new Error("Section.getSectionIndex() : range error");
-	}
-	this$0 = this._bitVector;
-	return this$0.rank$IB(position, true);
-};
-
-/**
- * @param {SingleResult} result
- * @param {Array.<undefined|!number>} positions
- * @param {!string} word
- * @param {!boolean} stemmed
- */
-Splitter.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Splitter.prototype.getInformation$I = function (index) {
-	return (this.name != null ? this.name + (index + 1 + "") : '');
-};
-
-/**
- * @param {Oktavia} parent
- * @param {!string} name
- * @param {!string} data
- * @param {!number} offset
- * @return {!number}
- */
-Splitter._load$LOktavia$SSI = function (parent, name, data, offset) {
-	/** @type {Splitter} */
-	var section;
-	section = new Splitter$LOktavia$(parent);
-	offset = section._bitVector.load$SI(data, offset);
-	section._parent._metadataLabels.push(name);
-	section._parent._metadatas[name] = section;
-	return offset;
-};
-
-var Splitter$_load$LOktavia$SSI = Splitter._load$LOktavia$SSI;
-
-/**
- * @return {!string}
- */
-Splitter.prototype._dump$ = function () {
-	return [ Binary$dump16bitNumber$I(1), Metadata.prototype._dump$.call(this) ].join('');
-};
-
-/**
- * @param {CompressionReport} report
- * @return {!string}
- */
-Splitter.prototype._dump$LCompressionReport$ = function (report) {
-	CompressionReport$add$LCompressionReport$II(report, 1, 1);
-	return [ Binary$dump16bitNumber$I(1), Metadata.prototype._dump$LCompressionReport$.call(this, report) ].join('');
-};
-
-/**
- * class Table extends Metadata
- * @constructor
- */
-function Table() {
-}
-
-Table.prototype = new Metadata;
-/**
- * @constructor
- * @param {Oktavia} parent
- * @param {Array.<undefined|!string>} headers
- */
-function Table$LOktavia$AS(parent, headers) {
-	this._parent = parent;
-	this._bitVector = new BitVector$();
-	this._headers = headers;
-	this._columnTails = new BitVector$();
-};
-
-Table$LOktavia$AS.prototype = new Table;
-
-/**
- * @return {!number}
- */
-Table.prototype.rowSize$ = function () {
-	/** @type {BitVector} */
-	var this$0$0;
-	/** @type {!number} */
-	var i$0$0;
-	/** @type {BitVector} */
-	var _bitVector$0;
-	this$0$0 = _bitVector$0 = this._bitVector;
-	i$0$0 = _bitVector$0._size;
-	return this$0$0.rank$IB(i$0$0, true);
-};
-
-/**
- * @return {!number}
- */
-Table.prototype.columnSize$ = function () {
-	return (this._headers.length | 0);
-};
-
-/**
- */
-Table.prototype.setColumnTail$ = function () {
-	/** @type {!number} */
-	var index;
-	/** @type {Oktavia} */
-	var this$0;
-	/** @type {FMIndex} */
-	var this$0$0;
-	/** @type {Oktavia} */
-	var _parent$0;
-	this$0 = _parent$0 = this._parent;
-	this$0$0 = this$0._fmindex;
-	index = this$0$0._substr.length;
-	_parent$0._fmindex.push$S(Oktavia.eob);
-	this._columnTails.set$I(index - 1);
-};
-
-/**
- */
-Table.prototype.setRowTail$ = function () {
-	/** @type {!number} */
-	var index;
-	/** @type {Oktavia} */
-	var this$0;
-	/** @type {FMIndex} */
-	var this$0$0;
-	this$0 = this._parent;
-	this$0$0 = this$0._fmindex;
-	index = this$0$0._substr.length;
-	this._bitVector.set$I(index - 1);
-};
-
-/**
- * @param {!number} position
- * @return {Array.<undefined|!number>}
- */
-Table.prototype.getCell$I = function (position) {
-	/** @type {!number} */
-	var row;
-	/** @type {!number} */
-	var currentColumn;
-	/** @type {!number} */
-	var lastRowColumn;
-	/** @type {!number} */
-	var startPosition;
-	/** @type {Array.<undefined|!number>} */
-	var result;
-	/** @type {BitVector} */
-	var this$0;
-	/** @type {BitVector} */
-	var this$1;
-	if (position < 0 || this._bitVector.size$() <= position) {
-		throw new Error("Section.getSectionIndex() : range error " + (position + ""));
-	}
-	this$0 = this._bitVector;
-	row = this$0.rank$IB(position, true);
-	this$1 = this._columnTails;
-	currentColumn = this$1.rank$IB(position, true);
-	lastRowColumn = 0;
-	if (row > 0) {
-		startPosition = this._bitVector.select$I(row - 1) + 1;
-		lastRowColumn = this._columnTails.rank$I(startPosition);
-	}
-	result = [ row, currentColumn - lastRowColumn ];
-	return result;
-};
-
-/**
- * @param {!number} rowIndex
- * @return {Object.<string, undefined|!string>}
- */
-Table.prototype.getRowContent$I = function (rowIndex) {
-	/** @type {!string} */
-	var content;
-	/** @type {Array.<undefined|!string>} */
-	var values;
-	/** @type {Object.<string, undefined|!string>} */
-	var result;
-	/** @type {!number} */
-	var i;
-	content = this.getContent$I(rowIndex);
-	values = content.split(Oktavia.eob, this._headers.length);
-	result = ({  });
-	for (i in this._headers) {
-		if (i < values.length) {
-			result[this._headers[i]] = values[i];
-		} else {
-			result[this._headers[i]] = '';
-		}
-	}
-	return result;
-};
-
-/**
- * @param {SingleResult} result
- * @param {Array.<undefined|!number>} positions
- * @param {!string} word
- * @param {!boolean} stemmed
- */
-Table.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Table.prototype.getInformation$I = function (index) {
-	return '';
-};
-
-/**
- */
-Table.prototype._build$ = function () {
-	this._bitVector.build$();
-	this._columnTails.build$();
-};
-
-/**
- * @param {Oktavia} parent
- * @param {!string} name
- * @param {!string} data
- * @param {!number} offset
- * @return {!number}
- */
-Table._load$LOktavia$SSI = function (parent, name, data, offset) {
-	/** @type {LoadedStringListResult} */
-	var strs;
-	/** @type {Table} */
-	var table;
-	/** @type {!number} */
-	var offset$0;
-	strs = new LoadedStringListResult$SI(data, offset);
-	table = new Table$LOktavia$AS(parent, strs.result);
-	offset$0 = strs.offset;
-	offset$0 = table._bitVector.load$SI(data, offset$0);
-	table._parent._metadataLabels.push(name);
-	table._parent._metadatas[name] = table;
-	offset = offset$0;
-	return table._columnTails.load$SI(data, offset$0);
-};
-
-var Table$_load$LOktavia$SSI = Table._load$LOktavia$SSI;
-
-/**
- * @return {!string}
- */
-Table.prototype._dump$ = function () {
-	return [ Binary$dump16bitNumber$I(2), Binary$dumpStringList$AS(this._headers), Metadata.prototype._dump$.call(this), this._columnTails.dump$() ].join('');
-};
-
-/**
- * @param {CompressionReport} report
- * @return {!string}
- */
-Table.prototype._dump$LCompressionReport$ = function (report) {
-	CompressionReport$add$LCompressionReport$II(report, 1, 1);
-	return [ Binary$dump16bitNumber$I(2), Binary$dumpStringList$ASLCompressionReport$(this._headers, report), Metadata.prototype._dump$LCompressionReport$.call(this, report), this._columnTails.dump$LCompressionReport$(report) ].join('');
-};
-
-/**
- * class Block extends Metadata
- * @constructor
- */
-function Block() {
-}
-
-Block.prototype = new Metadata;
-/**
- * @constructor
- * @param {Oktavia} parent
- */
-function Block$LOktavia$(parent) {
-	this._parent = parent;
-	this._bitVector = new BitVector$();
-	this._names = [  ];
-	this._start = false;
-};
-
-Block$LOktavia$.prototype = new Block;
-
-/**
- * @param {!string} blockName
- */
-Block.prototype.startBlock$S = function (blockName) {
-	this.startBlock$SI(blockName, this._parent.contentSize$());
-};
-
-/**
- * @param {!string} blockName
- * @param {!number} index
- */
-Block.prototype.startBlock$SI = function (blockName, index) {
-	if (this._start) {
-		throw new Error('Splitter `' + this._names[this._names.length - 1] + '` is not closed');
-	}
-	this._start = true;
-	this._names.push(blockName);
-	this._bitVector.set$I(index - 1);
-};
-
-/**
- */
-Block.prototype.endBlock$ = function () {
-	this.endBlock$I(this._parent.contentSize$());
-};
-
-/**
- * @param {!number} index
- */
-Block.prototype.endBlock$I = function (index) {
-	if (! this._start) {
-		throw new Error('Splitter is not started');
-	}
-	this._start = false;
-	this._bitVector.set$I(index - 1);
-};
-
-/**
- * @return {!number}
- */
-Block.prototype.size$ = function () {
-	return (this._names.length | 0);
-};
-
-/**
- * @param {!number} position
- * @return {!number}
- */
-Block.prototype.blockIndex$I = function (position) {
-	/** @type {!number} */
-	var result;
-	/** @type {BitVector} */
-	var this$0;
-	if (position < 0 || this._parent._fmindex.size$() - 1 <= position) {
-		throw new Error("Block.blockIndex() : range error " + (position + ""));
-	}
-	if (position >= this._bitVector.size$()) {
-		position = (this._bitVector.size$() - 1 | 0);
-		result = (this._bitVector.rank$I(position) + 1 | 0);
-	} else {
-		this$0 = this._bitVector;
-		result = this$0.rank$IB(position, true);
-	}
-	return result;
-};
-
-/**
- * @param {!number} position
- * @return {!boolean}
- */
-Block.prototype.inBlock$I = function (position) {
-	/** @type {!number} */
-	var blockIndex;
-	blockIndex = this.blockIndex$I(position);
-	return blockIndex % 2 !== 0;
-};
-
-/**
- * @param {!number} position
- * @return {!string}
- */
-Block.prototype.getBlockContent$I = function (position) {
-	/** @type {!number} */
-	var blockIndex;
-	/** @type {!string} */
-	var result;
-	blockIndex = this.blockIndex$I(position);
-	if (blockIndex % 2 !== 0) {
-		result = this.getContent$I(blockIndex);
-	} else {
-		result = '';
-	}
-	return result;
-};
-
-/**
- * @param {!number} position
- * @return {!string}
- */
-Block.prototype.getBlockName$I = function (position) {
-	/** @type {!number} */
-	var blockIndex;
-	/** @type {!string} */
-	var result;
-	blockIndex = this.blockIndex$I(position);
-	if (blockIndex % 2 !== 0) {
-		result = this._names[blockIndex >>> 1];
-	} else {
-		result = '';
-	}
-	return result;
-};
-
-/**
- * @param {SingleResult} result
- * @param {Array.<undefined|!number>} positions
- * @param {!string} word
- * @param {!boolean} stemmed
- */
-Block.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
-};
-
-/**
- * @param {!number} index
- * @return {!string}
- */
-Block.prototype.getInformation$I = function (index) {
-	return '';
-};
-
-/**
- * @param {Oktavia} parent
- * @param {!string} name
- * @param {!string} data
- * @param {!number} offset
- * @return {!number}
- */
-Block._load$LOktavia$SSI = function (parent, name, data, offset) {
-	/** @type {LoadedStringListResult} */
-	var strs;
-	/** @type {Block} */
-	var block;
-	/** @type {!number} */
-	var offset$0;
-	strs = new LoadedStringListResult$SI(data, offset);
-	block = new Block$LOktavia$(parent);
-	block._names = strs.result;
-	offset$0 = strs.offset;
-	offset$0 = block._bitVector.load$SI(data, offset$0);
-	block._parent._metadataLabels.push(name);
-	block._parent._metadatas[name] = block;
-	return offset$0;
-};
-
-var Block$_load$LOktavia$SSI = Block._load$LOktavia$SSI;
-
-/**
- * @return {!string}
- */
-Block.prototype._dump$ = function () {
-	return [ Binary$dump16bitNumber$I(3), Binary$dumpStringList$AS(this._names), Metadata.prototype._dump$.call(this) ].join('');
-};
-
-/**
- * @param {CompressionReport} report
- * @return {!string}
- */
-Block.prototype._dump$LCompressionReport$ = function (report) {
-	CompressionReport$add$LCompressionReport$II(report, 1, 1);
-	return [ Binary$dump16bitNumber$I(3), Binary$dumpStringList$ASLCompressionReport$(this._names, report), Metadata.prototype._dump$LCompressionReport$.call(this, report) ].join('');
-};
-
-/**
- * class FMIndex extends Object
- * @constructor
- */
-function FMIndex() {
-}
-
-/**
- * @constructor
- */
-function FMIndex$() {
-	/** @type {Array.<undefined|!number>} */
-	var _rlt$0;
-	this._ssize = 0;
-	(this._ddic = 0, this._head = 0);
-	this._substr = "";
-	this._sv = new WaveletMatrix$();
-	this._posdic = [  ];
-	this._idic = [  ];
-	_rlt$0 = this._rlt = [  ];
-	_rlt$0.length = 65536;
-};
-
-FMIndex$.prototype = new FMIndex;
-
-/**
- */
-FMIndex.prototype.clear$ = function () {
-	/** @type {WaveletMatrix} */
-	var this$0;
-	this$0 = this._sv;
-	this$0._bv.length = 0;
-	this$0._seps.length = 0;
-	this$0._size = 0;
-	this._posdic.length = 0;
-	this._idic.length = 0;
-	this._ddic = 0;
-	this._head = 0;
-	this._substr = "";
-};
-
-/**
- * @return {!number}
- */
-FMIndex.prototype.size$ = function () {
-	/** @type {WaveletMatrix} */
-	var this$0;
-	this$0 = this._sv;
-	return this$0._size;
-};
-
-/**
- * @return {!number}
- */
-FMIndex.prototype.contentSize$ = function () {
-	return this._substr.length;
-};
-
-/**
- * @param {!string} key
- * @return {!number}
- */
-FMIndex.prototype.getRows$S = function (key) {
-	/** @type {Array.<undefined|!number>} */
-	var pos;
-	pos = [  ];
-	return this.getRows$SAI(key, pos);
-};
-
-/**
- * @param {!string} key
- * @param {Array.<undefined|!number>} pos
- * @return {!number}
- */
-FMIndex.prototype.getRows$SAI = function (key, pos) {
-	/** @type {!number} */
-	var i;
-	/** @type {!number} */
-	var code;
-	/** @type {!number} */
-	var first;
-	/** @type {undefined|!number} */
-	var last;
-	/** @type {!number} */
-	var c;
-	/** @type {Array.<undefined|!number>} */
-	var _rlt$0;
-	i = key.length - 1;
-	code = key.charCodeAt(i);
-	first = (_rlt$0 = this._rlt)[code] + 1;
-	last = _rlt$0[code + 1];
-	while (first <= last) {
-		if (i === 0) {
-			pos[0] = (-- first | 0);
-			pos[1] = -- last;
-			return (last - first + 1 | 0);
-		}
-		i--;
-		c = key.charCodeAt(i);
-		first = this._rlt[c] + this._sv.rank$II(first - 1, c) + 1;
-		last = this._rlt[c] + this._sv.rank$II(last, c);
-	}
-	return 0;
-};
-
-/**
- * @param {!number} i
- * @return {!number}
- */
-FMIndex.prototype.getPosition$I = function (i) {
-	/** @type {!number} */
-	var pos;
-	/** @type {!number} */
-	var c;
-	if (i >= this.size$()) {
-		throw new Error("FMIndex.getPosition() : range error");
-	}
-	pos = 0;
-	while (i !== this._head) {
-		if (i % this._ddic === 0) {
-			pos += this._posdic[i / this._ddic] + 1;
-			break;
-		}
-		c = this._sv.get$I(i);
-		i = this._rlt[c] + this._sv.rank$II(i, c);
-		pos++;
-	}
-	return (pos % this.size$() | 0);
-};
-
-/**
- * @param {!number} pos
- * @param {!number} len
- * @return {!string}
- */
-FMIndex.prototype.getSubstring$II = function (pos, len) {
-	/** @type {!number} */
-	var pos_end;
-	/** @type {!number} */
-	var pos_tmp;
-	/** @type {!number} */
-	var i;
-	/** @type {!number} */
-	var pos_idic;
-	/** @type {!string} */
-	var substr;
-	/** @type {!number} */
-	var c;
-	/** @type {!number} */
-	var _ddic$0;
-	if (pos >= this.size$()) {
-		throw new Error("FMIndex.getSubstring() : range error");
-	}
-	pos_end = Math.min(pos + len, this.size$());
-	pos_tmp = this.size$() - 1;
-	i = this._head;
-	pos_idic = Math.floor((pos_end + (_ddic$0 = this._ddic) - 2) / _ddic$0);
-	if (pos_idic < this._idic.length) {
-		pos_tmp = pos_idic * this._ddic;
-		i = this._idic[pos_idic];
-	}
-	substr = "";
-	while (pos_tmp >= pos) {
-		c = this._sv.get$I(i);
-		i = this._rlt[c] + this._sv.rank$II(i, c);
-		if (pos_tmp < pos_end) {
-			substr = String.fromCharCode(c) + substr;
-		}
-		if (pos_tmp === 0) {
-			break;
-		}
-		pos_tmp--;
-	}
-	return substr;
-};
-
-/**
- */
-FMIndex.prototype.build$ = function () {
-	this.build$SIIB(String.fromCharCode(0), 65535, 20, false);
-};
-
-/**
- * @param {!string} end_marker
- * @param {!number} ddic
- * @param {!boolean} verbose
- */
-FMIndex.prototype.build$SIB = function (end_marker, ddic, verbose) {
-	this.build$SIIB(end_marker, 65535, ddic, verbose);
-};
-
-/**
- * @param {!string} end_marker
- * @param {!number} maxChar
- * @param {!number} ddic
- * @param {!boolean} verbose
- */
-FMIndex.prototype.build$SIIB = function (end_marker, maxChar, ddic, verbose) {
-	/** @type {BurrowsWheelerTransform} */
-	var b;
-	/** @type {!string} */
-	var s;
-	/** @type {!number} */
-	var c;
-	/** @type {!string} */
-	var str$0;
-	/** @type {WaveletMatrix} */
-	var this$0;
-	/** @type {!string} */
-	var _str$0;
-	/** @type {Array.<undefined|!number>} */
-	var _suffixarray$0;
-	if (verbose) {
-		console.time("building burrows-wheeler transform");
-	}
-	this._substr += end_marker;
-	b = ({_str: "", _size: 0, _head: 0, _suffixarray: [  ]});
-	str$0 = this._substr;
-	_str$0 = b._str = str$0;
-	b._size = _str$0.length;
-	_suffixarray$0 = b._suffixarray = SAIS$make$S(str$0);
-	b._head = (_suffixarray$0.indexOf(0) | 0);
-	s = BurrowsWheelerTransform$get$LBurrowsWheelerTransform$(b);
-	this._ssize = s.length;
-	this._head = b._head;
-	b._str = "";
-	b._size = 0;
-	b._head = 0;
-	b._suffixarray.length = 0;
-	this._substr = "";
-	if (verbose) {
-		console.timeEnd("building burrows-wheeler transform");
-	}
-	if (verbose) {
-		console.time("building wavelet matrix");
-	}
-	this$0 = this._sv;
-	this$0._bitsize = (Math.ceil(Math.log(maxChar) / 0.6931471805599453) | 0);
-	if (verbose) {
-		console.log("  maxCharCode: ", maxChar);
-		console.log("  bitSize: ", this._sv.bitsize$());
-	}
-	this._sv.build$S(s);
-	if (verbose) {
-		console.timeEnd("building wavelet matrix");
-	}
-	if (verbose) {
-		console.time("caching rank less than");
-	}
-	for (c = 0; c < maxChar; c++) {
-		this._rlt[c] = this._sv.rank_less_than$II(this._sv.size$(), c);
-	}
-	if (verbose) {
-		console.timeEnd("caching rank less than");
-	}
-	this._ddic = ddic;
-	if (verbose) {
-		console.time("building dictionaries");
-	}
-	this._buildDictionaries$();
-	if (verbose) {
-		console.timeEnd("building dictionaries");
-		console.log('');
-	}
-};
-
-/**
- */
-FMIndex.prototype._buildDictionaries$ = function () {
-	/** @type {!number} */
-	var i;
-	/** @type {!number} */
-	var pos;
-	/** @type {!number} */
-	var c;
-	for (i = 0; i < this._ssize / this._ddic + 1; i++) {
-		this._posdic.push(0);
-		this._idic.push(0);
-	}
-	i = this._head;
-	pos = this.size$() - 1;
-	do {
-		if (i % this._ddic === 0) {
-			this._posdic[Math.floor(i / this._ddic)] = (pos | 0);
-		}
-		if (pos % this._ddic === 0) {
-			this._idic[Math.floor(pos / this._ddic)] = (i | 0);
-		}
-		c = this._sv.get$I(i);
-		i = this._rlt[c] + this._sv.rank$II(i, c);
-		pos--;
-	} while (i !== this._head);
-};
-
-/**
- * @param {!string} doc
- */
-FMIndex.prototype.push$S = function (doc) {
-	if (doc.length <= 0) {
-		throw new Error("FMIndex::push(): empty string");
-	}
-	this._substr += doc;
-};
-
-/**
- * @param {!string} keyword
- * @return {Array.<undefined|!number>}
- */
-FMIndex.prototype.search$S = function (keyword) {
-	/** @type {Array.<undefined|!number>} */
-	var result;
-	/** @type {Array.<undefined|!number>} */
-	var position;
-	/** @type {!number} */
-	var rows;
-	/** @type {undefined|!number} */
-	var first;
-	/** @type {undefined|!number} */
-	var last;
-	/** @type {undefined|!number} */
-	var i;
-	result = [  ];
-	position = [  ];
-	rows = this.getRows$SAI(keyword, position);
-	if (rows > 0) {
-		first = position[0];
-		last = position[1];
-		for (i = first; i <= last; i++) {
-			result.push(this.getPosition$I(i));
-		}
-	}
-	return result;
-};
-
-/**
- * @return {!string}
- */
-FMIndex.prototype.dump$ = function () {
-	return this.dump$B(false);
-};
-
-/**
- * @param {!boolean} verbose
- * @return {!string}
- */
-FMIndex.prototype.dump$B = function (verbose) {
-	/** @type {Array.<undefined|!string>} */
-	var contents;
-	/** @type {CompressionReport} */
-	var report;
-	/** @type {!number} */
-	var i;
-	contents = [  ];
-	report = ({source: 0, result: 0});
-	contents.push(Binary$dump32bitNumber$N(this._ddic));
-	contents.push(Binary$dump32bitNumber$N(this._ssize));
-	contents.push(Binary$dump32bitNumber$N(this._head));
-	CompressionReport$add$LCompressionReport$II(report, 6, 6);
-	contents.push(this._sv.dump$LCompressionReport$(report));
-	if (verbose) {
-		console.log("Serializing FM-index");
-		console.log('    Wavelet Matrix: ' + (contents[3].length * 2 + "") + ' bytes (' + (Math.round(report.result * 100.0 / report.source) + "") + '%)');
-	}
-	contents.push(Binary$dump32bitNumber$N(this._posdic.length));
-	for (i in this._posdic) {
-		contents.push(Binary$dump32bitNumber$N(this._posdic[i]));
-	}
-	for (i in this._idic) {
-		contents.push(Binary$dump32bitNumber$N(this._idic[i]));
-	}
-	if (verbose) {
-		console.log('    Dictionary Cache: ' + (this._idic.length * 16 + "") + ' bytes');
-	}
-	return contents.join("");
-};
-
-/**
- * @param {!string} data
- * @return {!number}
- */
-FMIndex.prototype.load$S = function (data) {
-	return this.load$SI(data, 0);
-};
-
-/**
- * @param {!string} data
- * @param {!number} offset
- * @return {!number}
- */
-FMIndex.prototype.load$SI = function (data, offset) {
-	/** @type {!number} */
-	var maxChar;
-	/** @type {!number} */
-	var c;
-	/** @type {!number} */
-	var size;
-	/** @type {!number} */
-	var i;
-	/** @type {!number} */
-	var result$0;
-	/** @type {!number} */
-	var result$1;
-	result$0 = data.charCodeAt(offset) * 65536 + data.charCodeAt(offset + 1);
-	this._ddic = (result$0 | 0);
-	this._ssize = (Binary$load32bitNumber$SI(data, offset + 2) | 0);
-	this._head = (Binary$load32bitNumber$SI(data, offset + 4) | 0);
-	offset = this._sv.load$SI(data, offset + 6);
-	maxChar = Math.pow(2, this._sv.bitsize$());
-	for (c = 0; c < maxChar; c++) {
-		this._rlt[c] = this._sv.rank_less_than$II(this._sv.size$(), c);
-	}
-	result$1 = data.charCodeAt(offset) * 65536 + data.charCodeAt(offset + 1);
-	size = result$1;
-	offset += 2;
-	for (i = 0; i < size; (i++, offset += 2)) {
-		this._posdic.push(Binary$load32bitNumber$SI(data, offset));
-	}
-	for (i = 0; i < size; (i++, offset += 2)) {
-		this._idic.push(Binary$load32bitNumber$SI(data, offset));
-	}
-	return offset;
 };
 
 /**
@@ -4019,6 +2820,1303 @@ CompressionReport.rate$LCompressionReport$ = function ($this) {
 };
 
 var CompressionReport$rate$LCompressionReport$ = CompressionReport.rate$LCompressionReport$;
+
+/**
+ * class Stemmer
+ * @constructor
+ */
+function Stemmer() {
+}
+
+Stemmer.prototype.$__jsx_implements_Stemmer = true;
+
+/**
+ * @constructor
+ */
+function Stemmer$() {
+};
+
+Stemmer$.prototype = new Stemmer;
+
+/**
+ * class js extends Object
+ * @constructor
+ */
+function js() {
+}
+
+/**
+ * @constructor
+ */
+function js$() {
+};
+
+js$.prototype = new js;
+
+/**
+ * class Metadata extends Object
+ * @constructor
+ */
+function Metadata() {
+}
+
+/**
+ * @constructor
+ * @param {Oktavia} parent
+ */
+function Metadata$LOktavia$(parent) {
+	this._parent = parent;
+	this._bitVector = new BitVector$();
+};
+
+Metadata$LOktavia$.prototype = new Metadata;
+
+/**
+ * @return {!number}
+ */
+Metadata.prototype._size$ = function () {
+	/** @type {BitVector} */
+	var this$0;
+	/** @type {!number} */
+	var i$0;
+	/** @type {BitVector} */
+	var _bitVector$0;
+	this$0 = _bitVector$0 = this._bitVector;
+	i$0 = _bitVector$0._size;
+	return this$0.rank$IB(i$0, true);
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Metadata.prototype.getContent$I = function (index) {
+	/** @type {!number} */
+	var startPosition;
+	/** @type {!number} */
+	var length;
+	if (index < 0 || this._size$() <= index) {
+		throw new Error("Section.getContent() : range error " + (index + ""));
+	}
+	startPosition = 0;
+	if (index > 0) {
+		startPosition = this._bitVector.select$I(index - 1) + 1;
+	}
+	length = this._bitVector.select$I(index) - startPosition + 1;
+	return this._parent._getSubstring$II(startPosition, length);
+};
+
+/**
+ * @param {!number} index
+ * @return {!number}
+ */
+Metadata.prototype.getStartPosition$I = function (index) {
+	/** @type {!number} */
+	var startPosition;
+	if (index < 0 || this._size$() <= index) {
+		throw new Error("Section.getContent() : range error " + (index + ""));
+	}
+	startPosition = 0;
+	if (index > 0) {
+		startPosition = this._bitVector.select$I(index - 1) + 1;
+	}
+	return (startPosition | 0);
+};
+
+/**
+ * @param {SingleResult} result
+ * @param {Array.<undefined|!number>} positions
+ * @param {!string} word
+ * @param {!boolean} stemmed
+ */
+Metadata.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Metadata.prototype.getInformation$I = function (index) {
+	return '';
+};
+
+/**
+ */
+Metadata.prototype._build$ = function () {
+	this._bitVector.build$();
+};
+
+/**
+ * @param {!string} name
+ * @param {!string} data
+ * @param {!number} offset
+ * @return {!number}
+ */
+Metadata.prototype._load$SSI = function (name, data, offset) {
+	offset = this._bitVector.load$SI(data, offset);
+	this._parent._metadataLabels.push(name);
+	this._parent._metadatas[name] = this;
+	return offset;
+};
+
+/**
+ * @return {!string}
+ */
+Metadata.prototype._dump$ = function () {
+	/** @type {BitVector} */
+	var this$0;
+	/** @type {Array.<undefined|!string>} */
+	var contents$0;
+	this$0 = this._bitVector;
+	contents$0 = [  ];
+	contents$0.push(Binary$dump32bitNumber$N(this$0._size));
+	contents$0.push(Binary$dump32bitNumberList$AN(this$0._v));
+	return contents$0.join('');
+};
+
+/**
+ * @param {CompressionReport} report
+ * @return {!string}
+ */
+Metadata.prototype._dump$LCompressionReport$ = function (report) {
+	/** @type {BitVector} */
+	var this$0;
+	/** @type {Array.<undefined|!string>} */
+	var contents$0;
+	this$0 = this._bitVector;
+	contents$0 = [  ];
+	contents$0.push(Binary$dump32bitNumber$N(this$0._size));
+	CompressionReport$add$LCompressionReport$II(report, 2, 2);
+	contents$0.push(Binary$dump32bitNumberList$ANLCompressionReport$(this$0._v, report));
+	return contents$0.join('');
+};
+
+/**
+ * class Section extends Metadata
+ * @constructor
+ */
+function Section() {
+}
+
+Section.prototype = new Metadata;
+/**
+ * @constructor
+ * @param {Oktavia} parent
+ */
+function Section$LOktavia$(parent) {
+	this._parent = parent;
+	this._bitVector = new BitVector$();
+	this._names = [  ];
+};
+
+Section$LOktavia$.prototype = new Section;
+
+/**
+ * @param {!string} name
+ */
+Section.prototype.setTail$S = function (name) {
+	/** @type {!number} */
+	var index$0;
+	/** @type {Oktavia} */
+	var this$0;
+	/** @type {FMIndex} */
+	var this$0$0;
+	this$0 = this._parent;
+	this$0$0 = this$0._fmindex;
+	index$0 = this$0$0._substr.length;
+	this._names.push(name);
+	this._bitVector.set$I(index$0 - 1);
+};
+
+/**
+ * @param {!string} name
+ * @param {!number} index
+ */
+Section.prototype.setTail$SI = function (name, index) {
+	this._names.push(name);
+	this._bitVector.set$I(index - 1);
+};
+
+/**
+ * @return {!number}
+ */
+Section.prototype.size$ = function () {
+	return (this._names.length | 0);
+};
+
+/**
+ * @param {!number} position
+ * @return {!number}
+ */
+Section.prototype.getSectionIndex$I = function (position) {
+	/** @type {BitVector} */
+	var this$0;
+	if (position < 0 || this._bitVector.size$() <= position) {
+		throw new Error("Section.getSectionIndex() : range error " + (position + ""));
+	}
+	this$0 = this._bitVector;
+	return this$0.rank$IB(position, true);
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Section.prototype.getName$I = function (index) {
+	if (index < 0 || this._names.length <= index) {
+		throw new Error("Section.getName() : range error");
+	}
+	return this._names[index];
+};
+
+/**
+ * @param {SingleResult} result
+ * @param {Array.<undefined|!number>} positions
+ * @param {!string} word
+ * @param {!boolean} stemmed
+ */
+Section.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+	/** @type {!number} */
+	var i;
+	/** @type {undefined|!number} */
+	var position;
+	/** @type {!number} */
+	var index;
+	/** @type {SearchUnit} */
+	var unit;
+	for (i = 0; i < positions.length; i++) {
+		position = positions[i];
+		index = this.getSectionIndex$I(position);
+		unit = SingleResult$getSearchUnit$LSingleResult$I(result, index);
+		if (unit.startPosition < 0) {
+			unit.startPosition = this.getStartPosition$I(index);
+		}
+		SearchUnit$addPosition$LSearchUnit$SIB(unit, word, position - unit.startPosition, stemmed);
+	}
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Section.prototype.getInformation$I = function (index) {
+	return this.getName$I(index);
+};
+
+/**
+ * @param {Oktavia} parent
+ * @param {!string} name
+ * @param {!string} data
+ * @param {!number} offset
+ * @return {!number}
+ */
+Section._load$LOktavia$SSI = function (parent, name, data, offset) {
+	/** @type {LoadedStringListResult} */
+	var strs;
+	/** @type {Section} */
+	var section;
+	/** @type {!number} */
+	var offset$0;
+	strs = new LoadedStringListResult$SI(data, offset);
+	section = new Section$LOktavia$(parent);
+	section._names = strs.result;
+	offset$0 = strs.offset;
+	offset$0 = section._bitVector.load$SI(data, offset$0);
+	section._parent._metadataLabels.push(name);
+	section._parent._metadatas[name] = section;
+	return offset$0;
+};
+
+var Section$_load$LOktavia$SSI = Section._load$LOktavia$SSI;
+
+/**
+ * @return {!string}
+ */
+Section.prototype._dump$ = function () {
+	return [ Binary$dump16bitNumber$I(0), Binary$dumpStringList$AS(this._names), Metadata.prototype._dump$.call(this) ].join('');
+};
+
+/**
+ * @param {CompressionReport} report
+ * @return {!string}
+ */
+Section.prototype._dump$LCompressionReport$ = function (report) {
+	CompressionReport$add$LCompressionReport$II(report, 1, 1);
+	return [ Binary$dump16bitNumber$I(0), Binary$dumpStringList$ASLCompressionReport$(this._names, report), Metadata.prototype._dump$LCompressionReport$.call(this, report) ].join('');
+};
+
+/**
+ * class Splitter extends Metadata
+ * @constructor
+ */
+function Splitter() {
+}
+
+Splitter.prototype = new Metadata;
+/**
+ * @constructor
+ * @param {Oktavia} parent
+ */
+function Splitter$LOktavia$(parent) {
+	this._parent = parent;
+	this._bitVector = new BitVector$();
+	this.name = null;
+};
+
+Splitter$LOktavia$.prototype = new Splitter;
+
+/**
+ * @constructor
+ * @param {Oktavia} parent
+ * @param {!string} name
+ */
+function Splitter$LOktavia$S(parent, name) {
+	this._parent = parent;
+	this._bitVector = new BitVector$();
+	this.name = name;
+};
+
+Splitter$LOktavia$S.prototype = new Splitter;
+
+/**
+ * @return {!number}
+ */
+Splitter.prototype.size$ = function () {
+	/** @type {BitVector} */
+	var this$0$0;
+	/** @type {!number} */
+	var i$0$0;
+	/** @type {BitVector} */
+	var _bitVector$0;
+	this$0$0 = _bitVector$0 = this._bitVector;
+	i$0$0 = _bitVector$0._size;
+	return this$0$0.rank$IB(i$0$0, true);
+};
+
+/**
+ */
+Splitter.prototype.split$ = function () {
+	/** @type {!number} */
+	var index$0;
+	/** @type {Oktavia} */
+	var this$0;
+	/** @type {FMIndex} */
+	var this$0$0;
+	this$0 = this._parent;
+	this$0$0 = this$0._fmindex;
+	index$0 = this$0$0._substr.length;
+	this._bitVector.set$I(index$0 - 1);
+};
+
+/**
+ * @param {!number} index
+ */
+Splitter.prototype.split$I = function (index) {
+	this._bitVector.set$I(index - 1);
+};
+
+/**
+ * @param {!number} position
+ * @return {!number}
+ */
+Splitter.prototype.getIndex$I = function (position) {
+	/** @type {BitVector} */
+	var this$0;
+	if (position < 0 || this._bitVector.size$() <= position) {
+		throw new Error("Section.getSectionIndex() : range error");
+	}
+	this$0 = this._bitVector;
+	return this$0.rank$IB(position, true);
+};
+
+/**
+ * @param {SingleResult} result
+ * @param {Array.<undefined|!number>} positions
+ * @param {!string} word
+ * @param {!boolean} stemmed
+ */
+Splitter.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+	/** @type {!number} */
+	var i;
+	/** @type {undefined|!number} */
+	var position;
+	/** @type {!number} */
+	var index;
+	/** @type {SearchUnit} */
+	var unit;
+	for (i = 0; i < positions.length; i++) {
+		position = positions[i];
+		index = this.getIndex$I(position);
+		unit = SingleResult$getSearchUnit$LSingleResult$I(result, index);
+		if (unit.startPosition < 0) {
+			unit.startPosition = this.getStartPosition$I(index);
+		}
+		SearchUnit$addPosition$LSearchUnit$SIB(unit, word, position - unit.startPosition, stemmed);
+	}
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Splitter.prototype.getInformation$I = function (index) {
+	return (this.name != null ? this.name + (index + 1 + "") : '');
+};
+
+/**
+ * @param {Oktavia} parent
+ * @param {!string} name
+ * @param {!string} data
+ * @param {!number} offset
+ * @return {!number}
+ */
+Splitter._load$LOktavia$SSI = function (parent, name, data, offset) {
+	/** @type {Splitter} */
+	var section;
+	section = new Splitter$LOktavia$(parent);
+	offset = section._bitVector.load$SI(data, offset);
+	section._parent._metadataLabels.push(name);
+	section._parent._metadatas[name] = section;
+	return offset;
+};
+
+var Splitter$_load$LOktavia$SSI = Splitter._load$LOktavia$SSI;
+
+/**
+ * @return {!string}
+ */
+Splitter.prototype._dump$ = function () {
+	return [ Binary$dump16bitNumber$I(1), Metadata.prototype._dump$.call(this) ].join('');
+};
+
+/**
+ * @param {CompressionReport} report
+ * @return {!string}
+ */
+Splitter.prototype._dump$LCompressionReport$ = function (report) {
+	CompressionReport$add$LCompressionReport$II(report, 1, 1);
+	return [ Binary$dump16bitNumber$I(1), Metadata.prototype._dump$LCompressionReport$.call(this, report) ].join('');
+};
+
+/**
+ * class Table extends Metadata
+ * @constructor
+ */
+function Table() {
+}
+
+Table.prototype = new Metadata;
+/**
+ * @constructor
+ * @param {Oktavia} parent
+ * @param {Array.<undefined|!string>} headers
+ */
+function Table$LOktavia$AS(parent, headers) {
+	this._parent = parent;
+	this._bitVector = new BitVector$();
+	this._headers = headers;
+	this._columnTails = new BitVector$();
+};
+
+Table$LOktavia$AS.prototype = new Table;
+
+/**
+ * @return {!number}
+ */
+Table.prototype.rowSize$ = function () {
+	/** @type {BitVector} */
+	var this$0$0;
+	/** @type {!number} */
+	var i$0$0;
+	/** @type {BitVector} */
+	var _bitVector$0;
+	this$0$0 = _bitVector$0 = this._bitVector;
+	i$0$0 = _bitVector$0._size;
+	return this$0$0.rank$IB(i$0$0, true);
+};
+
+/**
+ * @return {!number}
+ */
+Table.prototype.columnSize$ = function () {
+	return (this._headers.length | 0);
+};
+
+/**
+ */
+Table.prototype.setColumnTail$ = function () {
+	/** @type {!number} */
+	var index;
+	/** @type {Oktavia} */
+	var this$0;
+	/** @type {FMIndex} */
+	var this$0$0;
+	/** @type {Oktavia} */
+	var _parent$0;
+	this$0 = _parent$0 = this._parent;
+	this$0$0 = this$0._fmindex;
+	index = this$0$0._substr.length;
+	_parent$0._fmindex.push$S(Oktavia.eob);
+	this._columnTails.set$I(index - 1);
+};
+
+/**
+ */
+Table.prototype.setRowTail$ = function () {
+	/** @type {!number} */
+	var index;
+	/** @type {Oktavia} */
+	var this$0;
+	/** @type {FMIndex} */
+	var this$0$0;
+	this$0 = this._parent;
+	this$0$0 = this$0._fmindex;
+	index = this$0$0._substr.length;
+	this._bitVector.set$I(index - 1);
+};
+
+/**
+ * @param {!number} position
+ * @return {Array.<undefined|!number>}
+ */
+Table.prototype.getCell$I = function (position) {
+	/** @type {!number} */
+	var row;
+	/** @type {!number} */
+	var currentColumn;
+	/** @type {!number} */
+	var lastRowColumn;
+	/** @type {!number} */
+	var startPosition;
+	/** @type {Array.<undefined|!number>} */
+	var result;
+	/** @type {BitVector} */
+	var this$0;
+	/** @type {BitVector} */
+	var this$1;
+	if (position < 0 || this._bitVector.size$() <= position) {
+		throw new Error("Section.getSectionIndex() : range error " + (position + ""));
+	}
+	this$0 = this._bitVector;
+	row = this$0.rank$IB(position, true);
+	this$1 = this._columnTails;
+	currentColumn = this$1.rank$IB(position, true);
+	lastRowColumn = 0;
+	if (row > 0) {
+		startPosition = this._bitVector.select$I(row - 1) + 1;
+		lastRowColumn = this._columnTails.rank$I(startPosition);
+	}
+	result = [ row, currentColumn - lastRowColumn ];
+	return result;
+};
+
+/**
+ * @param {!number} rowIndex
+ * @return {Object.<string, undefined|!string>}
+ */
+Table.prototype.getRowContent$I = function (rowIndex) {
+	/** @type {!string} */
+	var content;
+	/** @type {Array.<undefined|!string>} */
+	var values;
+	/** @type {Object.<string, undefined|!string>} */
+	var result;
+	/** @type {!number} */
+	var i;
+	content = this.getContent$I(rowIndex);
+	values = content.split(Oktavia.eob, this._headers.length);
+	result = ({  });
+	for (i in this._headers) {
+		if (i < values.length) {
+			result[this._headers[i]] = values[i];
+		} else {
+			result[this._headers[i]] = '';
+		}
+	}
+	return result;
+};
+
+/**
+ * @param {SingleResult} result
+ * @param {Array.<undefined|!number>} positions
+ * @param {!string} word
+ * @param {!boolean} stemmed
+ */
+Table.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Table.prototype.getInformation$I = function (index) {
+	return '';
+};
+
+/**
+ */
+Table.prototype._build$ = function () {
+	this._bitVector.build$();
+	this._columnTails.build$();
+};
+
+/**
+ * @param {Oktavia} parent
+ * @param {!string} name
+ * @param {!string} data
+ * @param {!number} offset
+ * @return {!number}
+ */
+Table._load$LOktavia$SSI = function (parent, name, data, offset) {
+	/** @type {LoadedStringListResult} */
+	var strs;
+	/** @type {Table} */
+	var table;
+	/** @type {!number} */
+	var offset$0;
+	strs = new LoadedStringListResult$SI(data, offset);
+	table = new Table$LOktavia$AS(parent, strs.result);
+	offset$0 = strs.offset;
+	offset$0 = table._bitVector.load$SI(data, offset$0);
+	table._parent._metadataLabels.push(name);
+	table._parent._metadatas[name] = table;
+	offset = offset$0;
+	return table._columnTails.load$SI(data, offset$0);
+};
+
+var Table$_load$LOktavia$SSI = Table._load$LOktavia$SSI;
+
+/**
+ * @return {!string}
+ */
+Table.prototype._dump$ = function () {
+	return [ Binary$dump16bitNumber$I(2), Binary$dumpStringList$AS(this._headers), Metadata.prototype._dump$.call(this), this._columnTails.dump$() ].join('');
+};
+
+/**
+ * @param {CompressionReport} report
+ * @return {!string}
+ */
+Table.prototype._dump$LCompressionReport$ = function (report) {
+	CompressionReport$add$LCompressionReport$II(report, 1, 1);
+	return [ Binary$dump16bitNumber$I(2), Binary$dumpStringList$ASLCompressionReport$(this._headers, report), Metadata.prototype._dump$LCompressionReport$.call(this, report), this._columnTails.dump$LCompressionReport$(report) ].join('');
+};
+
+/**
+ * class Block extends Metadata
+ * @constructor
+ */
+function Block() {
+}
+
+Block.prototype = new Metadata;
+/**
+ * @constructor
+ * @param {Oktavia} parent
+ */
+function Block$LOktavia$(parent) {
+	this._parent = parent;
+	this._bitVector = new BitVector$();
+	this._names = [  ];
+	this._start = false;
+};
+
+Block$LOktavia$.prototype = new Block;
+
+/**
+ * @param {!string} blockName
+ */
+Block.prototype.startBlock$S = function (blockName) {
+	this.startBlock$SI(blockName, this._parent.contentSize$());
+};
+
+/**
+ * @param {!string} blockName
+ * @param {!number} index
+ */
+Block.prototype.startBlock$SI = function (blockName, index) {
+	if (this._start) {
+		throw new Error('Splitter `' + this._names[this._names.length - 1] + '` is not closed');
+	}
+	this._start = true;
+	this._names.push(blockName);
+	this._bitVector.set$I(index - 1);
+};
+
+/**
+ */
+Block.prototype.endBlock$ = function () {
+	this.endBlock$I(this._parent.contentSize$());
+};
+
+/**
+ * @param {!number} index
+ */
+Block.prototype.endBlock$I = function (index) {
+	if (! this._start) {
+		throw new Error('Splitter is not started');
+	}
+	this._start = false;
+	this._bitVector.set$I(index - 1);
+};
+
+/**
+ * @return {!number}
+ */
+Block.prototype.size$ = function () {
+	return (this._names.length | 0);
+};
+
+/**
+ * @param {!number} position
+ * @return {!number}
+ */
+Block.prototype.blockIndex$I = function (position) {
+	/** @type {!number} */
+	var result;
+	/** @type {BitVector} */
+	var this$0;
+	if (position < 0 || this._parent._fmindex.size$() - 1 <= position) {
+		throw new Error("Block.blockIndex() : range error " + (position + ""));
+	}
+	if (position >= this._bitVector.size$()) {
+		position = (this._bitVector.size$() - 1 | 0);
+		result = (this._bitVector.rank$I(position) + 1 | 0);
+	} else {
+		this$0 = this._bitVector;
+		result = this$0.rank$IB(position, true);
+	}
+	return result;
+};
+
+/**
+ * @param {!number} position
+ * @return {!boolean}
+ */
+Block.prototype.inBlock$I = function (position) {
+	/** @type {!number} */
+	var blockIndex;
+	blockIndex = this.blockIndex$I(position);
+	return blockIndex % 2 !== 0;
+};
+
+/**
+ * @param {!number} position
+ * @return {!string}
+ */
+Block.prototype.getBlockContent$I = function (position) {
+	/** @type {!number} */
+	var blockIndex;
+	/** @type {!string} */
+	var result;
+	blockIndex = this.blockIndex$I(position);
+	if (blockIndex % 2 !== 0) {
+		result = this.getContent$I(blockIndex);
+	} else {
+		result = '';
+	}
+	return result;
+};
+
+/**
+ * @param {!number} position
+ * @return {!string}
+ */
+Block.prototype.getBlockName$I = function (position) {
+	/** @type {!number} */
+	var blockIndex;
+	/** @type {!string} */
+	var result;
+	blockIndex = this.blockIndex$I(position);
+	if (blockIndex % 2 !== 0) {
+		result = this._names[blockIndex >>> 1];
+	} else {
+		result = '';
+	}
+	return result;
+};
+
+/**
+ * @param {SingleResult} result
+ * @param {Array.<undefined|!number>} positions
+ * @param {!string} word
+ * @param {!boolean} stemmed
+ */
+Block.prototype.grouping$LSingleResult$AISB = function (result, positions, word, stemmed) {
+};
+
+/**
+ * @param {!number} index
+ * @return {!string}
+ */
+Block.prototype.getInformation$I = function (index) {
+	return '';
+};
+
+/**
+ * @param {Oktavia} parent
+ * @param {!string} name
+ * @param {!string} data
+ * @param {!number} offset
+ * @return {!number}
+ */
+Block._load$LOktavia$SSI = function (parent, name, data, offset) {
+	/** @type {LoadedStringListResult} */
+	var strs;
+	/** @type {Block} */
+	var block;
+	/** @type {!number} */
+	var offset$0;
+	strs = new LoadedStringListResult$SI(data, offset);
+	block = new Block$LOktavia$(parent);
+	block._names = strs.result;
+	offset$0 = strs.offset;
+	offset$0 = block._bitVector.load$SI(data, offset$0);
+	block._parent._metadataLabels.push(name);
+	block._parent._metadatas[name] = block;
+	return offset$0;
+};
+
+var Block$_load$LOktavia$SSI = Block._load$LOktavia$SSI;
+
+/**
+ * @return {!string}
+ */
+Block.prototype._dump$ = function () {
+	return [ Binary$dump16bitNumber$I(3), Binary$dumpStringList$AS(this._names), Metadata.prototype._dump$.call(this) ].join('');
+};
+
+/**
+ * @param {CompressionReport} report
+ * @return {!string}
+ */
+Block.prototype._dump$LCompressionReport$ = function (report) {
+	CompressionReport$add$LCompressionReport$II(report, 1, 1);
+	return [ Binary$dump16bitNumber$I(3), Binary$dumpStringList$ASLCompressionReport$(this._names, report), Metadata.prototype._dump$LCompressionReport$.call(this, report) ].join('');
+};
+
+/**
+ * class FMIndex extends Object
+ * @constructor
+ */
+function FMIndex() {
+}
+
+/**
+ * @constructor
+ */
+function FMIndex$() {
+	/** @type {Array.<undefined|!number>} */
+	var _rlt$0;
+	this._ssize = 0;
+	(this._ddic = 0, this._head = 0);
+	this._substr = "";
+	this._sv = new WaveletMatrix$();
+	this._posdic = [  ];
+	this._idic = [  ];
+	_rlt$0 = this._rlt = [  ];
+	_rlt$0.length = 65536;
+};
+
+FMIndex$.prototype = new FMIndex;
+
+/**
+ */
+FMIndex.prototype.clear$ = function () {
+	/** @type {WaveletMatrix} */
+	var this$0;
+	this$0 = this._sv;
+	this$0._bv.length = 0;
+	this$0._seps.length = 0;
+	this$0._size = 0;
+	this._posdic.length = 0;
+	this._idic.length = 0;
+	this._ddic = 0;
+	this._head = 0;
+	this._substr = "";
+};
+
+/**
+ * @return {!number}
+ */
+FMIndex.prototype.size$ = function () {
+	/** @type {WaveletMatrix} */
+	var this$0;
+	this$0 = this._sv;
+	return this$0._size;
+};
+
+/**
+ * @return {!number}
+ */
+FMIndex.prototype.contentSize$ = function () {
+	return this._substr.length;
+};
+
+/**
+ * @param {!string} key
+ * @return {!number}
+ */
+FMIndex.prototype.getRows$S = function (key) {
+	/** @type {Array.<undefined|!number>} */
+	var pos;
+	pos = [  ];
+	return this.getRows$SAI(key, pos);
+};
+
+/**
+ * @param {!string} key
+ * @param {Array.<undefined|!number>} pos
+ * @return {!number}
+ */
+FMIndex.prototype.getRows$SAI = function (key, pos) {
+	/** @type {!number} */
+	var i;
+	/** @type {!number} */
+	var code;
+	/** @type {!number} */
+	var first;
+	/** @type {undefined|!number} */
+	var last;
+	/** @type {!number} */
+	var c;
+	/** @type {Array.<undefined|!number>} */
+	var _rlt$0;
+	i = key.length - 1;
+	code = key.charCodeAt(i);
+	first = (_rlt$0 = this._rlt)[code] + 1;
+	last = _rlt$0[code + 1];
+	while (first <= last) {
+		if (i === 0) {
+			pos[0] = (-- first | 0);
+			pos[1] = -- last;
+			return (last - first + 1 | 0);
+		}
+		i--;
+		c = key.charCodeAt(i);
+		first = this._rlt[c] + this._sv.rank$II(first - 1, c) + 1;
+		last = this._rlt[c] + this._sv.rank$II(last, c);
+	}
+	return 0;
+};
+
+/**
+ * @param {!number} i
+ * @return {!number}
+ */
+FMIndex.prototype.getPosition$I = function (i) {
+	/** @type {!number} */
+	var pos;
+	/** @type {!number} */
+	var c;
+	if (i >= this.size$()) {
+		throw new Error("FMIndex.getPosition() : range error");
+	}
+	pos = 0;
+	while (i !== this._head) {
+		if (i % this._ddic === 0) {
+			pos += this._posdic[i / this._ddic] + 1;
+			break;
+		}
+		c = this._sv.get$I(i);
+		i = this._rlt[c] + this._sv.rank$II(i, c);
+		pos++;
+	}
+	return (pos % this.size$() | 0);
+};
+
+/**
+ * @param {!number} pos
+ * @param {!number} len
+ * @return {!string}
+ */
+FMIndex.prototype.getSubstring$II = function (pos, len) {
+	/** @type {!number} */
+	var pos_end;
+	/** @type {!number} */
+	var pos_tmp;
+	/** @type {!number} */
+	var i;
+	/** @type {!number} */
+	var pos_idic;
+	/** @type {!string} */
+	var substr;
+	/** @type {!number} */
+	var c;
+	/** @type {!number} */
+	var _ddic$0;
+	if (pos >= this.size$()) {
+		throw new Error("FMIndex.getSubstring() : range error");
+	}
+	pos_end = Math.min(pos + len, this.size$());
+	pos_tmp = this.size$() - 1;
+	i = this._head;
+	pos_idic = Math.floor((pos_end + (_ddic$0 = this._ddic) - 2) / _ddic$0);
+	if (pos_idic < this._idic.length) {
+		pos_tmp = pos_idic * this._ddic;
+		i = this._idic[pos_idic];
+	}
+	substr = "";
+	while (pos_tmp >= pos) {
+		c = this._sv.get$I(i);
+		i = this._rlt[c] + this._sv.rank$II(i, c);
+		if (pos_tmp < pos_end) {
+			substr = String.fromCharCode(c) + substr;
+		}
+		if (pos_tmp === 0) {
+			break;
+		}
+		pos_tmp--;
+	}
+	return substr;
+};
+
+/**
+ */
+FMIndex.prototype.build$ = function () {
+	this.build$SIIB(String.fromCharCode(0), 65535, 20, false);
+};
+
+/**
+ * @param {!string} end_marker
+ * @param {!number} ddic
+ * @param {!boolean} verbose
+ */
+FMIndex.prototype.build$SIB = function (end_marker, ddic, verbose) {
+	this.build$SIIB(end_marker, 65535, ddic, verbose);
+};
+
+/**
+ * @param {!string} end_marker
+ * @param {!number} maxChar
+ * @param {!number} ddic
+ * @param {!boolean} verbose
+ */
+FMIndex.prototype.build$SIIB = function (end_marker, maxChar, ddic, verbose) {
+	/** @type {BurrowsWheelerTransform} */
+	var b;
+	/** @type {!string} */
+	var s;
+	/** @type {!number} */
+	var c;
+	/** @type {!string} */
+	var str$0;
+	/** @type {WaveletMatrix} */
+	var this$0;
+	/** @type {!string} */
+	var _str$0;
+	/** @type {Array.<undefined|!number>} */
+	var _suffixarray$0;
+	if (verbose) {
+		console.time("building burrows-wheeler transform");
+	}
+	this._substr += end_marker;
+	b = ({_str: "", _size: 0, _head: 0, _suffixarray: [  ]});
+	str$0 = this._substr;
+	_str$0 = b._str = str$0;
+	b._size = _str$0.length;
+	_suffixarray$0 = b._suffixarray = SAIS$make$S(str$0);
+	b._head = (_suffixarray$0.indexOf(0) | 0);
+	s = BurrowsWheelerTransform$get$LBurrowsWheelerTransform$(b);
+	this._ssize = s.length;
+	this._head = b._head;
+	b._str = "";
+	b._size = 0;
+	b._head = 0;
+	b._suffixarray.length = 0;
+	this._substr = "";
+	if (verbose) {
+		console.timeEnd("building burrows-wheeler transform");
+	}
+	if (verbose) {
+		console.time("building wavelet matrix");
+	}
+	this$0 = this._sv;
+	this$0._bitsize = (Math.ceil(Math.log(maxChar) / 0.6931471805599453) | 0);
+	if (verbose) {
+		console.log("  maxCharCode: ", maxChar);
+		console.log("  bitSize: ", this._sv.bitsize$());
+	}
+	this._sv.build$S(s);
+	if (verbose) {
+		console.timeEnd("building wavelet matrix");
+	}
+	if (verbose) {
+		console.time("caching rank less than");
+	}
+	for (c = 0; c < maxChar; c++) {
+		this._rlt[c] = this._sv.rank_less_than$II(this._sv.size$(), c);
+	}
+	if (verbose) {
+		console.timeEnd("caching rank less than");
+	}
+	this._ddic = ddic;
+	if (verbose) {
+		console.time("building dictionaries");
+	}
+	this._buildDictionaries$();
+	if (verbose) {
+		console.timeEnd("building dictionaries");
+		console.log('');
+	}
+};
+
+/**
+ */
+FMIndex.prototype._buildDictionaries$ = function () {
+	/** @type {!number} */
+	var i;
+	/** @type {!number} */
+	var pos;
+	/** @type {!number} */
+	var c;
+	for (i = 0; i < this._ssize / this._ddic + 1; i++) {
+		this._posdic.push(0);
+		this._idic.push(0);
+	}
+	i = this._head;
+	pos = this.size$() - 1;
+	do {
+		if (i % this._ddic === 0) {
+			this._posdic[Math.floor(i / this._ddic)] = (pos | 0);
+		}
+		if (pos % this._ddic === 0) {
+			this._idic[Math.floor(pos / this._ddic)] = (i | 0);
+		}
+		c = this._sv.get$I(i);
+		i = this._rlt[c] + this._sv.rank$II(i, c);
+		pos--;
+	} while (i !== this._head);
+};
+
+/**
+ * @param {!string} doc
+ */
+FMIndex.prototype.push$S = function (doc) {
+	if (doc.length <= 0) {
+		throw new Error("FMIndex::push(): empty string");
+	}
+	this._substr += doc;
+};
+
+/**
+ * @param {!string} keyword
+ * @return {Array.<undefined|!number>}
+ */
+FMIndex.prototype.search$S = function (keyword) {
+	/** @type {Array.<undefined|!number>} */
+	var result;
+	/** @type {Array.<undefined|!number>} */
+	var position;
+	/** @type {!number} */
+	var rows;
+	/** @type {undefined|!number} */
+	var first;
+	/** @type {undefined|!number} */
+	var last;
+	/** @type {undefined|!number} */
+	var i;
+	result = [  ];
+	position = [  ];
+	rows = this.getRows$SAI(keyword, position);
+	if (rows > 0) {
+		first = position[0];
+		last = position[1];
+		for (i = first; i <= last; i++) {
+			result.push(this.getPosition$I(i));
+		}
+	}
+	return result;
+};
+
+/**
+ * @return {!string}
+ */
+FMIndex.prototype.dump$ = function () {
+	return this.dump$B(false);
+};
+
+/**
+ * @param {!boolean} verbose
+ * @return {!string}
+ */
+FMIndex.prototype.dump$B = function (verbose) {
+	/** @type {Array.<undefined|!string>} */
+	var contents;
+	/** @type {CompressionReport} */
+	var report;
+	/** @type {!number} */
+	var i;
+	contents = [  ];
+	report = ({source: 0, result: 0});
+	contents.push(Binary$dump32bitNumber$N(this._ddic));
+	contents.push(Binary$dump32bitNumber$N(this._ssize));
+	contents.push(Binary$dump32bitNumber$N(this._head));
+	CompressionReport$add$LCompressionReport$II(report, 6, 6);
+	contents.push(this._sv.dump$LCompressionReport$(report));
+	if (verbose) {
+		console.log("Serializing FM-index");
+		console.log('    Wavelet Matrix: ' + (contents[3].length * 2 + "") + ' bytes (' + (Math.round(report.result * 100.0 / report.source) + "") + '%)');
+	}
+	contents.push(Binary$dump32bitNumber$N(this._posdic.length));
+	for (i in this._posdic) {
+		contents.push(Binary$dump32bitNumber$N(this._posdic[i]));
+	}
+	for (i in this._idic) {
+		contents.push(Binary$dump32bitNumber$N(this._idic[i]));
+	}
+	if (verbose) {
+		console.log('    Dictionary Cache: ' + (this._idic.length * 16 + "") + ' bytes');
+	}
+	return contents.join("");
+};
+
+/**
+ * @param {!string} data
+ * @return {!number}
+ */
+FMIndex.prototype.load$S = function (data) {
+	return this.load$SI(data, 0);
+};
+
+/**
+ * @param {!string} data
+ * @param {!number} offset
+ * @return {!number}
+ */
+FMIndex.prototype.load$SI = function (data, offset) {
+	/** @type {!number} */
+	var maxChar;
+	/** @type {!number} */
+	var c;
+	/** @type {!number} */
+	var size;
+	/** @type {!number} */
+	var i;
+	/** @type {!number} */
+	var result$0;
+	/** @type {!number} */
+	var result$1;
+	result$0 = data.charCodeAt(offset) * 65536 + data.charCodeAt(offset + 1);
+	this._ddic = (result$0 | 0);
+	this._ssize = (Binary$load32bitNumber$SI(data, offset + 2) | 0);
+	this._head = (Binary$load32bitNumber$SI(data, offset + 4) | 0);
+	offset = this._sv.load$SI(data, offset + 6);
+	maxChar = Math.pow(2, this._sv.bitsize$());
+	for (c = 0; c < maxChar; c++) {
+		this._rlt[c] = this._sv.rank_less_than$II(this._sv.size$(), c);
+	}
+	result$1 = data.charCodeAt(offset) * 65536 + data.charCodeAt(offset + 1);
+	size = result$1;
+	offset += 2;
+	for (i = 0; i < size; (i++, offset += 2)) {
+		this._posdic.push(Binary$load32bitNumber$SI(data, offset));
+	}
+	for (i = 0; i < size; (i++, offset += 2)) {
+		this._idic.push(Binary$load32bitNumber$SI(data, offset));
+	}
+	return offset;
+};
 
 /**
  * class Query extends Object
@@ -23772,11 +23870,11 @@ $__jsx_lazy_init(Style, "html", function () {
 $__jsx_lazy_init(Style, "ignore", function () {
 	return ({ 'tilte': [ '', '' ], 'url': [ '', '' ], 'hit': [ '', '' ], 'del': [ '', '' ], 'summary': [ '', '' ] });
 });
-js.global = (function () { return this; })();
 Binary._base64EncodeChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 $__jsx_lazy_init(Binary, "_base64DecodeChars", function () {
 	return [ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1 ];
 });
+js.global = (function () { return this; })();
 $__jsx_lazy_init(_Common, "buffers", function () {
 	return [ "comment", "sgmlDecl", "textNode", "tagName", "doctype", "procInstName", "procInstBody", "entity", "attribName", "attribValue", "cdata", "script" ];
 });
@@ -24462,6 +24560,20 @@ var $__jsx_classMap = {
 		_HTMLHandler: _HTMLHandler,
 		_HTMLHandler$HASB: _HTMLHandler$HASB
 	},
+	"src/binary-util.jsx": {
+		Binary: Binary,
+		Binary$: Binary$,
+		LoadedStringResult: LoadedStringResult,
+		LoadedStringResult$SI: LoadedStringResult$SI,
+		LoadedStringListResult: LoadedStringListResult,
+		LoadedStringListResult$SI: LoadedStringListResult$SI,
+		LoadedStringListMapResult: LoadedStringListMapResult,
+		LoadedStringListMapResult$SI: LoadedStringListMapResult$SI,
+		LoadedNumberListResult: LoadedNumberListResult,
+		LoadedNumberListResult$SI: LoadedNumberListResult$SI,
+		CompressionReport: CompressionReport,
+		CompressionReport$: CompressionReport$
+	},
 	"src/stemmer/stemmer.jsx": {
 		Stemmer: Stemmer,
 		Stemmer$: Stemmer$
@@ -24486,20 +24598,6 @@ var $__jsx_classMap = {
 	"src/fm-index.jsx": {
 		FMIndex: FMIndex,
 		FMIndex$: FMIndex$
-	},
-	"src/binary-util.jsx": {
-		Binary: Binary,
-		Binary$: Binary$,
-		LoadedStringResult: LoadedStringResult,
-		LoadedStringResult$SI: LoadedStringResult$SI,
-		LoadedStringListResult: LoadedStringListResult,
-		LoadedStringListResult$SI: LoadedStringListResult$SI,
-		LoadedStringListMapResult: LoadedStringListMapResult,
-		LoadedStringListMapResult$SI: LoadedStringListMapResult$SI,
-		LoadedNumberListResult: LoadedNumberListResult,
-		LoadedNumberListResult$SI: LoadedNumberListResult$SI,
-		CompressionReport: CompressionReport,
-		CompressionReport$: CompressionReport$
 	},
 	"src/query.jsx": {
 		Query: Query,
