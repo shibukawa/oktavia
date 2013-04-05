@@ -3,7 +3,17 @@ Oktavia
 
 .. image:: https://travis-ci.org/shibukawa/oktavia.png?branch=master
 
+:version: 0.5
+
 Oktavia is a full text search engine for JavaScript environment. It uses FM-Index.
+
+Usage
+-----
+
+See following pages:
+
+English Site: http://oktavia.info
+Japanese Site: http://oktavia.info/ja/
 
 Current Status
 --------------
@@ -16,8 +26,6 @@ I am planning to implement following features:
 
 * Improve file size and speed, portability
 
-  * Character code remapping
-  * Zip compression
   * Use MessagePack as a container format
 
 * Word Splitter option
@@ -34,57 +42,24 @@ I am planning to implement following features:
   I hate markdown.
 
 * Custom schema support
-* Search client
-
-  * Browser
-
 * Python/Sphinx version
 
-* Cool logo
+Development
+-----------
 
-Todo:
-
-* Commit license files for third party modules (Shellinford, sax-js)
-
-Command (plannning)
--------------------
-
-Generate JS code
-~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-   # for web envrionment
-   $ make release_web
-
-   # for node.js
-   $ make release_node
-
-Run Sample (simple FM-Index)
-----------------------------
+Build
+~~~~~
 
 .. code-block:: bash
 
    $ make
-
-* Create Index File
-
-  .. code-block:: bash
-
-     $ ./oktavia-mkindex -i test/doc/folder -r test/doc/folder -m html
-
-* Run Search
-
-  .. code-block:: bash
-
-     $ ./oktavia-search test/doc/folder/search/index.okt search_word
 
 Run test
 ~~~~~~~~
 
 .. code-block:: bash
 
-   $ make test
+   $ prove
 
 License
 -------
@@ -100,8 +75,4 @@ BitVector, WaveletMatrix, FM-Index included in this repository are ported from S
 (developed by @echizen_tm). Thank you!
 
 * https://code.google.com/p/shellinford/
-
-SAXParser/SAXHandler are based on isaacs' sax-js. Thank you!
-
-* https://github.com/isaacs/sax-js
 
