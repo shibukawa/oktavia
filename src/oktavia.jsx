@@ -178,11 +178,11 @@ class Oktavia
             if (registerWord)
             {
                 var compressedCodeWord = this._convertToCompressionCode(originalWord);
-                var stemmedList = this._stemmingResult["_" + registerWord];
+                var stemmedList = this._stemmingResult[registerWord];
                 if (!stemmedList)
                 {
                     stemmedList = [compressedCodeWord];
-                    this._stemmingResult["_" + registerWord] = stemmedList;
+                    this._stemmingResult[registerWord] = stemmedList;
                 }
                 else if (stemmedList.indexOf(compressedCodeWord) == -1)
                 {
@@ -219,9 +219,9 @@ class Oktavia
             if (this._stemmer)
             {
                 var baseWord = this._stemmer.stemWord(keyword.toLowerCase());
-                var stemmedList = this._stemmingResult["_" + baseWord];
-                if (stemmedList)
+                if (this._stemmingResult.hasOwnProperty(baseWord))
                 {
+                    var stemmedList = this._stemmingResult[baseWord];
                     for (var i = 0; i < stemmedList.length; i++)
                     {
                         var word = stemmedList[i];
