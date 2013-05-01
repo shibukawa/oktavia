@@ -36,7 +36,7 @@ class _Proposal
     }
 }
 
-class OktaviaSearch
+__export__ class OktaviaSearch
 {
     var _oktavia : Oktavia;
     static var _stemmer : Nullable.<Stemmer> = null;

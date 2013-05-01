@@ -20,7 +20,7 @@
      */
     function SearchView(node, documentRoot, index)
     {
-        var OktaviaSearch = JSX.require("tool/web/oktavia-search.jsx").OktaviaSearch$I;
+        var OktaviaSearch = JSX.require("tool/web/oktavia-search.jsx").OktaviaSearch;
 
         /**
          * Target node it contains a search form and a search result window.
@@ -74,7 +74,7 @@
         var self = this;
         function loadIndex()
         {
-            self.engine.loadIndex$S(window.searchIndex);
+            self.engine.loadIndex(window.searchIndex);
             self.initialized = true;
             window.searchIndex = null;
             if (self.reserveSearch)
@@ -101,7 +101,7 @@
      */
     SearchView.prototype.changePage = function (page)
     {
-        this.engine.setCurrentPage$I(page);
+        this.engine.setCurrentPage(page);
         this.updateResult();
     };
 
@@ -165,10 +165,10 @@
             };
         }
 
-        var currentPage = String(this.engine.currentPage$());
+        var currentPage = String(this.engine.currentPage());
         var nav = $('.oktavia_searchresult_nav', this.node);
         nav.empty();
-        var pages = this.engine.pageIndexes$();
+        var pages = this.engine.pageIndexes();
         for (var i = 0; i < pages.length; i++)
         {
             var pageItem = $('<span/>').text(pages[i]);
@@ -199,7 +199,7 @@
      */
     SearchView.prototype.updateResult = function ()
     {
-        var totalPages = this.engine.totalPages$();
+        var totalPages = this.engine.totalPages();
         var resultslot = $('.oktavia_searchresult', this.node);
         resultslot.empty();
         var self = this;
@@ -207,7 +207,7 @@
         {
             self.clearResult();
         }
-        var results = this.engine.getResult$();
+        var results = this.engine.getResult();
         var searchInput = $('.oktavia_search', this.node);
         var queryWord = searchInput.val()
         for (var i = 0; i < results.length; i++)
@@ -215,7 +215,7 @@
             var result = results[i];
             var url = this.getDocumentPath(result.url.slice(1))
             var entry = $('<div/>', { "class": "entry" });
-            var link = $('<a/>', { "href": url + this.engine.getHighlight$() }).text(result.title);
+            var link = $('<a/>', { "href": url + this.engine.getHighlight() }).text(result.title);
             link.bind('click', clearCallback);
             entry.append($('<div/>', { "class": "title" }).append(link));
             entry.append($('<div/>', { "class": "url" }).text(url));
@@ -248,7 +248,7 @@
         var resultslot = $('.oktavia_searchresult', this.node);
         nav.empty();
         resultslot.empty();
-        var proposals = this.engine.getProposals$();
+        var proposals = this.engine.getProposals();
         var self = this;
         function createCallback(option)
         {
@@ -287,7 +287,7 @@
         var queryWord = searchInput.val();
         searchInput.blur();
         var self = this;
-        this.engine.search$SF$IIV$(queryWord, function (total, pages)
+        this.engine.search(queryWord, function (total, pages)
         {
             $('.oktavia_searchresult_box', self.node).fadeIn();
             var summaryNode = $('.oktavia_searchresult_summary', self.node);
