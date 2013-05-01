@@ -11,15 +11,15 @@ build: bin/httpstatus bin/oktavia-mkindex bin/oktavia-search libs template-files
 .PHONY: test clean
 
 bin/%: tool/%.jsx
-	$(JSX) --release --executable node --add-search-path ./src --output $@ $<
+	$(JSX) --minify --release --executable node --add-search-path ./src --output $@ $<
 
 libs: lib/oktavia-search.js $(stemmers:%=lib/oktavia-%-search.js) template-files
 
 lib/oktavia-search.js: tool/web/oktavia-search.jsx
-	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
+	$(JSX) --minify --release --executable web --add-search-path ./src --output $@ $<
 
 lib/oktavia-%-search.js: tool/web/oktavia-%-search.jsx
-	$(JSX) --release --executable web --add-search-path ./src --output $@ $<
+	$(JSX) --minify --release --executable web --add-search-path ./src --output $@ $<
 
 template-files: templates/jsdoc3/static/scripts/oktavia-search.js templates/sphinx/_static/oktavia-search.js templates/tinkerer/_static/oktavia-search.js
 
