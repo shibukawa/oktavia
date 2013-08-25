@@ -529,7 +529,6 @@ class LoadedNumberListResult
     function constructor(data : string, offset : int)
     {
         var resultLength = Binary.load32bitNumber(data, offset);
-        var originalOffset = offset;
         offset += 2;
         var result = [] : number[];
         while (result.length < resultLength)

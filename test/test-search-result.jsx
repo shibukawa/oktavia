@@ -143,6 +143,9 @@ class _Test extends TestCase
         var section1 = singleresult.getSearchUnit(0);
         var section2 = singleresult.getSearchUnit(1);
         var section3 = singleresult.getSearchUnit(2);
+        this.expect(section1.id).toBe(0);
+        this.expect(section2.id).toBe(1);
+        this.expect(section3.id).toBe(2);
 
         summary.add(singleresult);
         summary.mergeResult();

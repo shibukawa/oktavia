@@ -841,8 +841,7 @@ class SAXParser
     function newTag () : void
     {
         if (!this.strict) this.tagName = this.tagName.toLowerCase();
-        var parent = this.tags[this.tags.length - 1] || this;
-        var tag = this.tag = new Tag(this.tagName);
+        this.tag = new Tag(this.tagName);
         this.attribList.length = 0;
     }
 
@@ -947,11 +946,10 @@ class SAXParser
         var s = this.tags.length;
         while (s --> t)
         {
-            var tag = this.tag = this.tags.pop();
+            this.tag = this.tags.pop();
             this.tagName = this.tag.name;
             this.closetext_if_exist();
             this.handler.onclosetag(this.tagName);
-            var parent = this.tags[this.tags.length - 1];
             if (this.tagName == 'pre')
             {
                 this.preTags--;
