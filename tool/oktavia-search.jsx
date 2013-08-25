@@ -127,7 +127,7 @@ class Search
                     + ' ----------------------------------------------- '
                     + unit.score as string + ' pt');*/
             console.log(style.convert('<title>' + info[0] + '</title>') + ' ' + style.convert('<url>' + info[1] + '</url>'));
-            var offset = info[0].length + 1;
+            //var offset = info[0].length + 1;
             var content = metadata.getContent(unit.id);
             var start = 0;
             var positions = unit.getPositions();
