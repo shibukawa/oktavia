@@ -241,7 +241,6 @@ class FMIndex
 
     function search (keyword : string) : int[]
     {
-        var result_map = {} : Map.<int>;
         var result = [] : int[];
         var position = [] : int[];
         var rows = this.getRows(keyword, position);

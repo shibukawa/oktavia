@@ -279,14 +279,13 @@ class WaveletMatrix
         this.clear();
         this._bitsize = Binary.load16bitNumber(data, offset++);
         this._size = Binary.load32bitNumber(data, offset);
-        offset += 2; 
+        offset += 2;
         for (var i = 0; i < this.bitsize(); i++)
         {
             var bit_vector = new BitVector();
             offset = bit_vector.load(data, offset);
             this._bv.push(bit_vector);
         }
-        var sep = 0;
         for (var i = 0; i < this.bitsize(); i++, offset += 2)
         {
             this._seps.push(Binary.load32bitNumber(data, offset));
