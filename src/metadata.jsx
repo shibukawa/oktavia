@@ -4,13 +4,13 @@ import "./oktavia.jsx";
 import "./search-result.jsx";
 import "console.jsx";
 
-abstract class Metadata
+__export__ abstract class Metadata
 {
     var _parent : Oktavia;
     var _bitVector : BitVector;
     var _name : string;
 
-    function constructor (parent : Oktavia, name : string)
+    __noexport__ function constructor (parent : Oktavia, name : string)
     {
         this._parent = parent;
         this._bitVector = new ArrayBitVector();
@@ -66,9 +66,9 @@ abstract class Metadata
         return startPosition;
     }
 
-    abstract function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void;
+    __noexport__ abstract function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void;
 
-    abstract function getInformation(index : int) : string;
+    __noexport__ abstract function getInformation(index : int) : string;
 
     function _build () : void
     {
@@ -89,7 +89,7 @@ abstract class Metadata
     }
 }
 
-class Section extends Metadata
+__export__ class Section extends Metadata
 {
     static const TypeID : int = 0;
 
@@ -180,7 +180,7 @@ class Section extends Metadata
     }
 }
 
-class Splitter extends Metadata
+__export__ class Splitter extends Metadata
 {
     static const TypeID : int = 1;
 
@@ -256,7 +256,7 @@ class Splitter extends Metadata
     }
 }
 
-class Table extends Metadata
+__export__ class Table extends Metadata
 {
     static const TypeID : int = 2;
 
@@ -270,7 +270,7 @@ class Table extends Metadata
         this._columnTails = new ArrayBitVector();
     }
 
-    function constructor (parent : Oktavia, name : string)
+    __noexport__ function constructor (parent : Oktavia, name : string)
     {
         super(parent, name);
         this._columnTails = new ArrayBitVector();
@@ -381,7 +381,7 @@ class Table extends Metadata
     }
 }
 
-class Block extends Metadata
+__export__ class Block extends Metadata
 {
     static const TypeID : int = 3;
 

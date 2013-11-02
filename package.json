@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Full text search engine in JavaScript environment based on FM-index algorithm.",
   "scripts": {
-    "build": "grunt build",
-    "test": "grunt test",
-    "doc": "grunt doc"
+    "build": "node_modules/.bin/grunt build",
+    "test": "node_modules/.bin/grunt test",
+    "doc": "node_modules/.bin/grunt doc"
   },
   "engines": {
     "node": ">=0.8.0"
@@ -47,7 +47,8 @@
     "query-parser.jsx": "~0.1.0",
     "wavelet-matrix.jsx": "~0.2.0",
     "xml.jsx": "~0.1.1",
-    "snowball-stemmer.jsx": "~0.1.0"
+    "snowball-stemmer.jsx": "~0.1.0",
+    "grunt-cli": "~0.1.9"
   },
   "author": "shibukawa",
   "license": "MIT"
