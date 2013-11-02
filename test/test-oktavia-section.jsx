@@ -20,11 +20,14 @@ class _Test extends TestCase
         this.section = this.oktavia.addSection('document');
         this.oktavia.addWord("abracadabra");
         this.section.setTail("doc1");
+        this.oktavia.addEndOfBlock();
         this.oktavia.addWord("mississippi");
         this.section.setTail("doc2");
-        this.oktavia.addWord("abracadabra mississippi");
+        this.oktavia.addEndOfBlock();
+        this.oktavia.addWord("abracadabra2 mississippi2");
         this.section.setTail("doc3");
-        this.oktavia.build(25, false);
+        this.oktavia.addEndOfBlock();
+        this.oktavia.build(25);
     }
 
     function test_doc_sizes () : void
@@ -36,10 +39,10 @@ class _Test extends TestCase
     {
         this.expect(this.section.getSectionIndex(0)).toBe(0);
         this.expect(this.section.getSectionIndex(10)).toBe(0);
-        this.expect(this.section.getSectionIndex(11)).toBe(1);
-        this.expect(this.section.getSectionIndex(21)).toBe(1);
-        this.expect(this.section.getSectionIndex(22)).toBe(2);
-        this.expect(this.section.getSectionIndex(44)).toBe(2);
+        this.expect(this.section.getSectionIndex(12)).toBe(1);
+        this.expect(this.section.getSectionIndex(22)).toBe(1);
+        this.expect(this.section.getSectionIndex(24)).toBe(2);
+        this.expect(this.section.getSectionIndex(48)).toBe(2);
     }
 
     function test_get_section_index_boundary () : void
@@ -47,15 +50,15 @@ class _Test extends TestCase
         try
         {
             this.section.getSectionIndex(-1);
-            this.fail("fm.getSectionIndex()");
+            this.fail("fm.getSectionIndex(): -1");
         }
         catch (e : Error)
         {
         }
         try
         {
-            this.section.getSectionIndex(45);
-            this.fail("fm.getSectionIndex()");
+            this.section.getSectionIndex(49);
+            this.fail("fm.getSectionIndex(): 49");
         }
         catch (e : Error)
         {
@@ -66,7 +69,7 @@ class _Test extends TestCase
     {
         this.expect(this.section.getContent(0)).toBe("abracadabra");
         this.expect(this.section.getContent(1)).toBe("mississippi");
-        this.expect(this.section.getContent(2)).toBe("abracadabra mississippi");
+        this.expect(this.section.getContent(2)).toBe("abracadabra2 mississippi2");
     }
 
     function test_get_section_content_boundary () : void
@@ -133,10 +136,10 @@ class _Test extends TestCase
 
         this.expect(this.section.getSectionIndex(0)).toBe(0);
         this.expect(this.section.getSectionIndex(10)).toBe(0);
-        this.expect(this.section.getSectionIndex(11)).toBe(1);
-        this.expect(this.section.getSectionIndex(21)).toBe(1);
-        this.expect(this.section.getSectionIndex(22)).toBe(2);
-        this.expect(this.section.getSectionIndex(44)).toBe(2);
+        this.expect(this.section.getSectionIndex(12)).toBe(1);
+        this.expect(this.section.getSectionIndex(22)).toBe(1);
+        this.expect(this.section.getSectionIndex(24)).toBe(2);
+        this.expect(this.section.getSectionIndex(48)).toBe(2);
     }
 
     function test_load_dump_and_get_section_index_boundary () : void
@@ -155,7 +158,7 @@ class _Test extends TestCase
         }
         try
         {
-            this.section.getSectionIndex(45);
+            this.section.getSectionIndex(49);
             this.fail("fm.getSectionIndex()");
         }
         catch (e : Error)
@@ -168,10 +171,9 @@ class _Test extends TestCase
         var dump = this.oktavia.dump();
         this.oktavia.load(dump);
         this.section = this.oktavia.getSection('document');
-
         this.expect(this.section.getContent(0)).toBe("abracadabra");
         this.expect(this.section.getContent(1)).toBe("mississippi");
-        this.expect(this.section.getContent(2)).toBe("abracadabra mississippi");
+        this.expect(this.section.getContent(2)).toBe("abracadabra2 mississippi2");
     }
 
     function test_load_dump_and_get_section_content_boundary () : void

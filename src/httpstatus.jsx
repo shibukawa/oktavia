@@ -82,7 +82,7 @@ class HTTPStatus
         ];
         for (var i in this.httpstatus)
         {
-            this.oktavia.addWord(this.httpstatus[i], true);
+            this.oktavia.addWord(this.httpstatus[i], Oktavia.USE_STEMMING);
             this.splitter.split();
         }
         this.oktavia.build();

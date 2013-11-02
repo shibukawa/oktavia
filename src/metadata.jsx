@@ -1,23 +1,25 @@
 import "bit-vector.jsx";
-import "oktavia.jsx";
-import "binary-util.jsx";
-import "search-result.jsx";
+import "binary-io.jsx";
+import "./oktavia.jsx";
+import "./search-result.jsx";
+import "console.jsx";
 
-
-class Metadata
+abstract class Metadata
 {
     var _parent : Oktavia;
     var _bitVector : BitVector;
+    var _name : string;
 
-    function constructor (parent : Oktavia)
+    function constructor (parent : Oktavia, name : string)
     {
         this._parent = parent;
-        this._bitVector = new BitVector();
+        this._bitVector = new ArrayBitVector();
+        this._name = name;
     }
 
     function _size () : int
     {
-        return this._bitVector.rank(this._bitVector.size());
+        return this._bitVector.rank1(this._bitVector.size());
     }
 
     function getContent (index : int) : string
@@ -29,10 +31,25 @@ class Metadata
         var startPosition = 0;
         if (index > 0)
         {
-            startPosition = this._bitVector.select(index - 1) + 1;
+            startPosition = this._bitVector.select1(index - 1) + 1;
         }
-        var length = this._bitVector.select(index) - startPosition + 1;
+        var length = this._bitVector.select1(index) - startPosition + 1;
         return this._parent._getSubstring(startPosition, length);
+    }
+
+    function getContentWithEOB (index : int) : string
+    {
+        if (index < 0 || this._size() <= index)
+        {
+            throw new Error("Section.getContent() : range error " + index as string);
+        }
+        var startPosition = 0;
+        if (index > 0)
+        {
+            startPosition = this._bitVector.select1(index - 1) + 1;
+        }
+        var length = this._bitVector.select1(index) - startPosition + 1;
+        return this._parent._getSubstringWithEOB(startPosition, length);
     }
 
     function getStartPosition (index : int) : int
@@ -44,63 +61,64 @@ class Metadata
         var startPosition = 0;
         if (index > 0)
         {
-            startPosition = this._bitVector.select(index - 1) + 1;
+            startPosition = this._bitVector.select1(index - 1) + 1;
         }
         return startPosition;
     }
 
-    function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
-    {
-    }
+    abstract function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void;
 
-    function getInformation(index : int) : string
-    {
-        return '';
-    }
+    abstract function getInformation(index : int) : string;
 
     function _build () : void
     {
         this._bitVector.build();
     }
 
-    function _load (name : string, data : string, offset : int) : int
+    function _load (input : BinaryInput) : void
     {
-        offset = this._bitVector.load(data, offset);
-        this._parent._metadataLabels.push(name);
-        this._parent._metadatas[name] = this;
-        return offset;
+        this._bitVector.load(input);
+        this._parent._metadataLabels.push(this._name);
+        this._parent._metadatas[this._name] = this;
     }
 
-    function _dump () : string
+    function _dump (output : BinaryOutput) : void
     {
-        return this._bitVector.dump();
-    }
-
-    function _dump (report : CompressionReport) : string
-    {
-        return this._bitVector.dump(report);
+        output.dumpString(this._name);
+        this._bitVector.dump(output);
     }
 }
 
 class Section extends Metadata
 {
+    static const TypeID : int = 0;
+
     var _names : string[];
 
-    function constructor (parent : Oktavia)
+    function constructor (parent : Oktavia, name : string)
     {
-        super(parent);
+        super(parent, name);
         this._names = [] : string[];
     }
 
-    function setTail (name : string) : void
+    __noexport__ function setTail (name : string) : void
     {
-        this.setTail(name, this._parent.contentSize());
+        this.setTail(name, null);
     }
 
-    function setTail (name : string, index : int) : void
+    function setTail (name : string, index : Nullable.<int>) : void
     {
+        if (index == null)
+        {
+            index = this._parent.contentSize() - 1;
+        }
+        var lastChar = this._parent._getSubstring(index, 1);
+        if (lastChar == Oktavia.eof || lastChar == Oktavia.eob)
+        {
+            throw new Error("Tail should not be 'eof' or 'eob'");
+        }
         this._names.push(name);
-        this._bitVector.set(index - 1);
+        this._bitVector.set1(index);
     }
 
     function size () : int
@@ -114,7 +132,7 @@ class Section extends Metadata
         {
             throw new Error("Section.getSectionIndex() : range error " + position as string);
         }
-        return this._bitVector.rank(position);
+        return this._bitVector.rank1(position);
     }
 
     function getName (index : int) : string
@@ -146,55 +164,53 @@ class Section extends Metadata
         return this.getName(index);
     }
 
-    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    static function _load (parent : Oktavia, input : BinaryInput) : void
     {
-        var strs = Binary.loadStringList(data, offset);
-        var section = new Section(parent);
-        section._names = strs.result;
-        return section._load(name, data, strs.offset);
+        var name = input.loadString();
+        var section = new Section(parent, name);
+        section._load(input);
+        section._names = input.loadStringList();
     }
 
-    override function _dump () : string
+    override function _dump (output : BinaryOutput) : void
     {
-        return [Binary.dump16bitNumber(0), Binary.dumpStringList(this._names), super._dump()].join('');
-    }
-
-    override function _dump (report : CompressionReport) : string
-    {
-        report.add(1, 1);
-        return [Binary.dump16bitNumber(0), Binary.dumpStringList(this._names, report), super._dump(report)].join('');
+        output.dump16bitNumber(Section.TypeID);
+        super._dump(output);
+        output.dumpStringList(this._names);
     }
 }
 
 class Splitter extends Metadata
 {
-    var name : Nullable.<string>;
-
-    function constructor (parent : Oktavia)
-    {
-        super(parent);
-        this.name = null;
-    }
+    static const TypeID : int = 1;
 
     function constructor (parent : Oktavia, name : string)
     {
-        super(parent);
-        this.name = name;
+        super(parent, name);
     }
 
     function size () : int
     {
-        return this._size(); 
+        return this._size();
     }
 
-    function split () : void
+    __noexport__ function split () : void
     {
-        this.split(this._parent.contentSize());
+        this.split(null);
     }
 
-    function split (index : int) : void
+    function split (index : Nullable.<int>) : void
     {
-        this._bitVector.set(index - 1);
+        if (index == null)
+        {
+            index = this._parent.contentSize() - 1;
+        }
+        var lastChar = this._parent._getSubstring(index, 1);
+        if (lastChar == Oktavia.eof || lastChar == Oktavia.eob)
+        {
+            throw new Error("Tail should not be 'eof' or 'eob'");
+        }
+        this._bitVector.set1(index);
     }
 
     function getIndex (position : int) : int
@@ -203,7 +219,7 @@ class Splitter extends Metadata
         {
             throw new Error("Section.getSectionIndex() : range error");
         }
-        return this._bitVector.rank(position);
+        return this._bitVector.rank1(position);
     }
 
     override function grouping (result : SingleResult, positions : int [], word : string, stemmed : boolean) : void
@@ -223,41 +239,41 @@ class Splitter extends Metadata
 
     override function getInformation(index : int) : string
     {
-        if (this.name != null)
-        {
-            return this.name + ((index + 1) as string);
-        }
-        return '';
+        return this._name + ((index + 1) as string);
     }
 
-    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    static function _load (parent : Oktavia, input : BinaryInput) :void
     {
-        var section = new Splitter(parent);
-        return section._load(name, data, offset);
+        var name = input.loadString();
+        var section = new Splitter(parent, name);
+        section._load(input);
     }
 
-    override function _dump () : string
+    override function _dump (output : BinaryOutput) : void
     {
-        return [Binary.dump16bitNumber(1), super._dump()].join('');
-    }
-
-    override function _dump (report : CompressionReport) : string
-    {
-        report.add(1, 1);
-        return [Binary.dump16bitNumber(1), super._dump(report)].join('');
+        output.dump16bitNumber(Splitter.TypeID);
+        super._dump(output);
     }
 }
 
 class Table extends Metadata
 {
+    static const TypeID : int = 2;
+
     var _headers : string[];
     var _columnTails : BitVector;
 
-    function constructor (parent : Oktavia, headers : string[])
+    function constructor (parent : Oktavia, name : string, headers : string[])
     {
-        super(parent);
+        super(parent, name);
         this._headers = headers;
-        this._columnTails = new BitVector();
+        this._columnTails = new ArrayBitVector();
+    }
+
+    function constructor (parent : Oktavia, name : string)
+    {
+        super(parent, name);
+        this._columnTails = new ArrayBitVector();
     }
 
     function rowSize () : int
@@ -273,14 +289,24 @@ class Table extends Metadata
     function setColumnTail () : void
     {
         var index = this._parent.contentSize();
+        var lastChar = this._parent._getSubstring(index, 1);
+        if (lastChar == Oktavia.eob)
+        {
+            throw new Error("Tail should not be 'eof' or 'eob'");
+        }
+        this._columnTails.set1(index);
+    }
+
+    function setColumnTailAndEOB () : void
+    {
+        this.setColumnTail();
         this._parent.addEndOfBlock();
-        this._columnTails.set(index - 1);
     }
 
     function setRowTail () : void
     {
-        var index = this._parent.contentSize();
-        this._bitVector.set(index - 1);
+        var index = this._parent.contentSize() - 1;
+        this._bitVector.set1(index);
     }
 
     function getCell (position : int) : int[]
@@ -289,14 +315,14 @@ class Table extends Metadata
         {
             throw new Error("Section.getSectionIndex() : range error " + position as string);
         }
-        var row = this._bitVector.rank(position);
-        var currentColumn = this._columnTails.rank(position);
+        var row = this._bitVector.rank1(position);
+        var currentColumn = this._columnTails.rank1(position);
 
         var lastRowColumn = 0;
         if (row > 0)
         {
-            var startPosition = this._bitVector.select(row - 1) + 1;
-            lastRowColumn = this._columnTails.rank(startPosition);
+            var startPosition = this._bitVector.select1(row - 1) + 1;
+            lastRowColumn = this._columnTails.rank1(startPosition);
         }
         var result = [row, currentColumn - lastRowColumn] : int[];
         return result;
@@ -304,7 +330,7 @@ class Table extends Metadata
 
     function getRowContent (rowIndex : int) : Map.<string>
     {
-        var content = this.getContent(rowIndex);
+        var content = this.getContentWithEOB(rowIndex);
         var values = content.split(Oktavia.eob, this._headers.length);
         var result = {} : Map.<string>;
         for (var i in this._headers)
@@ -337,73 +363,80 @@ class Table extends Metadata
         this._columnTails.build();
     }
 
-    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    static function _load (parent : Oktavia, input : BinaryInput) :void
     {
-        var strs = Binary.loadStringList(data, offset);
-        var table = new Table(parent, strs.result);
-        offset = table._load(name, data, strs.offset);
-        return table._columnTails.load(data, offset);
+        var name = input.loadString();
+        var table = new Table(parent, name);
+        table._load(input);
+        table._headers = input.loadStringList();
+        table._columnTails.load(input);
     }
 
-    override function _dump () : string
+    override function _dump (output : BinaryOutput) : void
     {
-        return [
-            Binary.dump16bitNumber(2), Binary.dumpStringList(this._headers),
-            super._dump(), this._columnTails.dump()
-        ].join('');
-    }
-
-    override function _dump (report : CompressionReport) : string
-    {
-        report.add(1, 1);
-        return [
-            Binary.dump16bitNumber(2), Binary.dumpStringList(this._headers, report),
-            super._dump(report), this._columnTails.dump(report)
-        ].join('');
+        output.dump16bitNumber(Table.TypeID);
+        super._dump(output);
+        output.dumpStringList(this._headers);
+        this._columnTails.dump(output);
     }
 }
 
 class Block extends Metadata
 {
+    static const TypeID : int = 3;
+
     var _names : string[];
     var _start : boolean;
 
-    function constructor (parent : Oktavia)
+    function constructor (parent : Oktavia, name : string)
     {
-        super(parent);
+        super(parent, name);
         this._names = [] : string[];
         this._start = false;
     }
 
-    function startBlock (blockName : string) : void
+    __noexport__ function startBlock (blockName : string) : void
     {
-        this.startBlock(blockName, this._parent.contentSize());
+        this.startBlock(blockName, null);
     }
 
-    function startBlock (blockName : string, index : int) : void
+    function startBlock (blockName : string, index : Nullable.<int>) : void
     {
+        if (index == null)
+        {
+            index = this._parent.contentSize() - 1;
+        }
         if (this._start)
         {
             throw new Error('Splitter `' + this._names[this._names.length - 1] + '` is not closed');
         }
         this._start = true;
         this._names.push(blockName);
-        this._bitVector.set(index - 1);
+        this._bitVector.set1(index);
     }
 
-    function endBlock () : void
+    __noexport__ function endBlock () : void
     {
-        this.endBlock(this._parent.contentSize());
+        this.endBlock(null);
     }
 
-    function endBlock (index : int) : void
+    function endBlock (index : Nullable.<int>) : void
     {
+        if (index == null)
+        {
+            index = this._parent.contentSize() - 1;
+        }
+        var lastChar = this._parent._getSubstring(index, 1);
+        if (lastChar == Oktavia.eof || lastChar == Oktavia.eob)
+        {
+            throw new Error("Block end should not be 'eof' or 'eob'");
+        }
         if (!this._start)
         {
             throw new Error('Splitter is not started');
         }
         this._start = false;
-        this._bitVector.set(index - 1);
+        this._bitVector.set1(index);
     }
 
     function size () : int
@@ -417,15 +450,14 @@ class Block extends Metadata
         {
             throw new Error("Block.blockIndex() : range error " + position as string);
         }
-        var result : int;
         if (position >= this._bitVector.size())
         {
             position = this._bitVector.size() - 1;
-            result = this._bitVector.rank(position) + 1;
+            var result = this._bitVector.rank1(position) + 1;
         }
         else
         {
-            result = this._bitVector.rank(position);
+            var result = this._bitVector.rank1(position);
         }
         return result;
     }
@@ -476,23 +508,19 @@ class Block extends Metadata
         return '';
     }
 
-    static function _load (parent : Oktavia, name : string, data : string, offset : int) : int
+    static function _load (parent : Oktavia, input : BinaryInput) :void
     {
-        var strs = Binary.loadStringList(data, offset);
-        var block = new Block(parent);
-        block._names = strs.result;
-        return block._load(name, data, strs.offset);
+        var name = input.loadString();
+        var block = new Block(parent, name);
+        block._load(input);
+        block._names = input.loadStringList();
     }
 
-    override function _dump () : string
+    override function _dump (output : BinaryOutput) : void
     {
-        return [Binary.dump16bitNumber(3), Binary.dumpStringList(this._names), super._dump()].join('');
-    }
-
-    override function _dump (report : CompressionReport) : string
-    {
-        report.add(1, 1);
-        return [Binary.dump16bitNumber(3), Binary.dumpStringList(this._names, report), super._dump(report)].join('');
+        output.dump16bitNumber(Block.TypeID);
+        super._dump(output);
+        output.dumpStringList(this._names);
     }
 }
 

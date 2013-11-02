@@ -1,23 +1,54 @@
 {
-    "author": "Yoshiki Shibukawa <yoshiki@shibu.jp>",
-    "name": "oktavia",
-    "description": "A full text search engine for JavaScript environment. It is based on FM-index algorithm.",
-    "version": "0.1.0",
-    "homepage": "http://oktavia.info",
-    "main": "./tool/oktavia-mkindex.jsx",
-    "repository": {
-        "type": "git",
-        "url": "git@github.com:shibukawa/oktavia.git"
-    },
-    "scripts": {
-        "test": "prove",
-        "install": "make"
-     },
-    "engines": {
-        "node": ">= 0.8"
-    },
-    "dependencies": {},
-    "devDependencies": {
-        "jsx": "latest"
-    }
+  "name": "oktavia",
+  "version": "1.0.0",
+  "description": "Full text search engine in JavaScript environment based on FM-index algorithm.",
+  "scripts": {
+    "build": "grunt build",
+    "test": "grunt test",
+    "doc": "grunt doc"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "keywords": [
+    "jsx",
+    "altjs",
+    "lib",
+    "js",
+    "amd",
+    "commonjs",
+    "nodejs",
+    "browser"
+  ],
+  "main": "./lib/oktavia.jsx",
+  "homepage": "https://github.com/shibukawa/oktavia",
+  "bugs": {
+    "url": "https://github.com/shibukawa/oktavia/issues"
+  },
+  "directories": {
+    "doc": "./doc",
+    "lib": "./lib",
+    "test": "./test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/shibukawa/oktavia.git"
+  },
+  "devDependencies": {
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt": "~0.4.1",
+    "grunt-jsx": ">=0.1.5",
+    "binary-io.jsx": "~0.2.3",
+    "binary-support.jsx": "~0.1.0",
+    "bit-vector.jsx": "~0.3.1",
+    "burrows-wheeler-transform.jsx": "~0.2.1",
+    "fm-index.jsx": "~0.2.2",
+    "getopt.jsx": "~0.1.0",
+    "query-parser.jsx": "~0.1.0",
+    "wavelet-matrix.jsx": "~0.2.0",
+    "xml.jsx": "~0.1.1",
+    "snowball-stemmer.jsx": "~0.1.0"
+  },
+  "author": "shibukawa",
+  "license": "MIT"
 }

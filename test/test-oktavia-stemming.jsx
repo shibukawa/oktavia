@@ -1,7 +1,7 @@
 import "test-case.jsx";
 import "oktavia.jsx";
 import "metadata.jsx";
-import "stemmer/english-stemmer.jsx";
+import "english-stemmer.jsx";
 import "console.jsx";
 
 class _Test extends TestCase

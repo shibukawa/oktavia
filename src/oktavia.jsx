@@ -1,10 +1,10 @@
-import "metadata.jsx";
-import "fm-index.jsx";
-import "binary-util.jsx";
-import "query.jsx";
-import "search-result.jsx";
-import "stemmer/stemmer.jsx";
 import "console.jsx";
+import "fm-index.jsx";
+import "binary-io.jsx";
+import "query.jsx";
+import "stemmer.jsx";
+import "./search-result.jsx";
+import "./metadata.jsx";
 
 
 class Oktavia
@@ -14,6 +14,7 @@ class Oktavia
     var _metadataLabels : string[];
     var _stemmer : Nullable.<Stemmer>;
     var _stemmingResult : Map.<string[]>;
+    var _build : boolean;
 
     // char code remap tables
     var _utf162compressCode : string[];
@@ -22,7 +23,10 @@ class Oktavia
     // sentinels
     static const eof = String.fromCharCode(0);
     static const eob = String.fromCharCode(1);
-    static const unknown = String.fromCharCode(3);
+    static const unknown = String.fromCharCode(2);
+
+    // Enum
+    static const USE_STEMMING = true;
 
     function constructor ()
     {
@@ -31,8 +35,8 @@ class Oktavia
         this._metadataLabels = [] : string[];
         this._stemmer = null;
         this._stemmingResult = {} : Map.<string[]>;
+        this._build = false;
         this._utf162compressCode = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
-        this._utf162compressCode.length = 65536;
         this._compressCode2utf16 = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
     }
 
@@ -53,7 +57,7 @@ class Oktavia
             throw new Error('Metadata name ' + key + ' is already exists');
         }
         this._metadataLabels.push(key);
-        var section = new Section(this);
+        var section = new Section(this, key);
         this._metadatas[key] = section;
         return section;
     }
@@ -74,7 +78,7 @@ class Oktavia
             throw new Error('Metadata name ' + key + ' is already exists');
         }
         this._metadataLabels.push(key);
-        var splitter = new Splitter(this);
+        var splitter = new Splitter(this, key);
         this._metadatas[key] = splitter;
         return splitter;
     }
@@ -95,7 +99,7 @@ class Oktavia
             throw new Error('Metadata name ' + key + ' is already exists');
         }
         this._metadataLabels.push(key);
-        var table = new Table(this, headers);
+        var table = new Table(this, key, headers);
         this._metadatas[key] = table;
         return table;
     }
@@ -116,7 +120,7 @@ class Oktavia
             throw new Error('Metadata name ' + key + ' is already exists');
         }
         this._metadataLabels.push(key);
-        var block = new Block(this);
+        var block = new Block(this, key);
         this._metadatas[key] = block;
         return block;
     }
@@ -135,29 +139,28 @@ class Oktavia
         this._fmindex.push(Oktavia.eob);
     }
 
-    function addWord (words : string) : void
+    function addWord (word : string) : void
     {
-        var str = [] : string[];
-        str.length = words.length;
-        for (var i = 0; i < words.length; i++)
+        var str = '';
+        for (var i = 0; i < word.length; i++)
         {
-            var charCode = words.charCodeAt(i);
-            var newCharCode = this._utf162compressCode[charCode];
-            if (newCharCode == null)
+            var charCode = word.charCodeAt(i);
+            var convertedChar = this._utf162compressCode[charCode];
+            if (convertedChar == null)
             {
-                newCharCode = String.fromCharCode(this._compressCode2utf16.length);
-                this._utf162compressCode[charCode] = newCharCode;
+                convertedChar = String.fromCharCode(this._compressCode2utf16.length);
+                this._utf162compressCode[charCode] = convertedChar;
                 this._compressCode2utf16.push(String.fromCharCode(charCode));
             }
-            str.push(newCharCode);
+            str += convertedChar;
         }
-        this._fmindex.push(str.join(''));
+        this._fmindex.push(str);
     }
 
-    function addWord (words : string, stemming : boolean) : void
+    function addWord (word : string, stemming : boolean) : void
     {
-        this.addWord(words);
-        var wordList = words.split(/\s+/);
+        this.addWord(word);
+        var wordList = word.split(/\s+/);
         for (var i = 0; i < wordList.length; i++)
         {
             var originalWord = wordList[i];
@@ -194,24 +197,28 @@ class Oktavia
 
     function _convertToCompressionCode (keyword : string) : string
     {
-        var resultChars = [] : string[];
+        var resultChars = '';
         for (var i = 0; i < keyword.length; i++)
         {
             var chr = this._utf162compressCode[keyword.charCodeAt(i)];
             if (chr == null)
             {
-                resultChars.push(Oktavia.unknown);
+                resultChars += Oktavia.unknown;
             }
             else
             {
-                resultChars.push(chr);
+                resultChars += chr;
             }
         }
-        return resultChars.join('');
+        return resultChars;
     }
 
     function rawSearch (keyword : string, stemming : boolean) : int[]
     {
+        if (!this._build)
+        {
+            throw new Error("Oktavia.build() is not called yet");
+        }
         var result : int[];
         if (stemming)
         {
@@ -239,6 +246,10 @@ class Oktavia
 
     function search (queries : Query[]) : SearchSummary
     {
+        if (!this._build)
+        {
+            throw new Error("Oktavia.build() is not called yet");
+        }
         var summary = new SearchSummary(this);
         for (var i = 0; i < queries.length; i++)
         {
@@ -264,123 +275,125 @@ class Oktavia
         return result;
     }
 
-    function build () : void
+    __noexport__ function build () : void
     {
-        this.build(5, false);
+        this.build(null);
     }
 
-    function build (cacheDensity : int, verbose : boolean) : void
+    function build (cacheDensity : Nullable.<int>) : void
     {
+        if (this._build)
+        {
+            throw new Error("Oktavia.build() is already called");
+        }
+        if (cacheDensity == null)
+        {
+            cacheDensity = 5;
+        }
         for (var key in this._metadatas)
         {
             this._metadatas[key]._build();
         }
+        var maxCharCode = this._compressCode2utf16.length;
         var cacheRange = Math.round(Math.max(1, (100 / Math.min(100, Math.max(0.01, cacheDensity)))));
-        var maxChar = this._compressCode2utf16.length;
-        this._fmindex.build(Oktavia.eof, maxChar, cacheRange, verbose);
+        this._fmindex.build(cacheRange, maxCharCode);
+        this._build = true;
     }
 
-    function dump () : string
+    __noexport__ function dump () : string
     {
         return this.dump(false);
     }
 
     function dump (verbose : boolean) : string
     {
-        var headerSource = "oktavia-01";
-        var header = Binary.dumpString(headerSource).slice(1);
+        if (!this._build)
+        {
+            throw new Error("Oktavia.build() is not called yet");
+        }
+        var output = new BinaryOutput();
+        var headerSource = "oktavia-02";
+        output.dumpRawString(BinaryOutput.convertString(headerSource).slice(1));
         if (verbose)
         {
             console.log("Source text size: " + (this._fmindex.size() * 2) as string + ' bytes');
         }
-        var fmdata = this._fmindex.dump(verbose);
-        var result = [
-            header,
-            fmdata
-        ];
-
-        result.push(Binary.dump16bitNumber(this._compressCode2utf16.length));
-        for (var i = 3; i < this._compressCode2utf16.length; i++)
-        {
-            result.push(this._compressCode2utf16[i]);
-        }
+        this._fmindex.dump(output);
+        output.dumpString(this._compressCode2utf16.slice(3).join(''));
         if (verbose)
         {
             console.log('Char Code Map: ' + (this._compressCode2utf16.length * 2 - 2) as string + ' bytes');
         }
-
-        var report = new CompressionReport();
-        result.push(Binary.dumpStringListMap(this._stemmingResult, report));
+        var size = output._output.length;
+        output.dumpStringListMap(this._stemmingResult);
         if (verbose)
         {
-            console.log('Stemmed Word Table: ' + (result[result.length - 1].length) as string + ' bytes (' + report.rate() as string + '%)');
+            console.log('Stemmed Word Table: ' + ((output._output.length - size) * 2) as string + ' bytes');
         }
 
-        result.push(Binary.dump16bitNumber(this._metadataLabels.length));
+        output.dump16bitNumber(this._metadataLabels.length);
         for (var i = 0; i < this._metadataLabels.length; i++)
         {
-            var report = new CompressionReport();
+            var size = output._output.length;
             var name = this._metadataLabels[i];
-            var data = this._metadatas[name]._dump(report);
-            result.push(Binary.dumpString(name, report), data);
+            this._metadatas[name]._dump(output);
             if (verbose)
             {
-                console.log('Meta Data ' + name + ': ' + (data.length * 2) as string + ' bytes (' + report.rate() as string + '%)');
+                console.log('Meta Data ' + name + ': ' + ((output._output.length - size) * 2) as string + ' bytes');
             }
         }
-        return result.join('');
+        return output.result();
     }
 
     function load (data : string) : void
     {
-        var headerSource = "oktavia-01";
-        var header = Binary.dumpString(headerSource).slice(1);
+        var headerSource = "oktavia-02";
+        var header = BinaryOutput.convertString(headerSource).slice(1);
         if (data.slice(0, 5) != header)
         {
             throw new Error('Invalid data file');
         }
+        var input = new BinaryInput(data, 5);
         this._metadatas = {} : Map.<Metadata>;
         this._metadataLabels = [] : string[];
 
-        var offset = 5;
-        offset = this._fmindex.load(data, offset);
-        var charCodeCount = Binary.load16bitNumber(data, offset++);
+        this._fmindex.load(input);
+        var charCodes = input.loadString();
         this._compressCode2utf16 = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
         this._utf162compressCode = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
-        for (var i = 3; i < charCodeCount; i++)
+
+        for (var i = 0; i < charCodes.length; i++)
         {
-            var charCode = Binary.load16bitNumber(data, offset++);
-            this._compressCode2utf16.push(String.fromCharCode(charCode));
-            this._utf162compressCode[charCode] = String.fromCharCode(i);
+            var charCode = charCodes.charCodeAt(i);
+            this._compressCode2utf16.push(charCodes.charAt(i));
+            this._utf162compressCode[charCode] = String.fromCharCode(i + 3);
         }
 
-        var stemmedWords = Binary.loadStringListMap(data, offset);
-        this._stemmingResult = stemmedWords.result;
-        offset = stemmedWords.offset;
+        this._stemmingResult = input.loadStringListMap();
 
-        var metadataCount = Binary.load16bitNumber(data, offset++);
+        var metadataCount = input.load16bitNumber();
         for (var i = 0; i < metadataCount; i++)
         {
-            var nameResult = Binary.loadString(data, offset);
-            var name = nameResult.result;
-            var offset = nameResult.offset;
-            var type = Binary.load16bitNumber(data, offset++);
+            var type = input.load16bitNumber();
             switch (type)
             {
-            case 0:
-                offset = Section._load(this, name, data, offset);
+            case Section.TypeID:
+                Section._load(this, input);
                 break;
-            case 1:
-                offset = Splitter._load(this, name, data, offset);
+            case Splitter.TypeID:
+                Splitter._load(this, input);
                 break;
-            case 2:
-                offset = Table._load(this, name, data, offset);
+            case Table.TypeID:
+                Table._load(this, input);
                 break;
-            case 3:
-                offset = Block._load(this, name, data, offset);
+            case Block.TypeID:
+                Block._load(this, input);
                 break;
+            default:
+                throw new Error("Metadata TypeError:" + type as string);
             }
         }
+        this._build = true;
     }
 
     function contentSize () : int
@@ -417,11 +430,34 @@ class Oktavia
     function _getSubstring (position : int, length : int) : string
     {
         var result = this._fmindex.getSubstring(position, length);
-        var str = [] : string[];
+        var str = '';
         for (var i = 0; i < result.length; i++)
         {
-            str.push(this._compressCode2utf16[result.charCodeAt(i)]);
+            var code = result.charCodeAt(i);
+            if (code > 2)
+            {
+                str += this._compressCode2utf16[code];
+            }
         }
-        return str.join('');
+        return str;
+    }
+
+    function _getSubstringWithEOB (position : int, length : int) : string
+    {
+        var result = this._fmindex.getSubstring(position, length);
+        var str = '';
+        for (var i = 0; i < result.length; i++)
+        {
+            var code = result.charCodeAt(i);
+            if (code > 2)
+            {
+                str += this._compressCode2utf16[code];
+            }
+            else if (code == 1)
+            {
+                str += result.charAt(i);
+            }
+        }
+        return str;
     }
 }

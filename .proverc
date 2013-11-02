@@ -1,4 +1,0 @@
---exec "jsx --minify --add-search-path src --release --test" test/
---ext .jsx
---timer
---color

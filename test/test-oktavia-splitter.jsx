@@ -24,7 +24,7 @@ class _Test extends TestCase
         this.splitter.split();
         this.oktavia.addWord("abracadabra mississippi");
         this.splitter.split();
-        this.oktavia.build(25, false);
+        this.oktavia.build(25);
     }
 
     function test_count () : void

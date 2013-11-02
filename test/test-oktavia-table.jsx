@@ -13,27 +13,27 @@ class _Test extends TestCase
         this.table = this.oktavia.addTable('address book', ['zip', 'city', 'area code']);
 
         this.oktavia.addWord("94101"); // 5
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.oktavia.addWord("San Francisco"); // 13
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.oktavia.addWord("415"); // 3
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.table.setRowTail();
 
         this.oktavia.addWord("94607"); // 5
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.oktavia.addWord("Oakland"); // 7
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.oktavia.addWord("510"); // 3
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.table.setRowTail();
 
         this.oktavia.addWord("94401"); // 5
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.oktavia.addWord("San Mateo"); // 9
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.oktavia.addWord("650"); // 3
-        this.table.setColumnTail();
+        this.table.setColumnTailAndEOB();
         this.table.setRowTail();
 
         this.oktavia.build();

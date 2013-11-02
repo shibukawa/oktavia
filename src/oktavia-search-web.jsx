@@ -1,11 +1,29 @@
-import "oktavia.jsx";
-import "binary-util.jsx";
+import "console.jsx";
+import "binary-io.jsx";
 import "query.jsx";
 import "query-string-parser.jsx";
-import "search-result.jsx";
-import "style.jsx";
-import "stemmer/stemmer.jsx";
-import "console.jsx";
+import "stemmer.jsx";
+import "./search-result.jsx";
+import "./style.jsx";
+import "./oktavia.jsx";
+import "./base64.jsx";
+
+// import "danish-stemmer.jsx";
+// import "dutch-stemmer.jsx";
+// import "english-stemmer.jsx";
+// import "finnish-stemmer.jsx";
+// import "french-stemmer.jsx";
+// import "german-stemmer.jsx";
+// import "hungarian-stemmer.jsx";
+// import "italian-stemmer.jsx";
+// import "norwegian-stemmer.jsx";
+// import "porter-stemmer.jsx";
+// import "portuguese-stemmer.jsx";
+// import "romanian-stemmer.jsx";
+// import "russian-stemmer.jsx";
+// import "spanish-stemmer.jsx";
+// import "swedish-stemmer.jsx";
+// import "turkish-stemmer.jsx";
 
 
 class _Result
@@ -79,7 +97,7 @@ __export__ class OktaviaSearch
         {
             this._oktavia.setStemmer(OktaviaSearch._stemmer);
         }
-        this._oktavia.load(Binary.base64decode(index));
+        this._oktavia.load(Base64.atob(index));
         if (this._queryString)
         {
             this.search(this._queryString, this._callback);
@@ -323,5 +341,21 @@ class _Main
 {
     static function main(args : string[]) : void
     {
+        // OktaviaSearch.setStemmer(new DanishStemmer);
+        // OktaviaSearch.setStemmer(new DutchStemmer);
+        // OktaviaSearch.setStemmer(new EnglishStemmer);
+        // OktaviaSearch.setStemmer(new FinnishStemmer);
+        // OktaviaSearch.setStemmer(new FrenchStemmer);
+        // OktaviaSearch.setStemmer(new GermanStemmer);
+        // OktaviaSearch.setStemmer(new HungarianStemmer);
+        // OktaviaSearch.setStemmer(new ItalianStemmer);
+        // OktaviaSearch.setStemmer(new NorwegianStemmer);
+        // OktaviaSearch.setStemmer(new PorterStemmer);
+        // OktaviaSearch.setStemmer(new PortugueseStemmer);
+        // OktaviaSearch.setStemmer(new RomanianStemmer);
+        // OktaviaSearch.setStemmer(new RussianStemmer);
+        // OktaviaSearch.setStemmer(new SpanishStemmer);
+        // OktaviaSearch.setStemmer(new SwedishStemmer);
+        // OktaviaSearch.setStemmer(new TurkishStemmer);
     }
 }
