@@ -1,30 +1,31 @@
 import "console.jsx";
 import "js/nodejs.jsx";
 
-import "oktavia.jsx";
-import "getopt.jsx";
-import "query-parser.jsx";
-import "search-result.jsx";
-import "style.jsx";
-import "binary-util.jsx";
+import "./oktavia.jsx";
+import "./search-result.jsx";
+import "./style.jsx";
+import "./base64.jsx";
 
-import "stemmer/stemmer.jsx";
-import "stemmer/danish-stemmer.jsx";
-import "stemmer/dutch-stemmer.jsx";
-import "stemmer/english-stemmer.jsx";
-import "stemmer/finnish-stemmer.jsx";
-import "stemmer/french-stemmer.jsx";
-import "stemmer/german-stemmer.jsx";
-import "stemmer/hungarian-stemmer.jsx";
-import "stemmer/italian-stemmer.jsx";
-import "stemmer/norwegian-stemmer.jsx";
-import "stemmer/porter-stemmer.jsx";
-import "stemmer/portuguese-stemmer.jsx";
-import "stemmer/romanian-stemmer.jsx";
-import "stemmer/russian-stemmer.jsx";
-import "stemmer/spanish-stemmer.jsx";
-import "stemmer/swedish-stemmer.jsx";
-import "stemmer/turkish-stemmer.jsx";
+import "getopt.jsx";
+import "query-list-parser.jsx";
+
+import "stemmer.jsx";
+import "danish-stemmer.jsx";
+import "dutch-stemmer.jsx";
+import "english-stemmer.jsx";
+import "finnish-stemmer.jsx";
+import "french-stemmer.jsx";
+import "german-stemmer.jsx";
+import "hungarian-stemmer.jsx";
+import "italian-stemmer.jsx";
+import "norwegian-stemmer.jsx";
+import "porter-stemmer.jsx";
+import "portuguese-stemmer.jsx";
+import "romanian-stemmer.jsx";
+import "russian-stemmer.jsx";
+import "spanish-stemmer.jsx";
+import "swedish-stemmer.jsx";
+import "turkish-stemmer.jsx";
 
 
 class Search
@@ -44,7 +45,7 @@ class Search
             return;
         }
         console.time('searching');
-        var queryParser = new QueryParser();
+        var queryParser = new QueryListParser();
         queryParser.parse(queryStrings);
         var summary = oktavia.search(queryParser.queries);
         console.timeEnd('searching');
@@ -71,13 +72,13 @@ class Search
             break;
         case ".b64":
             content = node.fs.readFileSync(filepath, "utf8");
-            oktavia.load(Binary.base64decode(content));
+            oktavia.load(Base64.atob(content));
             break;
         case ".js":
             content = node.fs.readFileSync(filepath, "utf8");
             var index = content.indexOf('"');
             var lastIndex = content.lastIndexOf('"');
-            oktavia.load(Binary.base64decode(content.slice(index, lastIndex)));
+            oktavia.load(Base64.atob(content.slice(index, lastIndex)));
             break;
         default:
             console.log("unknown file extension: " + ext);
@@ -185,7 +186,7 @@ class Search
         if (query.length > 1)
         {
             console.log("Suggestions:");
-            var proposals = summary.getProposal();
+            var proposals = summary.getProposals();
             for (var i = 0; i < proposals.length; i++)
             {
                 var proposal = proposals[i];

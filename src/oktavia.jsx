@@ -15,6 +15,7 @@ class Oktavia
     var _stemmer : Nullable.<Stemmer>;
     var _stemmingResult : Map.<string[]>;
     var _build : boolean;
+    var _isLastEob : boolean;
 
     // char code remap tables
     var _utf162compressCode : string[];
@@ -36,6 +37,7 @@ class Oktavia
         this._stemmer = null;
         this._stemmingResult = {} : Map.<string[]>;
         this._build = false;
+        this._isLastEob = false;
         this._utf162compressCode = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
         this._compressCode2utf16 = [Oktavia.eof, Oktavia.eob, Oktavia.unknown];
     }
@@ -137,6 +139,7 @@ class Oktavia
     function addEndOfBlock () : void
     {
         this._fmindex.push(Oktavia.eob);
+        this._isLastEob = true;
     }
 
     function addWord (word : string) : void
@@ -155,6 +158,7 @@ class Oktavia
             str += convertedChar;
         }
         this._fmindex.push(str);
+        this._isLastEob = word.charCodeAt(word.length - 1) < 2;
     }
 
     function addWord (word : string, stemming : boolean) : void

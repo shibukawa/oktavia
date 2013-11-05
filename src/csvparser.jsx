@@ -1,5 +1,5 @@
 import "oktavia.jsx";
-import "stemmer/stemmer.jsx";
+import "stemmer.jsx";
 
 
 class CSVParser

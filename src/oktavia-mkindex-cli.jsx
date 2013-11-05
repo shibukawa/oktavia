@@ -79,6 +79,15 @@ class _Main
 
     static function main(args : string[]) : void
     {
+        _Main.run(args);
+        if (JSX.profilerIsRunning())
+        {
+            JSX.postProfileResults("http://localhost:2012/post-profile");
+        }
+    }
+
+    static function run (args : string[]) : void
+    {
         console.log("Search Engine Oktavia - Index Generator\n");
 
         var inputs = [] : string[];
@@ -318,7 +327,7 @@ class _Main
                     indexFilePath = node.path.resolve(root, output, 'searchindex.okt.b64');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
-                    node.fs.writeFileSync(indexFilePath, Binary.base64encode(dump), "utf8");
+                    node.fs.writeFileSync(indexFilePath, Base64.btoa(dump), "utf8");
                     break;
                 case 'cmd':
                     break;
@@ -332,7 +341,7 @@ class _Main
                     }
                     var contents = [
                         '// Oktavia Search Index',
-                        'var ' + name + ' = "' + Binary.base64encode(dump) + '";', ''
+                        'var ' + name + ' = "' + Base64.btoa(dump) + '";', ''
                     ];
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;
@@ -346,7 +355,7 @@ class _Main
                     }
                     var contents = [
                         '// Oktavia Search Index',
-                        'exports.' + name + ' = "' + Binary.base64encode(dump) + '";', ''
+                        'exports.' + name + ' = "' + Base64.btoa(dump) + '";', ''
                     ];
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;

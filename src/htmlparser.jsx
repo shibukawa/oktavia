@@ -1,9 +1,9 @@
 import "console.jsx";
 import "js/nodejs.jsx";
-import "oktavia.jsx";
-import "metadata.jsx";
 import "sax.jsx";
-import "stemmer/stemmer.jsx";
+import "stemmer.jsx";
+import "./metadata.jsx";
+import "./oktavia.jsx";
 
 
 class _HTMLHandler extends SAXHandler
@@ -274,7 +274,7 @@ class HTMLParser
     function dump (cacheDensity : int, verbose : boolean) : string
     {
         console.log('\nbuilding...\n');
-        this.oktavia.build(cacheDensity, verbose);
+        this.oktavia.build(cacheDensity);
         return this.oktavia.dump(verbose);
     }
 }

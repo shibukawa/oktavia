@@ -112,8 +112,7 @@ __export__ class Section extends Metadata
         {
             index = this._parent.contentSize() - 1;
         }
-        var lastChar = this._parent._getSubstring(index, 1);
-        if (lastChar == Oktavia.eof || lastChar == Oktavia.eob)
+        if (this._parent._isLastEob)
         {
             throw new Error("Tail should not be 'eof' or 'eob'");
         }
@@ -205,8 +204,7 @@ __export__ class Splitter extends Metadata
         {
             index = this._parent.contentSize() - 1;
         }
-        var lastChar = this._parent._getSubstring(index, 1);
-        if (lastChar == Oktavia.eof || lastChar == Oktavia.eob)
+        if (this._parent._isLastEob)
         {
             throw new Error("Tail should not be 'eof' or 'eob'");
         }
@@ -289,8 +287,7 @@ __export__ class Table extends Metadata
     function setColumnTail () : void
     {
         var index = this._parent.contentSize();
-        var lastChar = this._parent._getSubstring(index, 1);
-        if (lastChar == Oktavia.eob)
+        if (this._parent._isLastEob)
         {
             throw new Error("Tail should not be 'eof' or 'eob'");
         }
@@ -426,8 +423,7 @@ __export__ class Block extends Metadata
         {
             index = this._parent.contentSize() - 1;
         }
-        var lastChar = this._parent._getSubstring(index, 1);
-        if (lastChar == Oktavia.eof || lastChar == Oktavia.eob)
+        if (this._parent._isLastEob)
         {
             throw new Error("Block end should not be 'eof' or 'eob'");
         }
