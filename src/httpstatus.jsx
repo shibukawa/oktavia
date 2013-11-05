@@ -1,8 +1,8 @@
 import "console.jsx";
 import "oktavia.jsx";
 import "metadata.jsx";
-import "query-parser.jsx";
-import "stemmer/english-stemmer.jsx";
+import "query-list-parser.jsx";
+import "english-stemmer.jsx";
 
 
 class HTTPStatus
@@ -80,17 +80,18 @@ class HTTPStatus
             "509: Bandwidth Limit Exceeded",
             "510: Not Extended"
         ];
-        for (var i in this.httpstatus)
+        for (var i = 0; i < this.httpstatus.length; i++)
         {
             this.oktavia.addWord(this.httpstatus[i], Oktavia.USE_STEMMING);
             this.splitter.split();
+            this.oktavia.addEndOfBlock();
         }
-        this.oktavia.build();
+        this.oktavia.build(5);
     }
 
     function search (words : string[]) : string
     {
-        var queryParser = new QueryParser();
+        var queryParser = new QueryListParser();
         var queries = queryParser.parse(words);
         if (queries.length == 0)
         {

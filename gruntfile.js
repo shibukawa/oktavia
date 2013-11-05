@@ -1,8 +1,8 @@
 module.exports = function(grunt) {
   'use strict';
   var pkg = grunt.file.readJSON('package.json');
-  var websrc = ['src/oktavia-search-web.jsx', 'src/oktavia-search-web-legacy.jsx'];
-  var websocketsrc = ['src/oktavia-search-websocket.jsx'];
+  var websrc = ['src/oktavia-web-runtime.jsx'];
+  var webworkersrc = ['src/oktavia-web-runtime.jsx'];
   var toolsrc = ['src/httpstatus.jsx', 'src/oktavia-mkindex-cli', 'src/oktavia-search-cli'];
   grunt.initConfig({
     sampleDir: "samples",
@@ -83,8 +83,8 @@ module.exports = function(grunt) {
         minify: true
       },
 
-      websocket: {
-        src: websocketsrc,
+      webworker: {
+        src: webworkersrc,
         output_rule: {
             regexp: /src\/(.+)\.jsx/,
             replace: 'bin\/web/\/$1.js'
@@ -92,11 +92,11 @@ module.exports = function(grunt) {
         add_search_path: ['<%= libDir %>'],
         release: true,
         minify: true,
-        linker: 'websocket'
+        linker: 'webworker'
       },
 
       tool: {
-        src: websocketsrc,
+        src: toolsrc,
         output_rule: {
             regexp: /src\/(.+)\.jsx/,
             replace: 'dest\/$1.js'
@@ -134,7 +134,7 @@ module.exports = function(grunt) {
     'jsx:closure',
     'jsx:standard',
     'jsx:global',
-    'jsx:websocket',
+    'jsx:webworker',
     'jsx:tool'
   ]);
   grunt.registerTask('test', ['jsx:test']);

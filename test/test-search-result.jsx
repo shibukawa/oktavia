@@ -128,12 +128,12 @@ class _Test extends TestCase
         summary.add(singleresult1);
         summary.add(singleresult2);
 
-        var proposal = summary.getProposal();
+        var proposals = summary.getProposals();
 
-        this.expect(proposal[0].omit).toBe(1);
-        this.expect(proposal[0].expect).toBe(2);
-        this.expect(proposal[1].omit).toBe(0);
-        this.expect(proposal[1].expect).toBe(1);
+        this.expect(proposals[0].omit).toBe(1);
+        this.expect(proposals[0].expect).toBe(2);
+        this.expect(proposals[1].omit).toBe(0);
+        this.expect(proposals[1].expect).toBe(1);
     }
 
     function test_sort () : void

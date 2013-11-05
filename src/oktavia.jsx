@@ -277,7 +277,7 @@ class Oktavia
 
     __noexport__ function build () : void
     {
-        this.build(null);
+        this.build(5);
     }
 
     function build (cacheDensity : Nullable.<int>) : void

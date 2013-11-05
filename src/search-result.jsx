@@ -247,7 +247,7 @@ class SearchSummary
         return rhs;
     }
 
-    function getProposal () : Proposal[]
+    function getProposals () : Proposal[]
     {
         var proposals = [] : Proposal[];
         for (var i = 0; i < this.sourceResults.length; i++)

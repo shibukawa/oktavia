@@ -21,9 +21,15 @@ class Base64 {
     static function btoa(binary:string,
                          normalize:boolean = false):string {
         var window = js.global["window"];
-
+        var self = js.global["self"];
+        var btoa : Nullable.<(string)->string> = null;
         if (window && window['btoa']) {
-            var btoa = window['btoa'] as __noconvert__ (string)->string;
+            window['btoa'] as __noconvert__ (string)->string;
+        }
+        else if (self && self['btoa']) {
+            self['btoa'] as __noconvert__ (string)->string;
+        }
+        if (btoa) {
             if (!normalize) {
                 try {
                     return btoa(binary); // Base64 to Base64String
@@ -37,10 +43,17 @@ class Base64 {
     }
     static function atob(base64:string):string {
         var window = js.global["window"];
+        var self = js.global["self"];
+        var atob : Nullable.<(string)->string> = null;
 
         if (window && window['atob']) {
+            atob = window['atob'] as __noconvert__ (string)->string;
+        }
+        else if (self && self['atob']) {
+             atob = self['atob'] as __noconvert__ (string)->string;
+        }
+        if (atob) {
             try {
-                var atob = window['atob'] as __noconvert__ (string)->string;
                 return atob(base64);
             } catch (o_o:Error) {
                 // maybe. broken base64 data
