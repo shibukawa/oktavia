@@ -237,7 +237,7 @@ __export__ class Splitter extends Metadata
 
     override function getInformation(index : int) : string
     {
-        return this._name + ((index + 1) as string);
+        return this._name + ' ' + ((index + 1) as string);
     }
 
     static function _load (parent : Oktavia, input : BinaryInput) :void

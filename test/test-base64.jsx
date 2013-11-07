@@ -19,6 +19,6 @@ class _Test extends TestCase
     {
         var testdata = "test string\ufff0\u0000\uffff";
         var result = Base64.to16bitString(Base64.atob(Base64.btoa(Base64.to8bitString(testdata))));
-        this.expect(result).notToBe(testdata);
+        this.expect(result).toBe(testdata);
     }
 }

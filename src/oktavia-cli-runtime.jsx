@@ -3,6 +3,7 @@ import "js/nodejs.jsx";
 import "js.jsx";
 
 import "./oktavia.jsx";
+import "./metadata.jsx";
 import "./search-result.jsx";
 import "./style.jsx";
 import "./base64.jsx";
@@ -108,7 +109,14 @@ class Search
         {
             var unit = results[i];
             var info = metadata.getInformation(unit.id).split(Oktavia.eob);
-            console.log(style.convert('<title>' + info[0] + '</title>') + ' ' + style.convert('<url>' + info[1] + '</url>'));
+            if (info.length == 2)
+            {
+                console.log(style.convert('<title>' + info[0] + '</title>') + '  ' + style.convert('<url>' + info[1] + '</url>'));
+            }
+            else
+            {
+                console.log(style.convert('<title>' + info[0] + '</title>'));
+            }
             var content = metadata.getContent(unit.id);
             var start = 0;
             var positions = unit.getPositions();
@@ -130,9 +138,9 @@ class Search
                 if (pos.position + pos.word.length < end)
                 {
                     content = [
-                        content.slice(0, pos.position - start),
-                        style.convert('<hit>*</hit>').replace('*', content.slice(pos.position - start, pos.position + pos.word.length - start)),
-                        content.slice(pos.position + pos.word.length - start, content.length)
+                        content.slice(0, pos.position - start - 1),
+                        style.convert('<hit>*</hit>').replace('*', content.slice(pos.position - start - 1, pos.position + pos.word.length - start - 1)),
+                        content.slice(pos.position + pos.word.length - start - 1, content.length)
                     ].join('');
                 }
             }

@@ -4,7 +4,7 @@ import "js/nodejs.jsx";
 import "./oktavia.jsx";
 import "./htmlparser.jsx";
 import "./csvparser.jsx";
-//import "textparser.jsx";
+import "./textparser.jsx";
 import "./base64.jsx";
 
 import "getopt.jsx";
@@ -39,7 +39,7 @@ class _Main
             "                                  : This is a relative path from root.",
             "                                  : Default value is 'search'. ",
             " -t, --type [type]                : Export type. 'index', 'base64', 'cmd', 'js(default)',",
-            "                                  : 'commonjs' are available.",
+            "                                  : 'commonjs' 'web', are available.",
             "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
             "                                  : Others are base64 source code style output.",
             " -m, --mode [mode]                : Mode type. 'html', 'csv', 'text' are available.",
@@ -65,12 +65,14 @@ class _Main
             //" -w, --word-splitter [splitter]   : Use optional word splitter.",
             //"                                  : 'ts' (TinySegmenter for Japanese) is available",
             "",
-            /*"Text Mode Options:",
+            "Text Mode Options:",
+            " -r, --root  [document root]      : Document root folder. Default is current. ",
+            "                                  : Indexer creates result file path from this folder.",
             " -s, --stemmer [algorithm]        : Select stemming algorithm.",
-            " -w, --word-splitter [splitter]   : Use optional word splitter.",
-            "                                  : 'ts' (TinySegmenter for Japanese) is available",
+            //" -w, --word-splitter [splitter]   : Use optional word splitter.",
+            //"                                  : 'ts' (TinySegmenter for Japanese) is available",
             " -u, --unit [search unit]         : file, block, line. Default value is 'file'.",
-            "",*/
+            "",
             "Supported Stemmer Algorithms:",
             "  danish, dutch, english, finnish, french german, hungarian italian",
             "  norwegian, porter, portuguese, romanian, russian, spanish, swedish, turkish"
@@ -107,13 +109,13 @@ class _Main
         var name = null : Nullable.<string>;
         var validModes = ['html', 'csv', 'text'];
         var validUnitsForHTML = ['file', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-        //var validUnitsForText = ['file', 'block', 'line'];
+        var validUnitsForText = ['file', 'block', 'line'];
         var validStemmers = [
             'danish', 'dutch', 'english', 'finnish', 'french', 'german', 'hungarian',
             'italian', 'norwegian', 'porter', 'portuguese', 'romanian', 'russian',
             'spanish', 'swedish', 'turkish'
         ];
-        var validTypes = ['index', 'base64', 'cmd', 'js', 'commonjs'];
+        var validTypes = ['index', 'base64', 'cmd', 'js', 'commonjs', 'web'];
         //var validWordSplitters = ['ts'];
 
         var optstring = "n:(name)q(quiet)m:(mode)i:(input)r:(root)p:(prefix)o:(output)h(help)u:(unit)f:(filter)s:(stemmer)w:(word-splitter)t:(type)c:(cache-density)";
@@ -297,7 +299,7 @@ class _Main
                     csvParser.parse(inputCSVFiles[i]);
                 }
                 break;
-            /*case 'text':
+            case 'text':
                 if (validUnitsForText.indexOf(unit) == -1)
                 {
                     console.error('Option u/unit should be file, block, line. But ' + unit);
@@ -309,8 +311,9 @@ class _Main
                     {
                         textParser.parse(inputTextFiles[i]);
                     }
+                    dump = textParser.dump(cacheDensity, verbose);
                 }
-                break;*/
+                break;
             }
             if (dump)
             {

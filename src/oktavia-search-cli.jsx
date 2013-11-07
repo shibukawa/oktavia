@@ -157,9 +157,9 @@ class Search
                     log(content.slice(pos.position + pos.word.length - start, content.length));
                     log('--------------end');*/
                     content = [
-                        content.slice(0, pos.position - start),
-                        style.convert('<hit>*</hit>').replace('*', content.slice(pos.position - start, pos.position + pos.word.length - start)),
-                        content.slice(pos.position + pos.word.length - start, content.length)
+                        content.slice(0, pos.position - start - 1),
+                        style.convert('<hit>*</hit>').replace('*', content.slice(pos.position - start - 1, pos.position + pos.word.length - start - 1)),
+                        content.slice(pos.position + pos.word.length - start - 1, content.length)
                     ].join('');
                 }
             }
