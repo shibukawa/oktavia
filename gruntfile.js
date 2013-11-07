@@ -3,6 +3,7 @@ module.exports = function(grunt) {
   var pkg = grunt.file.readJSON('package.json');
   var websrc = ['src/oktavia-web-runtime.jsx'];
   var webworkersrc = ['src/oktavia-web-runtime.jsx'];
+  var cliruntimesrc = ['src/oktavia-cli-runtime.jsx'];
   var toolsrc = ['src/httpstatus.jsx', 'src/oktavia-mkindex-cli.jsx', 'src/oktavia-search-cli.jsx'];
   grunt.initConfig({
     sampleDir: "samples",
@@ -103,8 +104,19 @@ module.exports = function(grunt) {
         },
         add_search_path: ['<%= libDir %>'],
         release: true,
-        executable: 'node',
-        profile: true
+        executable: 'node'
+      },
+
+      cliruntime: {
+        src: cliruntimesrc,
+        output_rule: {
+            regexp: /src\/(.+)\.jsx/,
+            replace: 'dest\/$1.js'
+        },
+        add_search_path: ['<%= libDir %>'],
+        release: true,
+        minify: false,
+        executable: 'node'
       },
 
       test: {
@@ -136,7 +148,8 @@ module.exports = function(grunt) {
     'jsx:standard',
     'jsx:global',
     'jsx:webworker',
-    'jsx:tool'
+    'jsx:tool',
+    'jsx:cliruntime'
   ]);
   grunt.registerTask('test', ['jsx:test']);
   grunt.registerTask('doc', ['jsx:doc']);

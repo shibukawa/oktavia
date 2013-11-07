@@ -1,7 +1,6 @@
 // JSX
 import "js.jsx";
 
-
 class Base64 {
     static var _indexToChar =
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".split("");
@@ -73,10 +72,20 @@ class Base64 {
         // 24bit binary string -> 32bit base64 binary string
         --iz;
         while (i < iz) {
-            c =  ((ary[++i] & 0xff) << 16) |
-                 ((ary[++i] & 0xff) <<  8) |
-                  (ary[++i] & 0xff); // 24bit
-
+            switch (iz - i) {
+            case 1:
+                c = ((ary[++i] & 0xff) << 16);
+                break;
+            case 2:
+                c = ((ary[++i] & 0xff) << 16) |
+                    ((ary[++i] & 0xff) <<  8);
+                break;
+            default:
+                c = ((ary[++i] & 0xff) << 16) |
+                    ((ary[++i] & 0xff) <<  8) |
+                     (ary[++i] & 0xff); // 24bit
+                break;
+            }
             rv.push(chars[(c >> 18) & 0x3f],
                     chars[(c >> 12) & 0x3f],
                     chars[(c >>  6) & 0x3f],
@@ -99,15 +108,30 @@ class Base64 {
         var codes = Base64._charToIndex;
 
         // 32bit base64 binary string -> 24bit binary string
-        while (i < iz) {                // 00000000|00000000|00000000 (24bit)
-            c = (codes[ary[i++]] << 18) // 111111  |        |
-              | (codes[ary[i++]] << 12) //       11|1111    |
-              | (codes[ary[i++]] <<  6) //         |    1111|11
-              |  codes[ary[i++]];       //         |        |  111111
-                                        //    v        v        v
-            rv.push((c >> 16) & 0xff,   // --------
-                    (c >>  8) & 0xff,   //          --------
-                     c        & 0xff);  //                   --------
+        while (i < iz) {
+            switch (iz - i) {
+            case 1:
+                c = (codes[ary[i++]] << 18);
+                break;
+            case 2:
+                c = (codes[ary[i++]] << 18)
+                  | (codes[ary[i++]] << 12);
+                break;
+            case 3:
+                c = (codes[ary[i++]] << 18)
+                  | (codes[ary[i++]] << 12)
+                  | (codes[ary[i++]] <<  6);
+                break;
+            default:
+                c = (codes[ary[i++]] << 18)
+                  | (codes[ary[i++]] << 12)
+                  | (codes[ary[i++]] <<  6)
+                  |  codes[ary[i++]];
+                break;
+            }
+            rv.push((c >> 16) & 0xff,
+                    (c >>  8) & 0xff,
+                     c        & 0xff);
         }
         rv.length -= [0, 0, 2, 1][str.replace(/\=+$/, "").length % 4]; // cut tail
 
@@ -143,5 +167,24 @@ class Base64 {
     static function normalize(binary:string,
                               filter:int = 0xffff):string {
         return Base64.fromArray( Base64.toArray(binary, filter) );
+    }
+    static function to8bitString(binary : string) : string {
+        var result = '';
+        for (var i = 0; i < binary.length; i++)
+        {
+            var code = binary.charCodeAt(i);
+            result = result + String.fromCharCode(code & 0xff) + String.fromCharCode(code >>> 8);
+        }
+        return result;
+    }
+    static function to16bitString(latinString : string) : string {
+        var result = '';
+        for (var i = 0; i < latinString.length; i += 2)
+        {
+            var upperCode = latinString.charCodeAt(i + 1);
+            var lowerCode = latinString.charCodeAt(i);
+            result += String.fromCharCode((upperCode << 8) + lowerCode);
+        }
+        return result;
     }
 }

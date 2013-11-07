@@ -75,6 +75,7 @@ class _HTMLHandler extends SAXHandler
                     this.currentLink = this.filepath + '#' + this.lastId;
                     this.currentTitle = '';
                     this.waitTitle = true;
+                    this.addText = false;
                 }
                 this.oktavia.addEndOfBlock();
                 this.tag.startBlock(tagname);

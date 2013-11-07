@@ -42,7 +42,7 @@
     "binary-support.jsx": "~0.1.0",
     "bit-vector.jsx": "~0.3.2",
     "burrows-wheeler-transform.jsx": "~0.2.1",
-    "fm-index.jsx": "~0.2.5",
+    "fm-index.jsx": "~0.2.6",
     "getopt.jsx": "~0.1.0",
     "query-parser.jsx": "~0.1.0",
     "wavelet-matrix.jsx": "~0.2.2",

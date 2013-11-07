@@ -31,14 +31,14 @@ class _Main
     static function usage () : void
     {
         console.log([
-            "usage: oktavia_mkindex [options]",
+            "usage: oktavia-mkindex-cli [options]",
             "",
             "Common Options:",
             " -i, --input [input folder/file ] : Target files to search. .html, .csv, .txt are available.",
             " -o, --output [outputfolder]      : Directory that will store output files.",
             "                                  : This is a relative path from root.",
             "                                  : Default value is 'search'. ",
-            " -t, --type [type]                : Export type. 'index'(default), 'base64', 'cmd', 'js',",
+            " -t, --type [type]                : Export type. 'index', 'base64', 'cmd', 'js(default)',",
             "                                  : 'commonjs' are available.",
             "                                  : 'index' is a just index file. 'cmd' is a base64 code with search program.",
             "                                  : Others are base64 source code style output.",
@@ -330,6 +330,13 @@ class _Main
                     node.fs.writeFileSync(indexFilePath, Base64.btoa(dump), "utf8");
                     break;
                 case 'cmd':
+                    var srcLines = node.fs.readFileSync(node.path.join(node.__dirname, 'oktavia-cli-runtime.js'), 'utf8').split('\n');
+                    var latinString = Base64.to8bitString(dump);
+                    var base64String = Base64.btoa(latinString);
+                    var indexContent = 'searchIndex = "' + base64String + '";';
+                    srcLines.splice(1, 0, indexContent);
+                    node.fs.writeFileSync(output, srcLines.join('\n'), 'utf8');
+                    node.fs.chmodSync(output, '0755');
                     break;
                 case 'js':
                     indexFilePath = node.path.resolve(root, output, 'searchindex.js');

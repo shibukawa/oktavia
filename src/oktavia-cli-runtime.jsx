@@ -1,5 +1,6 @@
 import "console.jsx";
 import "js/nodejs.jsx";
+import "js.jsx";
 
 import "./oktavia.jsx";
 import "./search-result.jsx";
@@ -10,40 +11,52 @@ import "getopt.jsx";
 import "query-list-parser.jsx";
 
 import "stemmer.jsx";
-import "danish-stemmer.jsx";
-import "dutch-stemmer.jsx";
-import "english-stemmer.jsx";
-import "finnish-stemmer.jsx";
-import "french-stemmer.jsx";
-import "german-stemmer.jsx";
-import "hungarian-stemmer.jsx";
-import "italian-stemmer.jsx";
-import "norwegian-stemmer.jsx";
-import "porter-stemmer.jsx";
-import "portuguese-stemmer.jsx";
-import "romanian-stemmer.jsx";
-import "russian-stemmer.jsx";
-import "spanish-stemmer.jsx";
-import "swedish-stemmer.jsx";
-import "turkish-stemmer.jsx";
+//import "danish-stemmer.jsx";
+//import "dutch-stemmer.jsx";
+//import "english-stemmer.jsx";
+//import "finnish-stemmer.jsx";
+//import "french-stemmer.jsx";
+//import "german-stemmer.jsx";
+//import "hungarian-stemmer.jsx";
+//import "italian-stemmer.jsx";
+//import "norwegian-stemmer.jsx";
+//import "porter-stemmer.jsx";
+//import "portuguese-stemmer.jsx";
+//import "romanian-stemmer.jsx";
+//import "russian-stemmer.jsx";
+//import "spanish-stemmer.jsx";
+//import "swedish-stemmer.jsx";
+//import "turkish-stemmer.jsx";
 
 
 class Search
 {
     var style : Style;
 
-    function search (indexFile : string, queryStrings : string[], num : int, style : Style, algorithm : Nullable.<string>) : void
+    function search (queryStrings : string[], num : int, style : Style) : void
     {
         this.style = style;
         var oktavia = new Oktavia();
-        if (algorithm != null)
-        {
-            oktavia.setStemmer(this.createStemmer(algorithm));
-        }
-        if (!this.loadIndex(oktavia, indexFile))
-        {
-            return;
-        }
+        //oktavia.setStemmer(new DanishStemmer());
+        //oktavia.setStemmer(new DutchStemmer());
+        //oktavia.setStemmer(new EnglishStemmer());
+        //oktavia.setStemmer(new FinnishStemmer());
+        //oktavia.setStemmer(new FrenchStemmer());
+        //oktavia.setStemmer(new GermanStemmer());
+        //oktavia.setStemmer(new HungarianStemmer());
+        //oktavia.setStemmer(new ItalianStemmer());
+        //oktavia.setStemmer(new NorwegianStemmer());
+        //oktavia.setStemmer(new PorterStemmer());
+        //oktavia.setStemmer(new PortugueseStemmer());
+        //oktavia.setStemmer(new RomanianStemmer());
+        //oktavia.setStemmer(new RussianStemmer());
+        //oktavia.setStemmer(new SpanishStemmer());
+        //oktavia.setStemmer(new SwedishStemmer());
+        //oktavia.setStemmer(new TurkishStemmer());
+
+        var latinString = Base64.atob(js.global['searchIndex'] as string);
+        var indexBinary = Base64.to16bitString(latinString);
+        oktavia.load(indexBinary);
         console.time('searching');
         var queryParser = new QueryListParser();
         queryParser.parse(queryStrings);
@@ -57,35 +70,6 @@ class Search
         {
             this.showResult(oktavia, summary, num);
         }
-    }
-
-    function loadIndex (oktavia : Oktavia, filepath : string) : boolean
-    {
-        var ext = node.path.extname(filepath);
-        var content : string;
-        var result = true;
-        switch (ext)
-        {
-        case ".okt":
-            content = node.fs.readFileSync(filepath, "utf16le");
-            oktavia.load(content);
-            break;
-        case ".b64":
-            content = node.fs.readFileSync(filepath, "utf8");
-            oktavia.load(Base64.atob(content));
-            break;
-        case ".js":
-            content = node.fs.readFileSync(filepath, "utf8");
-            var index = content.indexOf('"');
-            var lastIndex = content.lastIndexOf('"');
-            oktavia.load(Base64.atob(content.slice(index, lastIndex)));
-            break;
-        default:
-            console.log("unknown file extension: " + ext);
-            result = false;
-            break;
-        }
-        return result;
     }
 
     function sortResult (oktavia : Oktavia, summary : SearchSummary) : SearchUnit[]
@@ -124,11 +108,7 @@ class Search
         {
             var unit = results[i];
             var info = metadata.getInformation(unit.id).split(Oktavia.eob);
-            /*console.log(info.replace(Oktavia.eob, ' -- ') + '\n');
-                    + ' ----------------------------------------------- '
-                    + unit.score as string + ' pt');*/
             console.log(style.convert('<title>' + info[0] + '</title>') + ' ' + style.convert('<url>' + info[1] + '</url>'));
-            //var offset = info[0].length + 1;
             var content = metadata.getContent(unit.id);
             var start = 0;
             var positions = unit.getPositions();
@@ -149,13 +129,6 @@ class Search
                 var pos = positions[j];
                 if (pos.position + pos.word.length < end)
                 {
-                    /*log('--------------begin : ' + (pos.position - start) as string);
-                    log(content.slice(0, pos.position - start));
-                    log('--------------match : ' + pos.word.length as string);
-                    .log(content.slice(pos.position - start, pos.position + pos.word.length - start));
-                    log('--------------match : ' + (content.length - pos.position + pos.word.length - start) as string);
-                    log(content.slice(pos.position + pos.word.length - start, content.length));
-                    log('--------------end');*/
                     content = [
                         content.slice(0, pos.position - start),
                         style.convert('<hit>*</hit>').replace('*', content.slice(pos.position - start, pos.position + pos.word.length - start)),
@@ -210,77 +183,16 @@ class Search
             console.log(style.convert("Your search - <hit>" + query[0] + "</hit> - didn't match any documents."));
         }
     }
-
-    function createStemmer (algorithm : string) : Stemmer
-    {
-        var stemmer : Stemmer;
-        switch (algorithm.toLowerCase())
-        {
-        case "danish":
-            stemmer = new DanishStemmer();
-            break;
-        case "dutch":
-            stemmer = new DutchStemmer();
-            break;
-        case "english":
-            stemmer = new EnglishStemmer();
-            break;
-        case "finnish":
-            stemmer = new FinnishStemmer();
-            break;
-        case "french":
-            stemmer = new FrenchStemmer();
-            break;
-        case "german":
-            stemmer = new GermanStemmer();
-            break;
-        case "hungarian":
-            stemmer = new HungarianStemmer();
-            break;
-        case "italian":
-            stemmer = new ItalianStemmer();
-            break;
-        case "norwegian":
-            stemmer = new NorwegianStemmer();
-            break;
-        case "porter":
-            stemmer = new PorterStemmer();
-            break;
-        case "portuguese":
-            stemmer = new PortugueseStemmer();
-            break;
-        case "romanian":
-            stemmer = new RomanianStemmer();
-            break;
-        case "russian":
-            stemmer = new RussianStemmer();
-            break;
-        case "spanish":
-            stemmer = new SpanishStemmer();
-            break;
-        case "swedish":
-            stemmer = new SwedishStemmer();
-            break;
-        case "turkish":
-            stemmer = new TurkishStemmer();
-            break;
-        default:
-            stemmer = new EnglishStemmer();
-            break;
-        }
-        return stemmer;
-    }
 }
 
 class _Main {
     static function usage () : void
     {
         console.log([
-            "usage: oktavia_search index_file [options] query...",
+            "usage: %s index_file [options] query...",
             "",
             "Options:",
             "   -m, --mono                    : Don't use color.",
-            "   -s, --stemmer [algorithm]     : Select stemming algorithm.",
             "   -n, --number [char number]    : Result display number. Default value = 250",
             "   -h, --help                    : Display this message.",
             "",
@@ -289,59 +201,29 @@ class _Main {
             '   "word1 word2"                 : Exact words or phrase.',
             "   word1 OR word2                : Any of these words.",
             "   word1 -word2                  : None of these words."
-        ].join('\n'));
+        ].join('\n').replace('%s', process.argv[1]));
     }
 
     static function main(args : string[]) : void
     {
-        console.log("Search Engine Oktavia - Command-line Search Client\n");
-
-        var indexFile : Nullable.<string> = null;
         var showhelp = false;
         var notrun = false;
         var styleType = 'console';
         var num : int = 250;
         var queryStrings = [] : string[];
-        var algorithm : Nullable.<string> = null;
-
-        var validStemmers = [
-            'danish', 'dutch', 'english', 'finnish', 'french', 'german', 'hungarian',
-            'italian', 'norwegian', 'porter', 'portuguese', 'romanian', 'russian',
-            'spanish', 'swedish', 'turkish'
-        ];
 
         if (args.length == 0)
         {
             showhelp = true;
         }
-        else if (!node.fs.existsSync(args[0]))
-        {
-            console.error("Index file '" + args[0] + "' doesn't exist.");
-            notrun = true;
-        }
-        else
-        {
-            indexFile = args[0];
-        }
 
-        var optstring = "m(mono)s:(stemmer)n:(number)h(help)";
-        var parser = new BasicParser(optstring, args.slice(1));
+        var optstring = "m(mono)n:(number)h(help)";
+        var parser = new BasicParser(optstring, args);
         var opt = parser.getopt();
         while (opt)
         {
             switch (opt.option)
             {
-            case "s":
-                if (validStemmers.indexOf(opt.optarg) == -1)
-                {
-                    console.error('Option s/stemmer is invalid.');
-                    notrun = true;
-                }
-                else
-                {
-                    algorithm = opt.optarg;
-                }
-                break;
             case "m":
                 styleType = 'ignore';
                 break;
@@ -365,7 +247,7 @@ class _Main {
         {
             var style = new Style(styleType);
             var search = new Search();
-            search.search(indexFile, queryStrings, num, style, algorithm);
+            search.search(queryStrings, num, style);
         }
     }
 }

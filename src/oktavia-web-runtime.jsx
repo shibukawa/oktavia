@@ -333,6 +333,11 @@ class _Main
         {
             self.postMessage({type: "ready"});
         }
+        else
+        {
+            var callback = js.global['onOktaviaLoad'] as (OktaviaSearchRuntime) -> void;
+            callback(_Main.instance);
+        }
     }
 
     static function onmessage(event : MessageEvent) : void
