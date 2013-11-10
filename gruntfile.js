@@ -8,7 +8,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     sampleDir: "samples",
     srcDir: "src",
-    libDir: "node_modules/*/lib",
+    libDir: "node_modules/*/src",
     destDir: "dest",
     testDir: "test",
     docDir: "doc",
