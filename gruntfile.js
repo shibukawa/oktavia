@@ -9,7 +9,7 @@ module.exports = function(grunt) {
     sampleDir: "samples",
     srcDir: "src",
     libDir: "node_modules/*/src",
-    destDir: "dest",
+    destDir: "bin",
     testDir: "test",
     docDir: "doc",
 
@@ -21,6 +21,16 @@ module.exports = function(grunt) {
       test: {
         files: ['<%= testDir %>/*.jsx', '<%= srcDir %>'],
         tasks: ['jsx:test']
+      }
+    },
+
+    connect: {
+      server: {
+        options: {
+          port: 8080,
+          base: 'samples',
+          keepalive: true
+        }
       }
     },
 
@@ -100,7 +110,7 @@ module.exports = function(grunt) {
         src: toolsrc,
         output_rule: {
             regexp: /src\/(.+)\.jsx/,
-            replace: 'dest\/$1'
+            replace: 'bin\/$1'
         },
         add_search_path: ['<%= libDir %>'],
         release: true,
@@ -111,7 +121,7 @@ module.exports = function(grunt) {
         src: cliruntimesrc,
         output_rule: {
             regexp: /src\/(.+)\.jsx/,
-            replace: 'dest\/$1.js'
+            replace: 'bin\/$1.js'
         },
         add_search_path: ['<%= libDir %>'],
         release: true,
@@ -153,5 +163,6 @@ module.exports = function(grunt) {
   ]);
   grunt.registerTask('test', ['jsx:test']);
   grunt.registerTask('doc', ['jsx:doc']);
+  grunt.registerTask('runserver', ['connect:server']);
 };
 // vim: set expandtab tabstop=2 shiftwidth=2:

@@ -95,7 +95,7 @@ class _Main
         var inputs = [] : string[];
         var root = process.cwd();
         var prefix = '/';
-        var output = "search";
+        var output : Nullable.<string> = null;
         var showhelp = false;
         var notrun = false;
         var unit = 'file';
@@ -321,27 +321,59 @@ class _Main
                 switch (type)
                 {
                 case 'index':
+                    if (output == null)
+                    {
+                        output = 'search';
+                    }
                     indexFilePath = node.path.resolve(root, output, 'searchindex.okt');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
+                    console.log("writing index in binary...", indexFilePath);
                     node.fs.writeFileSync(indexFilePath, dump, "utf16le");
                     break;
                 case 'base64':
+                    if (output == null)
+                    {
+                        output = 'search';
+                    }
                     indexFilePath = node.path.resolve(root, output, 'searchindex.okt.b64');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
+                    console.log("writing index in base64...", indexFilePath);
                     node.fs.writeFileSync(indexFilePath, Base64.btoa(dump), "utf8");
                     break;
                 case 'cmd':
+                    if (output == null)
+                    {
+                        output = 'index-search-cli';
+                    }
                     var srcLines = node.fs.readFileSync(node.path.join(node.__dirname, 'oktavia-cli-runtime.js'), 'utf8').split('\n');
                     var latinString = Base64.to8bitString(dump);
                     var base64String = Base64.btoa(latinString);
                     var indexContent = 'searchIndex = "' + base64String + '";';
                     srcLines.splice(1, 0, indexContent);
+                    console.log("writing index for cli...", output);
                     node.fs.writeFileSync(output, srcLines.join('\n'), 'utf8');
                     node.fs.chmodSync(output, '0755');
                     break;
+                case 'web':
+                    if (output == null)
+                    {
+                        output = 'searchindex.js';
+                    }
+                    var srcLines = node.fs.readFileSync(node.path.join(node.__dirname, "web", 'oktavia-web-runtime.js'), 'utf8').split('\n');
+                    var latinString = Base64.to8bitString(dump);
+                    var base64String = Base64.btoa(latinString);
+                    var indexContent = 'searchIndex = "' + base64String + '";';
+                    srcLines.splice(0, 0, indexContent);
+                    console.log("writing index for web...", output);
+                    node.fs.writeFileSync(output, srcLines.join('\n'), 'utf8');
+                    break;
                 case 'js':
+                    if (output == null)
+                    {
+                        output = 'search';
+                    }
                     indexFilePath = node.path.resolve(root, output, 'searchindex.js');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
@@ -353,9 +385,14 @@ class _Main
                         '// Oktavia Search Index',
                         'var ' + name + ' = "' + Base64.btoa(dump) + '";', ''
                     ];
+                    console.log("writing index in js...", indexFilePath);
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;
                 case 'commonjs':
+                    if (output == null)
+                    {
+                        output = 'search';
+                    }
                     indexFilePath = node.path.resolve(root, output, 'searchindex.js');
                     var dirPath = node.path.dirname(indexFilePath);
                     _Main._mkdirP(dirPath);
@@ -367,12 +404,9 @@ class _Main
                         '// Oktavia Search Index',
                         'exports.' + name + ' = "' + Base64.btoa(dump) + '";', ''
                     ];
+                    console.log("writing index in js...", indexFilePath);
                     node.fs.writeFileSync(indexFilePath, contents.join('\n'), "utf8");
                     break;
-                }
-                if (indexFilePath)
-                {
-                    console.log("generated: " + indexFilePath);
                 }
             }
         }

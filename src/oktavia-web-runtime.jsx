@@ -54,7 +54,7 @@ class OktaviaSearchResultCache
 
     function generateJSON (entriesPerPage : int, results : JsonResultItem[] = []) : JsonResult
     {
-        var result = new JsonResult('result');
+        var result = new JsonResult('result', this.queryString);
         result.totalCount = this.results.length;
         result.totalPage = Math.ceil(this.results.length / entriesPerPage);
         result.currentPage = this.currentPage;
@@ -158,7 +158,7 @@ class OktaviaSearchRuntime
     function loadIndex () : void
     {
         var index = js.global["searchIndex"] as string;
-        this._oktavia.load(Base64.atob(index));
+        this._oktavia.load(Base64.to16bitString(Base64.atob(index)));
     }
 
     function search (queryString : string) : JsonResult
@@ -188,6 +188,7 @@ class OktaviaSearchRuntime
                     cache.renderProposals(summary.getProposals());
                 }
             }
+            this._resultCaches[queryString] = cache;
         }
         return result;
     }
@@ -222,6 +223,7 @@ class OktaviaSearchRuntime
             if (cache.renderedResults[i])
             {
                 results.push(cache.renderedResults[i]);
+                continue;
             }
             var unit = cache.results[i];
             var info = metadata.getInformation(unit.id).split(Oktavia.eob);
@@ -340,7 +342,7 @@ class _Main
         }
     }
 
-    static function onmessage(event : MessageEvent) : void
+    __export__ static function onmessage(event : MessageEvent) : void
     {
         var type = event.data['type'] as string;
         switch (type) {

@@ -26,6 +26,7 @@
     "url": "https://github.com/shibukawa/oktavia/issues"
   },
   "directories": {
+    "bin": "./bin",
     "doc": "./doc",
     "lib": "./lib",
     "test": "./test"
@@ -39,6 +40,7 @@
     "grunt": "~0.4.1",
     "grunt-jsx": ">=0.1.5",
     "grunt-cli": "~0.1.10",
+    "grunt-contrib-connect": "~0.5.0",
     "binary-io.jsx": "~0.3.0",
     "binary-support.jsx": "~0.2.0",
     "bit-vector.jsx": "~0.4.0",

@@ -1,4 +1,4 @@
-class JsonResultItem
+__export__ class JsonResultItem
 {
     var title : string;
     var url : string;
@@ -13,7 +13,7 @@ class JsonResultItem
     }
 }
 
-class JsonProposalItem
+__export__ class JsonProposalItem
 {
     var options : string;
     var label : string;
@@ -26,9 +26,10 @@ class JsonProposalItem
     }
 }
 
-class JsonResult
+__export__ class JsonResult
 {
     var type : string;
+    var queryString : string;
     var totalCount : int;
     var currentPage : int;
     var totalPage : int;
@@ -40,9 +41,20 @@ class JsonResult
     var highlight: string;
     var errorMessage : string;
 
-    function constructor (type : string, errorMessage : string = '')
+    function constructor (type : string, queryString : string)
     {
         this.type = type;
+        this.queryString = queryString;
+        this.errorMessage = '';
+        this.results = [] : JsonResultItem[];
+        this.proposals = [] : JsonProposalItem[];
+        this.pageIndexes = [] : string[];
+    }
+
+    __noexport__ function constructor (type : string, queryString : string, errorMessage : string)
+    {
+        this.type = type;
+        this.queryString = queryString;
         this.errorMessage = errorMessage;
         this.results = [] : JsonResultItem[];
         this.proposals = [] : JsonProposalItem[];
@@ -51,7 +63,7 @@ class JsonResult
 
     static function fromJSON (json : variant) : JsonResult
     {
-        var result = new JsonResult(json['type'] as string);
+        var result = new JsonResult(json['type'] as string, json['queryString'] as string);
         return result;
     }
 }
