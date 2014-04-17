@@ -48,7 +48,7 @@ define(['oktavia'], function (oktavia) {
 ### Use via standard JSX function
 
 ```html
-<script src="oktavia.js}}" type="text/javascript"></script>
+<script src="oktavia.js" type="text/javascript"></script>
 <script type="text/javascript">
 window.onload = function () {
     var classObj = JSX.require("src/oktavia.js").oktavia;
@@ -60,7 +60,7 @@ window.onload = function () {
 ### Use via global variables
 
 ```html
-<script src="oktavia.global.js}}" type="text/javascript"></script>
+<script src="oktavia.global.js" type="text/javascript"></script>
 <script type="text/javascript">
 window.onload = function () {
     var obj = new oktavia.oktavia();
