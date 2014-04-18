@@ -161,7 +161,7 @@ class OktaviaSearchRuntime
         this._oktavia.load(Base64.to16bitString(Base64.atob(index)));
     }
 
-    function search (queryString : string) : JsonResult
+    __export__ function search (queryString : string) : JsonResult
     {
         if (this._resultCaches.hasOwnProperty(queryString))
         {
@@ -193,7 +193,7 @@ class OktaviaSearchRuntime
         return result;
     }
 
-    function getPage(queryString : string, page : int) : JsonResult
+    __export__ function getPage(queryString : string, page : int) : JsonResult
     {
         if (this._resultCaches.hasOwnProperty(queryString))
         {
