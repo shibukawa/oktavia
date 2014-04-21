@@ -147,6 +147,7 @@ class _HTMLHandler extends SAXHandler
                 }
                 break;
             }
+            this.stack.pop();
             if (this.stack.length == 0)
             {
                 this.startParse = false;
