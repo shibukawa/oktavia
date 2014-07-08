@@ -260,7 +260,7 @@ class OktaviaSearchRuntime
             if (split)
             {
                 text = content.slice(0, Math.floor(num / 2))
-                    + ' ...<br/>' + content.slice(-Math.floor(num / 2), end - start);
+                    + ' ...<br/>' + content.slice(end - start - Math.floor(num / 2), end - start);
             }
             else
             {
