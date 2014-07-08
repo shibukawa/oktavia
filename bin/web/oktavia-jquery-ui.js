@@ -124,24 +124,12 @@
      *
      * This code is based on: http://os0x.hatenablog.com/entry/20080827/1219815828
      * @param {string} src A JavaScript source file path
-     * @param {function} callback It is called when the target JavaScript file is loaded
      * @memberOf SearchView.prototype
      * @method
      */
-    SearchView.prototype.loadJavaScript = function (src, callback) {
+    SearchView.prototype.loadJavaScript = function (src) {
         var sc = document.createElement('script');
         sc.type = 'text/javascript';
-        if (window.ActiveXObject) {
-            sc.onreadystatechange = function () {
-                if (sc.readyState === 'complete' || sc.readyState === 'loaded') {
-                    callback(sc.readyState);
-                }
-            };
-        } else {
-            sc.onload = function () {
-                callback('onload');
-            };
-        }
         sc.src = src;
         document.body.appendChild(sc);
     };
