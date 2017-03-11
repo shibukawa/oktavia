@@ -90,7 +90,7 @@ Build
 
 .. code-block:: bash
 
-   $ npm build
+   $ npm run build
 
 Run test
 ~~~~~~~~
