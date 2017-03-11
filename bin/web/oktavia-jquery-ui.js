@@ -401,7 +401,7 @@
             case 191: // / : focus form
                 eraseResultWindow();
                 var form = $('form.oktavia_form:first input.search');
-                if ($(':focus', form).size() === 0) {
+                if ($(':focus', form).length === 0) {
                     form.focus();
                 }
                 break;
@@ -411,7 +411,7 @@
             case 76: // l : next page
             case 13: // enter : select
                 var result = $('.oktavia_searchresult_box:visible:first');
-                if (result.size() === 1)
+                if (result.length === 1)
                 {
                     switch (event.keyCode)
                     {
@@ -454,7 +454,7 @@
 
 jQuery(document).ready(function () {
     var form = jQuery('#oktavia_search_form');
-    if (form.size() > 0)
+    if (form.length > 0)
     {
         form.oktaviaSearch();
     }
